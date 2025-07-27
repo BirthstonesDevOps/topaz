@@ -3,11 +3,32 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "ng serve",
+      "name": "ng serve - beta",
       "type": "chrome",
       "request": "launch",
-      "preLaunchTask": "npm: start",
+      "preLaunchTask": "ng serve - beta",
       "url": "http://localhost:4200/"
+    },
+    {
+      "name": "ng serve - development",
+      "type": "chrome",
+      "request": "launch",
+      "preLaunchTask": "ng serve - development",
+      "url": "http://localhost:4201/"
+    },
+    {
+      "name": "ng serve - qa",
+      "type": "chrome",
+      "request": "launch",
+      "preLaunchTask": "ng serve - qa",
+      "url": "http://localhost:4202/"
+    },
+    {
+      "name": "ng serve - production",
+      "type": "chrome",
+      "request": "launch",
+      "preLaunchTask": "ng serve - production",
+      "url": "http://localhost:4203/"
     },
     {
       "name": "ng test",
