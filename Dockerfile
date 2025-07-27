@@ -5,7 +5,7 @@ RUN echo "@birthstonesdevops:registry=https://npm.pkg.github.com/"   > /root/.np
     echo "//npm.pkg.github.com/:_authToken=${GH_PKG_TOKEN}"           >> /root/.npmrc
 
 WORKDIR /app
-RUN npm install -g @angular/cli@19.2.3
+RUN npm install -g @angular/cli
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
