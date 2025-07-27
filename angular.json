@@ -49,7 +49,27 @@
               ],
               "outputHashing": "all"
             },
+            "qa": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all"
+            },
             "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            },
+            "beta": {
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
@@ -63,8 +83,14 @@
             "production": {
               "buildTarget": "topaz:build:production"
             },
+            "qa": {
+              "buildTarget": "topaz:build:qa"
+            },
             "development": {
               "buildTarget": "topaz:build:development"
+            },
+            "beta": {
+              "buildTarget": "topaz:build:beta"
             }
           },
           "defaultConfiguration": "development"

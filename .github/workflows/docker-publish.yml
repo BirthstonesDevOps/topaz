@@ -56,6 +56,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            BUILD_CONFIGURATION=${{ env.BRANCH_SUFFIX == 'prod' && 'production' || env.BRANCH_SUFFIX == 'qa' && 'qa' || env.BRANCH_SUFFIX == 'dev' && 'testing' }}
+            BUILD_CONFIGURATION=${{ env.BRANCH_SUFFIX == 'prod' && 'production' || env.BRANCH_SUFFIX == 'qa' && 'qa' || env.BRANCH_SUFFIX == 'dev' && 'development' || env.BRANCH_SUFFIX == 'beta' && 'beta' || 'production' }}
             NUGET_PASSWORD=${{ secrets.NUGET_PACKAGE_TOKEN }}
             GH_PKG_TOKEN=${{ secrets.GH_PKG_TOKEN }}
