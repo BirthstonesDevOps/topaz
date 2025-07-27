@@ -1,6 +1,6 @@
 # Topaz
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.1.0.
+This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.2.15.
 
 ## Development server
 

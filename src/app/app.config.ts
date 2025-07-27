@@ -1,4 +1,4 @@
-import { ApplicationConfig, importProvidersFrom, provideBrowserGlobalErrorListeners, provideZoneChangeDetection } from '@angular/core';
+import { ApplicationConfig, importProvidersFrom, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
@@ -10,8 +10,7 @@ import { ApiModule as OrganizationsServiceModule, Configuration as Organizations
 import { ApiModule as OrdersServiceModule, Configuration as OrdersServiceConfiguration, ConfigurationParameters as OrdersServiceConfigurationParameters } from '@birthstonesdevops/topaz.backend.ordersservice';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { providePrimeNG } from 'primeng/config';
-import Aura from '@primeuix/themes/aura';
-
+import Aura from '@primeng/themes/aura';
 
 export function OrganizationServiceFactory(): OrganizationsServiceConfiguration {
   const params: OrganizationsServiceConfigurationParameters = {
@@ -36,9 +35,7 @@ export function OrdersServiceFactory(): OrdersServiceConfiguration {
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    // Angular
-    provideBrowserGlobalErrorListeners(),
-    provideZoneChangeDetection({ eventCoalescing: true }),
+    provideZoneChangeDetection({ eventCoalescing: true }), 
     provideRouter(routes),
     // HTTP
     provideHttpClient(),
@@ -51,6 +48,7 @@ export const appConfig: ApplicationConfig = {
     // PrimeNG
     provideAnimationsAsync(),
     providePrimeNG({
+      ripple: true,
       theme: {
           preset: Aura
       }
