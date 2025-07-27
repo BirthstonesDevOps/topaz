@@ -8,6 +8,9 @@ import { environment } from '../environments/environment';
 import { ApiModule as ItemsServiceModule, Configuration as ItemsServiceConfiguration, ConfigurationParameters as ItemsServiceConfigurationParameters } from '@birthstonesdevops/topaz.backend.itemsservice';
 import { ApiModule as OrganizationsServiceModule, Configuration as OrganizationsServiceConfiguration, ConfigurationParameters as OrganizationsServiceConfigurationParameters} from '@birthstonesdevops/topaz.backend.organizationservice';
 import { ApiModule as OrdersServiceModule, Configuration as OrdersServiceConfiguration, ConfigurationParameters as OrdersServiceConfigurationParameters } from '@birthstonesdevops/topaz.backend.ordersservice';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { providePrimeNG } from 'primeng/config';
+import Aura from '@primeuix/themes/aura';
 
 
 export function OrganizationServiceFactory(): OrganizationsServiceConfiguration {
@@ -33,14 +36,24 @@ export function OrdersServiceFactory(): OrdersServiceConfiguration {
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    // Angular
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
+    // HTTP
     provideHttpClient(),
+    // Services
     importProvidersFrom(
       OrganizationsServiceModule.forRoot(OrganizationServiceFactory),
       ItemsServiceModule.forRoot(ItemsServiceFactory),
       OrdersServiceModule.forRoot(OrdersServiceFactory)
-    )
+    ),
+    // PrimeNG
+    provideAnimationsAsync(),
+    providePrimeNG({
+      theme: {
+          preset: Aura
+      }
+    }),
   ]
 };
