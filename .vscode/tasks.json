@@ -37,6 +37,86 @@
           }
         }
       }
+    },
+    {
+      "label": "ng serve - beta",
+      "type": "shell",
+      "command": "ng",
+      "args": ["serve", "--configuration=beta", "--port=4200"],
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "typescript",
+        "pattern": "$tsc",
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": {
+            "regexp": "(.*?)"
+          },
+          "endsPattern": {
+            "regexp": "bundle generation complete"
+          }
+        }
+      }
+    },
+    {
+      "label": "ng serve - development",
+      "type": "shell",
+      "command": "ng",
+      "args": ["serve", "--configuration=development", "--port=4201"],
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "typescript",
+        "pattern": "$tsc",
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": {
+            "regexp": "(.*?)"
+          },
+          "endsPattern": {
+            "regexp": "bundle generation complete"
+          }
+        }
+      }
+    },
+    {
+      "label": "ng serve - qa",
+      "type": "shell",
+      "command": "ng",
+      "args": ["serve", "--configuration=qa", "--port=4202"],
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "typescript",
+        "pattern": "$tsc",
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": {
+            "regexp": "(.*?)"
+          },
+          "endsPattern": {
+            "regexp": "bundle generation complete"
+          }
+        }
+      }
+    },
+    {
+      "label": "ng serve - production",
+      "type": "shell",
+      "command": "ng",
+      "args": ["serve", "--configuration=production", "--port=4203"],
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "typescript",
+        "pattern": "$tsc",
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": {
+            "regexp": "(.*?)"
+          },
+          "endsPattern": {
+            "regexp": "bundle generation complete"
+          }
+        }
+      }
     }
   ]
 }
