@@ -395,10 +395,7 @@ export class ProvidersComponent implements OnInit {
     this.tempNotes.splice(index, 1);
   }
 
-  exportCSV(): void {
-    // TODO: Implement CSV export functionality
-    console.log('Export providers to CSV');
-  }
+
 
   collapseAll(): void {
     if (this.accordion) {

@@ -37,9 +37,7 @@
         </div>
     </ng-template>
 
-    <ng-template #end>
-        <p-button label="Exportar" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
-    </ng-template>
+
 </p-toolbar>
 
 <div *ngIf="!loading && providers().length > 0 && filteredProviders().length === 0" class="card">

@@ -1,11 +1,3 @@
-.information-icon-size {
-    font-size: 1.5rem !important;
-}
-
-.note-item, .phone-item {
-    background-color: var(--surface-ground);
-}
-
 ::ng-deep .custom-spinner .p-progressspinner-circle {
     stroke: var(--primary-color) !important;
     stroke-dasharray: 89, 200 !important;
