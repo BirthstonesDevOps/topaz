@@ -52,12 +52,9 @@ interface ExportColumn {
         ConfirmDialogModule
     ],
     template: `
-        <div class="grid">
-            <div class="col-12">
-                <div class="card px-6 py-6">
-                    <p-toast></p-toast>
-                    
-                    <p-toolbar styleClass="mb-6">
+        <p-toast></p-toast>
+        
+        <p-toolbar styleClass="mb-6">
                         <ng-template #start>
                             <p-button label="Nuevo" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openNew()" />
                             <p-button severity="secondary" label="Eliminar" icon="pi pi-trash" outlined (onClick)="deleteSelectedDepartments()" [disabled]="!selectedDepartments || !selectedDepartments.length" />
@@ -169,10 +166,7 @@ interface ExportColumn {
                         </ng-template>
                     </p-dialog>
 
-                    <p-confirmdialog [style]="{ width: '450px' }" />
-                </div>
-            </div>
-        </div>
+        <p-confirmdialog [style]="{ width: '450px' }" />
     `,
     providers: [MessageService, ConfirmationService]
 })
