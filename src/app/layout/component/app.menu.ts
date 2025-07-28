@@ -20,7 +20,7 @@ export class AppMenu {
     topazMenu: MenuItem[] = [];
 
     ngOnInit() {
-        this.model = [
+        this.topazMenu = [
             {
                 label: 'Home',
                 items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/'] }]
@@ -48,7 +48,7 @@ export class AppMenu {
             }
         ];
 
-        this.topazMenu = [
+        this.model = [
             {
                 label: 'UI Components',
                 items: [
