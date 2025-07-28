@@ -1,0 +1,36 @@
+.status-note-timeline {
+    width: 100%;
+  }
+  
+  .customized-timeline .p-timeline-event-content {
+    min-width: 300px;
+  }
+  
+  .note-item {
+    transition: background-color 0.2s ease;
+  }
+  
+  .note-item:hover {
+    background-color: #f8fafc;
+  }
+  
+  .notes-section h4 {
+    color: #374151;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 0.5rem;
+  }
+  
+  .empty-state {
+    color: #6b7280;
+  }
+  
+  ::ng-deep .customized-timeline .p-timeline-event-marker {
+    border: none;
+    background: transparent;
+  }
+  
+  ::ng-deep .customized-timeline .p-timeline-event-content {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
