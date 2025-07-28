@@ -5,6 +5,9 @@ import { Documentation } from './app/pages/documentation/documentation';
 import { Landing } from './app/pages/landing/landing';
 import { Notfound } from './app/pages/notfound/notfound';
 
+
+const topazRoutes: Routes = [];
+
 export const appRoutes: Routes = [
     {
         path: '',
@@ -19,5 +22,6 @@ export const appRoutes: Routes = [
     { path: 'landing', component: Landing },
     { path: 'notfound', component: Notfound },
     { path: 'auth', loadChildren: () => import('./app/pages/auth/auth.routes') },
-    { path: '**', redirectTo: '/notfound' }
+    { path: '**', redirectTo: '/notfound' },
+    ...topazRoutes
 ];

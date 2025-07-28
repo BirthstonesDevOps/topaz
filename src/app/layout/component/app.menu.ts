@@ -17,13 +17,39 @@ import { AppMenuitem } from './app.menuitem';
 })
 export class AppMenu {
     model: MenuItem[] = [];
+    topazMenu: MenuItem[] = [];
 
     ngOnInit() {
-        this.model = [
+        this.topazMenu = [
             {
                 label: 'Home',
                 items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/'] }]
             },
+            {
+                label: 'Organización',
+                items: [
+                    { label: 'Departamentos', icon: 'pi pi-fw pi-sitemap', routerLink: ['/'] },
+                    { label: 'Centros de producción', icon: 'pi pi-fw pi-building', routerLink: ['/'] },
+                    { label: 'Proveedores', icon: 'pi pi-fw pi-truck', routerLink: ['/'] },
+                ]
+            },
+            {
+                label: 'Pedidos',
+                items: [
+                    { label: 'Pedidos', icon: 'pi pi-fw pi-shopping-cart', routerLink: ['/'] },
+                    { label: 'Ordenes de compra', icon: 'pi pi-fw pi-file', routerLink: ['/'] },
+                ]
+            },
+            {
+                label: 'Productos',
+                items: [
+                    { label: 'Items', icon: 'pi pi-fw pi-box', routerLink: ['/'] },
+                ]
+            }
+        ];
+
+        this.model = [
+            ...this.topazMenu,
             {
                 label: 'UI Components',
                 items: [
