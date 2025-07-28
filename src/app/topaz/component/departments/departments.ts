@@ -248,10 +248,10 @@ export class Departments implements OnInit {
         this.locationService.locationGetAll().subscribe({
             next: (data) => {
                 this.departments.set(data);
-                //this.loading = false;
+                this.loading = false;
             },
             error: (error) => {
-                //this.loading = false;
+                this.loading = false;
                 this.messageService.add({
                     severity: 'error',
                     summary: 'Error',
@@ -340,7 +340,7 @@ export class Departments implements OnInit {
 
     private checkDeletionCompletion(completed: number, total: number, successful: number) {
         if (completed === total) {
-            //this.loading = false;
+            this.loading = false;
             
             // Refresh the departments list
             this.loadDepartments();
@@ -387,7 +387,7 @@ export class Departments implements OnInit {
                     this.loading = true;
                     this.locationService.locationDelete({ ids: [new Number(department.id)] }).subscribe({
                         next: () => {
-                            //this.loading = false;
+                            this.loading = false;
                             // Refresh the departments list
                             this.loadDepartments();
                             
@@ -406,7 +406,7 @@ export class Departments implements OnInit {
                             });
                         },
                         error: (error) => {
-                            //this.loading = false;
+                            this.loading = false;
                             this.messageService.add({
                                 severity: 'error',
                                 summary: 'Error',

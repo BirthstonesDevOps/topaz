@@ -235,10 +235,10 @@ export class Areas implements OnInit {
         this.areaService.areaGetAll().subscribe({
             next: (data) => {
                 this.areas.set(data);
-                //this.loading = false;
+                this.loading = false;
             },
             error: (error) => {
-                //this.loading = false;
+                this.loading = false;
                 this.messageService.add({
                     severity: 'error',
                     summary: 'Error',
@@ -321,7 +321,7 @@ export class Areas implements OnInit {
 
     private checkDeletionCompletion(completed: number, total: number, successful: number) {
         if (completed === total) {
-            //this.loading = false;
+            this.loading = false;
             
             // Refresh the areas list
             this.loadAreas();
@@ -368,7 +368,7 @@ export class Areas implements OnInit {
                     this.loading = true;
                     this.areaService.areaDelete({ ids: [new Number(area.id)] }).subscribe({
                         next: () => {
-                            //this.loading = false;
+                            this.loading = false;
                             // Refresh the areas list
                             this.loadAreas();
                             
@@ -384,7 +384,7 @@ export class Areas implements OnInit {
                             });
                         },
                         error: (error) => {
-                            //this.loading = false;
+                            this.loading = false;
                             this.messageService.add({
                                 severity: 'error',
                                 summary: 'Error',
