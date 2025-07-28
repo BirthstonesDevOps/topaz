@@ -1,12 +1,21 @@
 <p-toast></p-toast>
 <p-confirmDialog></p-confirmDialog>
 
-<p-toolbar styleClass="mb-6" *ngIf="!loading && items().length > 0">
+<p-toolbar styleClass="mb-6" *ngIf="!loading">
     <ng-template #start>
         <p-button label="Nuevo" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openNew()" />
     </ng-template>
 
     <ng-template #end>
+        <p-iconfield>
+            <p-inputicon styleClass="pi pi-search" />
+            <input 
+                pInputText 
+                type="text" 
+                (input)="onGlobalFilter(dt, $event)" 
+                placeholder="Buscar por código o nombre..." 
+                class="mr-2" />
+        </p-iconfield>
         <p-button label="Exportar" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
     </ng-template>
 </p-toolbar>
@@ -25,6 +34,86 @@
         <div class="text-gray-500 mb-4">No se han registrado artículos aún. Comienza agregando el primer artículo.</div>
         <p-button label="Agregar artículo" icon="pi pi-plus" severity="primary" (onClick)="openNew()"></p-button>
     </div>
+</div>
+
+<div *ngIf="!loading && items().length > 0" class="card">
+    <p-table
+        #dt
+        [value]="items()"
+        dataKey="id"
+        [rows]="10"
+        [paginator]="true"
+        [globalFilterFields]="['code', 'name']"
+        [rowHover]="true"
+        [showCurrentPageReport]="true"
+        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} artículos"
+        [rowsPerPageOptions]="[10, 20, 30]"
+        [tableStyle]="{ 'min-width': '60rem' }">
+        
+        <ng-template #header>
+            <tr>
+                <th style="min-width: 12rem">Código</th>
+                <th style="min-width: 16rem">Nombre</th>
+                <th style="min-width: 10rem">Unidad de Medida</th>
+                <th style="min-width: 12rem">Categoría</th>
+                <th style="min-width: 8rem">Precios</th>
+                <th style="min-width: 10rem">Acciones</th>
+            </tr>
+        </ng-template>
+
+        <ng-template #body let-item>
+            <tr>
+                <td>
+                    <span class="font-mono text-sm bg-surface-100 px-2 py-1 rounded">{{ item.code || 'N/A' }}</span>
+                </td>
+                <td class="font-semibold">{{ item.name }}</td>
+                <td>{{ item.measurement || '-' }}</td>
+                <td>
+                    <p-tag 
+                        [value]="item.category?.name || 'Sin categoría'" 
+                        severity="info"
+                        [rounded]="true">
+                    </p-tag>
+                </td>
+                <td>
+                    <span 
+                        class="bg-primary-100 text-primary-800 px-2 py-1 rounded-full text-sm font-medium cursor-pointer hover:bg-primary-200 transition-colors"
+                        (click)="viewItemPrices(item)"
+                        pTooltip="Click para ver precios">
+                        {{ item.itemPrices?.length || 0 }} precio(s)
+                    </span>
+                </td>
+                <td>
+                    <div class="flex gap-2">
+                        <p-button 
+                            icon="pi pi-eye" 
+                            severity="secondary" 
+                            [rounded]="true" 
+                            [outlined]="true" 
+                            (onClick)="viewItemDescription(item)" 
+                            pTooltip="Ver descripción" />
+                        <p-button 
+                            icon="pi pi-trash" 
+                            severity="danger" 
+                            [rounded]="true" 
+                            [outlined]="true" 
+                            (onClick)="deleteItem(item)" 
+                            pTooltip="Eliminar artículo" />
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template #emptymessage>
+            <tr>
+                <td colspan="6" class="text-center p-6">
+                    <i class="pi pi-search text-surface-400 text-4xl mb-4"></i>
+                    <div class="text-surface-600 font-medium text-lg">No se encontraron artículos</div>
+                    <div class="text-surface-500">Intenta ajustar los filtros de búsqueda.</div>
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
 </div>
 
 <p-dialog 
@@ -186,6 +275,283 @@
             label="Guardar" 
             icon="pi pi-check" 
             (onClick)="saveItem()">
+        </p-button>
+    </ng-template>
+</p-dialog>
+
+<!-- Add Price Dialog -->
+<p-dialog 
+    [(visible)]="addPriceDialog" 
+    [style]="{ width: '500px' }" 
+    [header]="'Agregar Precio - ' + selectedItem.name" 
+    [modal]="true" 
+    [draggable]="false"
+    [resizable]="false"
+    appendTo="body">
+    
+    <ng-template pTemplate="content">
+        <p-fluid>
+            <div class="flex flex-col gap-4">
+                <div class="flex flex-col gap-2">
+                    <label for="priceProvider">Proveedor *</label>
+                    <p-select 
+                        id="priceProvider"
+                        [(ngModel)]="newPrice.providerId"
+                        [options]="providers()"
+                        optionLabel="name"
+                        optionValue="id"
+                        placeholder="Seleccionar proveedor"
+                        [filter]="true"
+                        filterBy="name"
+                        appendTo="body">
+                    </p-select>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label for="priceCurrency">Moneda *</label>
+                    <p-select 
+                        id="priceCurrency"
+                        [(ngModel)]="newPrice.currencyId"
+                        [options]="currencies()"
+                        optionLabel="name"
+                        optionValue="id"
+                        placeholder="Seleccionar moneda"
+                        [filter]="true"
+                        filterBy="name"
+                        appendTo="body">
+                    </p-select>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label for="priceAmount">Precio *</label>
+                    <p-inputNumber 
+                        id="priceAmount"
+                        [(ngModel)]="newPrice.price"
+                        mode="decimal"
+                        [minFractionDigits]="2"
+                        [maxFractionDigits]="2"
+                        placeholder="0.00">
+                    </p-inputNumber>
+                </div>
+            </div>
+        </p-fluid>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+        <p-button 
+            label="Cancelar" 
+            icon="pi pi-times" 
+            [text]="true" 
+            (onClick)="hideDialog()">
+        </p-button>
+        <p-button 
+            label="Agregar" 
+            icon="pi pi-check" 
+            (onClick)="savePriceToItem()">
+        </p-button>
+    </ng-template>
+</p-dialog>
+
+<!-- View Prices Dialog -->
+<p-dialog 
+    [(visible)]="viewPricesDialog" 
+    [style]="{ width: '700px', height: '70vh', 'min-height': '500px' }" 
+    [header]="'Precios - ' + selectedItemForPrices.name" 
+    [modal]="true" 
+    [draggable]="false"
+    [resizable]="false"
+    appendTo="body">
+    
+    <ng-template pTemplate="content">
+        <div class="flex flex-col gap-4">
+            <!-- Search Bar -->
+            <div class="flex items-center gap-2">
+                <p-iconfield class="flex-1">
+                    <p-inputicon styleClass="pi pi-search" />
+                    <input 
+                        pInputText 
+                        type="text" 
+                        [(ngModel)]="priceSearchTerm"
+                        (input)="filterPrices()"
+                        placeholder="Buscar por proveedor..." 
+                        class="w-full" />
+                </p-iconfield>
+                <p-button 
+                    icon="pi pi-times" 
+                    [text]="true" 
+                    [rounded]="true"
+                    (onClick)="clearPriceSearch()"
+                    pTooltip="Limpiar búsqueda"
+                    *ngIf="priceSearchTerm">
+                </p-button>
+                <p-button 
+                    label="Agregar Precio" 
+                    icon="pi pi-plus" 
+                    severity="secondary" 
+                    size="small"
+                    (onClick)="addPriceToItem(selectedItemForPrices)">
+                </p-button>
+            </div>
+
+            <!-- Prices Table -->
+            <div *ngIf="filteredPrices.length > 0">
+                <p-table 
+                    [value]="filteredPrices" 
+                    [tableStyle]="{ 'width': '100%' }"
+                    styleClass="p-datatable-sm compact-table">
+                    
+                    <ng-template #header>
+                        <tr>
+                            <th style="width: 35%">Proveedor</th>
+                            <th style="width: 15%">Moneda</th>
+                            <th style="width: 20%">Precio</th>
+                            <th style="width: 25%">Actualización</th>
+                            <th style="width: 5%"></th>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template #body let-price>
+                        <tr>
+                            <td>
+                                <span class="font-medium">{{ getProviderName(price.providerId) }}</span>
+                            </td>
+                            <td>
+                                <span class="font-mono bg-surface-100 px-1 py-0.5 rounded text-surface-700 text-xs">
+                                    {{ getCurrencyIsoCode(price.currencyId) }}
+                                </span>
+                            </td>
+                            <td class="font-bold">
+                                {{ getCurrencySymbol(price.currencyId) }}{{ price.price | number:'1.2-2' }}
+                            </td>
+                            <td class="text-surface-500">
+                                {{ price.updatedAt ? (price.updatedAt | date:'M/d/yy, H:mm') : (price.createdAt | date:'M/d/yy, H:mm') }}
+                            </td>
+                            <td class="text-center">
+                                <p-button 
+                                    icon="pi pi-trash" 
+                                    severity="danger" 
+                                    size="small"
+                                    [text]="true"
+                                    [rounded]="true"
+                                    (onClick)="deletePriceFromItem(price, selectedItemForPrices)"
+                                    pTooltip="Eliminar precio">
+                                </p-button>
+                            </td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+            </div>
+
+            <!-- No Prices Message -->
+            <div *ngIf="filteredPrices.length === 0" class="text-center p-6 bg-surface-50 rounded-lg">
+                <i class="pi pi-money-bill text-surface-400 text-4xl mb-4"></i>
+                <div class="text-surface-600 font-medium text-lg mb-2">
+                    {{ priceSearchTerm ? 'No se encontraron precios' : 'Sin precios registrados' }}
+                </div>
+                <div class="text-surface-500 mb-4">
+                    {{ priceSearchTerm ? 'Intenta ajustar el filtro de búsqueda.' : 'No hay precios definidos para este artículo.' }}
+                </div>
+                <p-button 
+                    label="Agregar Precio" 
+                    icon="pi pi-plus" 
+                    severity="primary" 
+                    (onClick)="addPriceToItem(selectedItemForPrices)"
+                    *ngIf="!priceSearchTerm">
+                </p-button>
+            </div>
+        </div>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+        <p-button 
+            label="Cerrar" 
+            icon="pi pi-times" 
+            [text]="true" 
+            (onClick)="hideDialog()">
+        </p-button>
+    </ng-template>
+</p-dialog>
+
+<!-- View Description Dialog -->
+<p-dialog 
+    [(visible)]="viewDescriptionDialog" 
+    [style]="{ width: '600px' }" 
+    [header]="'Descripción - ' + selectedItemForDescription.name" 
+    [modal]="true" 
+    [draggable]="false"
+    [resizable]="false"
+    appendTo="body">
+    
+    <ng-template pTemplate="content">
+        <div class="flex flex-col gap-4">
+            <!-- Item Basic Info -->
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="font-semibold text-sm text-surface-600">Código</label>
+                    <p class="mt-1 font-mono text-sm bg-surface-100 px-2 py-1 rounded">
+                        {{ selectedItemForDescription.code || 'N/A' }}
+                    </p>
+                </div>
+                <div>
+                    <label class="font-semibold text-sm text-surface-600">Unidad de Medida</label>
+                    <p class="mt-1">{{ selectedItemForDescription.measurement || '-' }}</p>
+                </div>
+            </div>
+
+            <div>
+                <label class="font-semibold text-sm text-surface-600">Categoría</label>
+                <div class="mt-1">
+                    <p-tag 
+                        [value]="selectedItemForDescription.category?.name || 'Sin categoría'" 
+                        severity="info"
+                        [rounded]="true">
+                    </p-tag>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div>
+                <label class="font-semibold text-sm text-surface-600">Descripción</label>
+                <div class="mt-2">
+                    <div *ngIf="selectedItemForDescription.description" 
+                         class="p-4 bg-surface-50 rounded-lg border-l-4 border-primary-500">
+                        <p class="text-surface-700 m-0 leading-relaxed">
+                            {{ selectedItemForDescription.description }}
+                        </p>
+                    </div>
+                    <div *ngIf="!selectedItemForDescription.description" 
+                         class="text-center p-6 bg-surface-50 rounded-lg">
+                        <i class="pi pi-file-edit text-surface-400 text-3xl mb-2"></i>
+                        <div class="text-surface-600 font-medium">Sin descripción</div>
+                        <small class="text-surface-500">No se ha agregado una descripción para este artículo.</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timestamps -->
+            <div class="grid grid-cols-2 gap-4 pt-4 border-t border-surface-200">
+                <div>
+                    <label class="font-semibold text-sm text-surface-600">Creado</label>
+                    <p class="mt-1 text-sm text-surface-500">
+                        {{ selectedItemForDescription.createdAt | date:'medium' }}
+                    </p>
+                </div>
+                <div *ngIf="selectedItemForDescription.updatedAt">
+                    <label class="font-semibold text-sm text-surface-600">Última actualización</label>
+                    <p class="mt-1 text-sm text-surface-500">
+                        {{ selectedItemForDescription.updatedAt | date:'medium' }}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+        <p-button 
+            label="Cerrar" 
+            icon="pi pi-times" 
+            [text]="true" 
+            (onClick)="hideDialog()">
         </p-button>
     </ng-template>
 </p-dialog>

@@ -1,11 +1,11 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from "primeng/toast";
 import { ToolbarModule } from "primeng/toolbar";
 import { ButtonModule } from "primeng/button";
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { ItemDetailsResponseModel, CreateItemRequestModel, CreatePriceRequestModel } from '@birthstonesdevops/topaz.backend.itemsservice';
+import { ItemDetailsResponseModel, CreateItemRequestModel, CreatePriceRequestModel, ItemService, DeleteRequest, ItemPriceService, ItemPriceRequestModel } from '@birthstonesdevops/topaz.backend.itemsservice';
 import { ProviderService, ProviderResponseModel } from '@birthstonesdevops/topaz.backend.organizationservice';
 import { CategoryService, CategoryResponseModel, CurrencyService, CurrencyResponseModel } from '@birthstonesdevops/topaz.backend.itemsservice';
 import { forkJoin } from 'rxjs';
@@ -19,6 +19,12 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { FormsModule } from '@angular/forms';
 import { FluidModule } from 'primeng/fluid';
 import { TreeNode } from 'primeng/api';
+import { Table, TableModule } from 'primeng/table';
+import { InputIconModule } from 'primeng/inputicon';
+import { IconFieldModule } from 'primeng/iconfield';
+import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
+import { RippleModule } from 'primeng/ripple';
 
 export interface CategoryTreeModel {
   id: number;
@@ -31,6 +37,8 @@ export interface PriceFormModel {
   currencyId?: number;
   price?: number;
 }
+
+
 
 @Component({
   selector: 'app-items',
@@ -48,7 +56,13 @@ export interface PriceFormModel {
     SelectModule,
     InputNumberModule,
     FormsModule,
-    FluidModule
+    FluidModule,
+    TableModule,
+    InputIconModule,
+    IconFieldModule,
+    TagModule,
+    TooltipModule,
+    RippleModule
   ],
   templateUrl: './items.component.html',
   styleUrl: './items.component.css',
@@ -62,8 +76,11 @@ export class ItemsComponent implements OnInit {
   categories = signal<CategoryTreeModel[]>([]);
   currencies = signal<CurrencyResponseModel[]>([]);
 
-  // Dialog state
+  // Dialog states
   itemDialog: boolean = false;
+  addPriceDialog: boolean = false;
+  viewPricesDialog: boolean = false;
+  viewDescriptionDialog: boolean = false;
   submitted: boolean = false;
 
   // Form models
@@ -72,12 +89,28 @@ export class ItemsComponent implements OnInit {
   selectedCategoryNode: TreeNode | null = null;
   prices: PriceFormModel[] = [];
 
+  // Price management
+  selectedItem: ItemDetailsResponseModel = {};
+  newPrice: CreatePriceRequestModel = {};
+
+  // Price viewing
+  selectedItemForPrices: ItemDetailsResponseModel = {};
+  priceSearchTerm: string = '';
+  filteredPrices: any[] = [];
+
+  // Description viewing
+  selectedItemForDescription: ItemDetailsResponseModel = {};
+
+  @ViewChild('dt') dt!: Table;
+
   constructor(
     private messageService: MessageService,
     private confirmationService: ConfirmationService,
     private providerService: ProviderService,
     private categoryService: CategoryService,
-    private currencyService: CurrencyService
+    private currencyService: CurrencyService,
+    private itemService: ItemService,
+    private itemPriceService: ItemPriceService
   ) {}
 
   ngOnInit(): void {
@@ -90,15 +123,17 @@ export class ItemsComponent implements OnInit {
     forkJoin({
       providers: this.providerService.providerGetAll(),
       categories: this.categoryService.categoryGetAll(),
-      currencies: this.currencyService.currencyGetAll()
+      currencies: this.currencyService.currencyGetAll(),
+      items: this.itemService.itemGetAllItemsDetails()
     }).subscribe({
       next: (data) => {
         this.providers.set(data.providers);
         this.categories.set(this.buildCategoryTree(data.categories));
         this.categoryTreeNodes.set(this.convertToTreeNodes(this.categories()));
         this.currencies.set(data.currencies);
+        this.items.set(data.items);
         this.loading = false;
-        console.log(this.categories());
+        console.log('Loaded items:', data.items);
       },
       error: (error) => {
         console.error('Error loading initial data:', error);
@@ -162,6 +197,64 @@ export class ItemsComponent implements OnInit {
     }));
   }
 
+  onGlobalFilter(table: Table, event: Event) {
+    table.filterGlobal((event.target as HTMLInputElement).value, 'contains');
+  }
+
+  getProviderName(providerId?: number): string {
+    const provider = this.providers().find(p => p.id === providerId);
+    return provider?.name || 'Proveedor desconocido';
+  }
+
+  getCurrencyName(currencyId?: number): string {
+    const currency = this.currencies().find(c => c.id === currencyId);
+    return currency?.name || 'Moneda desconocida';
+  }
+
+  getCurrencySymbol(currencyId?: number): string {
+    const currency = this.currencies().find(c => c.id === currencyId);
+    return currency?.symbol || '$';
+  }
+
+  getCurrencyIsoCode(currencyId?: number): string {
+    const currency = this.currencies().find(c => c.id === currencyId);
+    return currency?.isoCode || 'N/A';
+  }
+
+  // Price viewing functionality
+  viewItemPrices(item: ItemDetailsResponseModel) {
+    this.selectedItemForPrices = item;
+    this.priceSearchTerm = '';
+    this.filteredPrices = item.itemPrices || [];
+    this.viewPricesDialog = true;
+  }
+
+  filterPrices() {
+    if (!this.priceSearchTerm) {
+      this.filteredPrices = this.selectedItemForPrices.itemPrices || [];
+      return;
+    }
+
+    const searchTerm = this.priceSearchTerm.toLowerCase();
+    this.filteredPrices = (this.selectedItemForPrices.itemPrices || []).filter(price => {
+      const providerName = this.getProviderName(price.providerId).toLowerCase();
+      return providerName.includes(searchTerm);
+    });
+  }
+
+  clearPriceSearch() {
+    this.priceSearchTerm = '';
+    this.filteredPrices = this.selectedItemForPrices.itemPrices || [];
+  }
+
+  // Description viewing functionality
+  viewItemDescription(item: ItemDetailsResponseModel) {
+    this.selectedItemForDescription = item;
+    this.viewDescriptionDialog = true;
+  }
+
+
+  // Item CRUD operations
   openNew() {
     this.itemForm = { categoryId: 0 };
     this.selectedCategoryNode = null;
@@ -170,11 +263,67 @@ export class ItemsComponent implements OnInit {
     this.itemDialog = true;
   }
 
+
+
+  deleteItem(item: ItemDetailsResponseModel) {
+    this.confirmationService.confirm({
+      message: `¿Está seguro de que desea eliminar el artículo "${item.name}"?`,
+      header: 'Confirmar Eliminación',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        if (item.id) {
+          const deleteRequest: DeleteRequest = {
+            ids: [new Number(item.id)]
+          };
+          
+          this.itemService.itemDelete(deleteRequest).subscribe({
+            next: () => {
+              this.items.set(this.items().filter(i => i.id !== item.id));
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Éxito',
+                detail: 'Artículo eliminado correctamente',
+                life: 3000
+              });
+            },
+            error: (error) => {
+              console.error('Error deleting item:', error);
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Error al eliminar el artículo',
+                life: 3000
+              });
+            }
+          });
+        }
+      }
+    });
+  }
+
   hideDialog() {
     this.itemDialog = false;
+    this.addPriceDialog = false;
+    this.viewPricesDialog = false;
+    this.viewDescriptionDialog = false;
+    this.submitted = false;
+    this.resetForm();
+  }
+
+  private resetForm() {
+    this.itemForm = { categoryId: 0 };
+    this.selectedCategoryNode = null;
+    this.prices = [];
+    this.newPrice = {};
+    this.selectedItem = {};
+    this.selectedItemForPrices = {};
+    this.selectedItemForDescription = {};
+    this.priceSearchTerm = '';
+    this.filteredPrices = [];
     this.submitted = false;
   }
 
+  // Price management for new items
   addPrice() {
     this.prices.push({
       providerId: undefined,
@@ -187,6 +336,90 @@ export class ItemsComponent implements OnInit {
     this.prices.splice(index, 1);
   }
 
+  // Price management for existing items
+  addPriceToItem(item: ItemDetailsResponseModel) {
+    this.selectedItem = item;
+    this.newPrice = {};
+    this.addPriceDialog = true;
+  }
+
+  savePriceToItem() {
+    if (!this.newPrice.providerId || !this.newPrice.currencyId || !this.newPrice.price) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'Todos los campos del precio son requeridos'
+      });
+      return;
+    }
+
+    const itemPriceRequest: ItemPriceRequestModel = {
+      itemId: this.selectedItemForPrices.id!,
+      providerId: this.newPrice.providerId,
+      currencyId: this.newPrice.currencyId,
+      price: this.newPrice.price
+    };
+
+    this.itemPriceService.itemPriceCreate(itemPriceRequest).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Precio agregado correctamente',
+          life: 3000
+        });
+        this.loadInitialData(); // Refresh data to show new price
+        this.hideDialog();
+      },
+      error: (error) => {
+        console.error('Error saving price:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Error al agregar el precio',
+          life: 3000
+        });
+      }
+    });
+  }
+
+  deletePriceFromItem(price: any, item: ItemDetailsResponseModel) {
+    this.confirmationService.confirm({
+      message: `¿Está seguro de que desea eliminar este precio del artículo "${item.name}"?`,
+      header: 'Confirmar Eliminación',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        if (price.id) {
+          const deleteRequest: DeleteRequest = {
+            ids: [new Number(price.id)]
+          };
+
+          this.itemPriceService.itemPriceDelete(deleteRequest).subscribe({
+            next: () => {
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Éxito',
+                detail: 'Precio eliminado correctamente',
+                life: 3000
+              });
+              this.loadInitialData(); // Refresh data to show updated prices
+              this.viewItemPrices(item); // Refresh prices in dialog
+            },
+            error: (error) => {
+              console.error('Error deleting price:', error);
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Error al eliminar el precio',
+                life: 3000
+              });
+            }
+          });
+        }
+      }
+    });
+  }
+
   saveItem() {
     this.submitted = true;
 
@@ -196,21 +429,34 @@ export class ItemsComponent implements OnInit {
         this.itemForm.categoryId = parseInt(this.selectedCategoryNode.key);
       }
 
-      // Set prices
+      // Set prices - filter out incomplete prices
       this.itemForm.prices = this.prices.filter(price => 
         price.providerId && price.currencyId && price.price
       );
 
-      console.log('Item to save:', this.itemForm);
-      // TODO: Implement actual save logic here
+      console.log('Creating item:', this.itemForm);
       
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Éxito',
-        detail: 'Artículo creado correctamente'
+      this.itemService.itemCreateItem(this.itemForm).subscribe({
+        next: (newItem) => {
+          this.items.set([...this.items(), newItem]);
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Éxito',
+            detail: 'Artículo creado correctamente',
+            life: 3000
+          });
+          this.hideDialog();
+        },
+        error: (error) => {
+          console.error('Error creating item:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Error al crear el artículo',
+            life: 3000
+          });
+        }
       });
-      
-      this.hideDialog();
     }
   }
 
@@ -229,6 +475,7 @@ export class ItemsComponent implements OnInit {
   }
 
   exportCSV() {
+    this.dt.exportCSV();
   }
 
 }
