@@ -12,6 +12,7 @@ import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { PaginatorModule } from 'primeng/paginator';
 import { 
   CreateProviderRequestModel, 
   ProviderDetailsResponseModel, 
@@ -45,7 +46,8 @@ import { InputIconModule } from "primeng/inputicon";
     TextareaModule,
     ConfirmDialogModule,
     IconFieldModule,
-    InputIconModule
+    InputIconModule,
+    PaginatorModule
 ],
   templateUrl: './providers.component.html',
   styleUrl: './providers.component.css',
@@ -73,6 +75,12 @@ export class ProvidersComponent implements OnInit {
   // Search
   searchTerm: string = '';
   
+  // Pagination
+  currentPage: number = 0;
+  itemsPerPage: number = 5;
+  totalItems: number = 0;
+  rowsPerPageOptions: number[] = [5, 10, 20];
+  
   // States
   @ViewChild('accordion') accordion!: Accordion;
   loading: boolean = false;
@@ -96,6 +104,8 @@ export class ProvidersComponent implements OnInit {
       next: (data) => {
         this.providers.set(data);
         this.filteredProviders.set(data); // Initialize filtered providers
+        this.totalItems = data.length;
+        this.currentPage = 0; // Reset to first page
         this.loading = false;
       },
       error: (error) => {
@@ -108,6 +118,26 @@ export class ProvidersComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  // Pagination methods
+  getPaginatedProviders(): ProviderDetailsResponseModel[] {
+    const start = this.currentPage * this.itemsPerPage;
+    const end = start + this.itemsPerPage;
+    return this.filteredProviders().slice(start, end);
+  }
+
+  onPageChange(event: any): void {
+    this.currentPage = event.page;
+    this.itemsPerPage = event.rows;
+  }
+
+  getTotalFilteredItems(): number {
+    return this.filteredProviders().length;
+  }
+
+  getCurrentPageEndRange(): number {
+    return Math.min((this.currentPage * this.itemsPerPage) + this.itemsPerPage, this.getTotalFilteredItems());
   }
 
   openNew(): void {
@@ -137,7 +167,7 @@ export class ProvidersComponent implements OnInit {
           this.providerService.providerDelete(deleteRequest).subscribe({
             next: () => {
               this.providers.set(this.providers().filter(p => p.id !== provider.id));
-              this.filteredProviders.set(this.filteredProviders().filter(p => p.id !== provider.id)); // Update filtered providers
+              this.filterProviders(); // Update filtered providers and pagination
               this.messageService.add({
                 severity: 'success',
                 summary: 'Éxito',
@@ -177,7 +207,7 @@ export class ProvidersComponent implements OnInit {
     this.providerService.providerCreateProvider(createRequest).subscribe({
       next: (newProvider) => {
         this.providers.set([...this.providers(), newProvider]);
-        this.filteredProviders.set([...this.filteredProviders(), newProvider]); // Update filtered providers
+        this.filterProviders(); // Update filtered providers and pagination
         this.messageService.add({
           severity: 'success',
           summary: 'Éxito',
@@ -220,7 +250,7 @@ export class ProvidersComponent implements OnInit {
           p.id === this.editingProvider.id ? { ...this.editingProvider } : p
         );
         this.providers.set(updatedProviders);
-        this.filteredProviders.set(updatedProviders); // Update filtered providers
+        this.filterProviders(); // Update filtered providers
         this.messageService.add({
           severity: 'success',
           summary: 'Éxito',
@@ -395,8 +425,6 @@ export class ProvidersComponent implements OnInit {
     this.tempNotes.splice(index, 1);
   }
 
-
-
   collapseAll(): void {
     if (this.accordion) {
       this.accordion.value.set([]);
@@ -424,19 +452,26 @@ export class ProvidersComponent implements OnInit {
   filterProviders(): void {
     if (!this.searchTerm) {
       this.filteredProviders.set(this.providers());
-      return;
+    } else {
+      const lowerCaseSearchTerm = this.searchTerm.toLowerCase();
+      this.filteredProviders.set(
+        this.providers().filter(provider => 
+          provider.name?.toLowerCase().includes(lowerCaseSearchTerm) || false
+        )
+      );
     }
-
-    const lowerCaseSearchTerm = this.searchTerm.toLowerCase();
-    this.filteredProviders.set(
-      this.providers().filter(provider => 
-        provider.name?.toLowerCase().includes(lowerCaseSearchTerm) || false
-      )
-    );
+    
+    // Reset to first page when filtering
+    this.currentPage = 0;
+    
+    // Update total items count
+    this.totalItems = this.filteredProviders().length;
   }
 
   clearSearch(): void {
     this.searchTerm = '';
     this.filteredProviders.set(this.providers());
+    this.currentPage = 0;
+    this.totalItems = this.providers().length;
   }
 }
