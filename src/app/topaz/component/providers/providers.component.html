@@ -9,19 +9,10 @@
 
 <div *ngIf="!loading && providers().length === 0" class="card">
     <div class="text-center">
-        <i class="pi pi-users text-6xl text-gray-400 mb-4"></i>
+        <i class="pi pi-truck big-icon text-gray-400 mb-4"></i>
         <div class="text-gray-600 font-bold text-xl mb-2">No hay proveedores</div>
         <div class="text-gray-500 mb-4">No se han registrado proveedores aún. Comienza agregando el primer proveedor.</div>
         <p-button label="Agregar proveedor" icon="pi pi-plus" severity="primary" (onClick)="openNew()"></p-button>
-    </div>
-</div>
-
-<div *ngIf="!loading && providers().length > 0 && filteredProviders().length === 0" class="card">
-    <div class="text-center">
-        <i class="pi pi-search text-6xl text-gray-400 mb-4"></i>
-        <div class="text-gray-600 font-bold text-xl mb-2">No se encontraron proveedores</div>
-        <div class="text-gray-500 mb-4">No hay proveedores que coincidan con la búsqueda "{{ searchTerm }}".</div>
-        <p-button label="Limpiar búsqueda" icon="pi pi-times" severity="secondary" (onClick)="clearSearch()"></p-button>
     </div>
 </div>
 
@@ -50,6 +41,15 @@
         <p-button label="Exportar" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
     </ng-template>
 </p-toolbar>
+
+<div *ngIf="!loading && providers().length > 0 && filteredProviders().length === 0" class="card">
+    <div class="text-center">
+        <i class="pi pi-search big-icon text-gray-400 mb-4"></i>
+        <div class="text-gray-600 font-bold text-xl mb-2">No se encontraron proveedores</div>
+        <div class="text-gray-500 mb-4">No hay proveedores que coincidan con la búsqueda "{{ searchTerm }}".</div>
+        <p-button label="Limpiar búsqueda" icon="pi pi-times" severity="secondary" (onClick)="clearSearch()"></p-button>
+    </div>
+</div>
 
 <div class="card" *ngIf="!loading && filteredProviders().length > 0">
     <div class="flex mb-4 justify-between w-full">
