@@ -32,7 +32,7 @@ interface ExportColumn {
 }
 
 @Component({
-    selector: 'app-departments',
+    selector: 'app-locations',
     standalone: true,
     imports: [
         CommonModule,
@@ -53,22 +53,22 @@ interface ExportColumn {
         ConfirmDialogModule,
         ProgressSpinnerModule
     ],
-    templateUrl: './departments.component.html',
-    styleUrls: ['./departments.component.css'],
+    templateUrl: './locations.component.html',
+    styleUrls: ['./locations.component.css'],
     providers: [MessageService, ConfirmationService]
 })
-export class DepartmentsComponent implements OnInit {
-    departmentDialog: boolean = false;
+export class LocationsComponent implements OnInit {
+    locationDialog: boolean = false;
 
-    departments = signal<LocationResponseModel[]>([]);
+    locations = signal<LocationResponseModel[]>([]);
 
-    department!: LocationRequestModel;
+    location!: LocationRequestModel;
 
-    editingDepartmentId: number | null = null;
+    editingLocationId: number | null = null;
 
     loading: boolean = false;
 
-    selectedDepartments!: LocationResponseModel[] | null;
+    selectedLocations!: LocationResponseModel[] | null;
 
     submitted: boolean = false;
 
@@ -89,15 +89,15 @@ export class DepartmentsComponent implements OnInit {
     }
 
     ngOnInit() {
-        this.loadDepartments();
+        this.loadLocations();
         this.initializeColumns();
     }
 
-    loadDepartments() {
+    loadLocations() {
         this.loading = true;
         this.locationService.locationGetAll().subscribe({
             next: (data) => {
-                this.departments.set(data);
+                this.locations.set(data);
                 this.loading = false;
             },
             error: (error) => {
@@ -108,7 +108,7 @@ export class DepartmentsComponent implements OnInit {
                     detail: 'Error al cargar los departamentos',
                     life: 3000
                 });
-                console.error('Error loading departments:', error);
+                console.error('Error loading locations:', error);
             }
         });
     }
@@ -129,47 +129,47 @@ export class DepartmentsComponent implements OnInit {
     }
 
     openNew() {
-        this.department = {
+        this.location = {
             name: '',
             address: '',
             description: '',
             latitude: null,
             longitude: null
         };
-        this.editingDepartmentId = null;
+        this.editingLocationId = null;
         this.submitted = false;
-        this.departmentDialog = true;
+        this.locationDialog = true;
     }
 
-    editDepartment(department: LocationResponseModel) {
-        this.department = { 
-            name: department.name || '',
-            address: department.address || '',
-            description: department.description || '',
-            latitude: department.latitude,
-            longitude: department.longitude
+    editLocation(location: LocationResponseModel) {
+        this.location = { 
+            name: location.name || '',
+            address: location.address || '',
+            description: location.description || '',
+            latitude: location.latitude,
+            longitude: location.longitude
         };
-        this.editingDepartmentId = department.id || null;
-        this.departmentDialog = true;
+        this.editingLocationId = location.id || null;
+        this.locationDialog = true;
     }
 
-    deleteSelectedDepartments() {
+    deleteSelectedLocations() {
         this.confirmationService.confirm({
             message: '¿Está seguro de que desea eliminar los departamentos seleccionados?',
             header: 'Confirmar',
             icon: 'pi pi-exclamation-triangle',
             accept: () => {
-                if (this.selectedDepartments) {
-                    const departmentsToDelete = this.selectedDepartments.filter(dept => dept.id);
+                if (this.selectedLocations) {
+                    const locationsToDelete = this.selectedLocations.filter(loc => loc.id);
                     
-                    if (departmentsToDelete.length > 0) {
+                    if (locationsToDelete.length > 0) {
                         this.loading = true;
                         let completedDeletes = 0;
                         let successfulDeletes = 0;
-                        const totalDeletes = departmentsToDelete.length;
+                        const totalDeletes = locationsToDelete.length;
                         
-                        departmentsToDelete.forEach(department => {
-                            this.locationService.locationDelete({ ids: [new Number(department.id!)] }).subscribe({
+                        locationsToDelete.forEach(location => {
+                            this.locationService.locationDelete({ ids: [new Number(location.id!)] }).subscribe({
                                 next: () => {
                                     successfulDeletes++;
                                     completedDeletes++;
@@ -177,7 +177,7 @@ export class DepartmentsComponent implements OnInit {
                                 },
                                 error: (error) => {
                                     completedDeletes++;
-                                    console.error('Error deleting department:', department.name, error);
+                                    console.error('Error deleting location:', location.name, error);
                                     this.checkDeletionCompletion(completedDeletes, totalDeletes, successfulDeletes);
                                 }
                             });
@@ -192,10 +192,10 @@ export class DepartmentsComponent implements OnInit {
         if (completed === total) {
             this.loading = false;
             
-            // Refresh the departments list
-            this.loadDepartments();
+            // Refresh the locations list
+            this.loadLocations();
             
-            this.selectedDepartments = null;
+            this.selectedLocations = null;
             
             if (successful === total) {
                 this.messageService.add({
@@ -223,25 +223,25 @@ export class DepartmentsComponent implements OnInit {
     }
 
     hideDialog() {
-        this.departmentDialog = false;
+        this.locationDialog = false;
         this.submitted = false;
     }
 
-    deleteDepartment(department: LocationResponseModel) {
+    deleteLocation(location: LocationResponseModel) {
         this.confirmationService.confirm({
-            message: '¿Está seguro de que desea eliminar ' + department.name + '?',
+            message: '¿Está seguro de que desea eliminar ' + location.name + '?',
             header: 'Confirmar',
             icon: 'pi pi-exclamation-triangle',
             accept: () => {
-                if (department.id) {
+                if (location.id) {
                     this.loading = true;
-                    this.locationService.locationDelete({ ids: [new Number(department.id)] }).subscribe({
+                    this.locationService.locationDelete({ ids: [new Number(location.id)] }).subscribe({
                         next: () => {
                             this.loading = false;
-                            // Refresh the departments list
-                            this.loadDepartments();
+                            // Refresh the locations list
+                            this.loadLocations();
                             
-                            this.department = {
+                            this.location = {
                                 name: '',
                                 address: '',
                                 description: '',
@@ -263,7 +263,7 @@ export class DepartmentsComponent implements OnInit {
                                 detail: 'Error al eliminar el departamento',
                                 life: 3000
                             });
-                            console.error('Error deleting department:', error);
+                            console.error('Error deleting location:', error);
                         }
                     });
                 }
@@ -273,8 +273,8 @@ export class DepartmentsComponent implements OnInit {
 
     findIndexById(id: number): number {
         let index = -1;
-        for (let i = 0; i < this.departments().length; i++) {
-            if (this.departments()[i].id === id) {
+        for (let i = 0; i < this.locations().length; i++) {
+            if (this.locations()[i].id === id) {
                 index = i;
                 break;
             }
@@ -282,22 +282,22 @@ export class DepartmentsComponent implements OnInit {
         return index;
     }
 
-    saveDepartment() {
+    saveLocation() {
         this.submitted = true;
         
-        if (this.department.name?.trim()) {
-            if (this.editingDepartmentId) {
-                // Update existing department
+        if (this.location.name?.trim()) {
+            if (this.editingLocationId) {
+                // Update existing location
                 this.locationService.locationUpdate({
-                    ids: [new Number(this.editingDepartmentId)],
-                    model: this.department
+                    ids: [new Number(this.editingLocationId)],
+                    model: this.location
                 }).subscribe({
-                    next: (updatedDepartment) => {
-                        const index = this.findIndexById(this.editingDepartmentId!);
+                    next: (updatedLocation) => {
+                        const index = this.findIndexById(this.editingLocationId!);
                         if (index !== -1) {
-                            const departments = [...this.departments()];
-                            departments[index] = updatedDepartment;
-                            this.departments.set(departments);
+                            const locations = [...this.locations()];
+                            locations[index] = updatedLocation;
+                            this.locations.set(locations);
                         }
                         this.messageService.add({
                             severity: 'success',
@@ -305,8 +305,8 @@ export class DepartmentsComponent implements OnInit {
                             detail: 'Departamento Actualizado',
                             life: 3000
                         });
-                        this.departmentDialog = false;
-                        this.department = {
+                        this.locationDialog = false;
+                        this.location = {
                             name: '',
                             address: '',
                             description: '',
@@ -321,22 +321,22 @@ export class DepartmentsComponent implements OnInit {
                             detail: 'Error al actualizar el departamento',
                             life: 3000
                         });
-                        console.error('Error updating department:', error);
+                        console.error('Error updating location:', error);
                     }
                 });
             } else {
-                // Create new department
-                this.locationService.locationCreate(this.department).subscribe({
-                    next: (newDepartment) => {
-                        this.departments.set([...this.departments(), newDepartment]);
+                // Create new location
+                this.locationService.locationCreate(this.location).subscribe({
+                    next: (newLocation) => {
+                        this.locations.set([...this.locations(), newLocation]);
                         this.messageService.add({
                             severity: 'success',
                             summary: 'Exitoso',
                             detail: 'Departamento Creado',
                             life: 3000
                         });
-                        this.departmentDialog = false;
-                        this.department = {
+                        this.locationDialog = false;
+                        this.location = {
                             name: '',
                             address: '',
                             description: '',
@@ -351,7 +351,7 @@ export class DepartmentsComponent implements OnInit {
                             detail: 'Error al crear el departamento',
                             life: 3000
                         });
-                        console.error('Error creating department:', error);
+                        console.error('Error creating location:', error);
                     }
                 });
             }

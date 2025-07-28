@@ -21,6 +21,7 @@ import { AreaService } from '@birthstonesdevops/topaz.backend.organizationservic
 import { AreaResponseModel, AreaRequestModel } from '@birthstonesdevops/topaz.backend.organizationservice';
 
 interface Column {
+
     field: string;
     header: string;
     customExportHeader?: string;

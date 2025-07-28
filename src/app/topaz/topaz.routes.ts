@@ -1,8 +1,8 @@
 import { Routes } from '@angular/router';
-import { DepartmentsComponent } from './component/departments/departments.component';
+import { LocationsComponent } from './component/locations/locations.component';
 import { AreasComponent } from './component/areas/areas.component';
 
 export const topazRoutes: Routes = [
-    { path: 'departments', component: DepartmentsComponent },
+    { path: 'departments', component: LocationsComponent },
     { path: 'areas', component: AreasComponent }
 ];

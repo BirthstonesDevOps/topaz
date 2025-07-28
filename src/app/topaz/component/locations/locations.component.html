@@ -3,7 +3,7 @@
 <p-toolbar styleClass="mb-6" *ngIf="!loading">
     <ng-template #start>
         <p-button label="Nuevo" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openNew()" />
-        <p-button severity="danger" label="Eliminar" icon="pi pi-trash" outlined (onClick)="deleteSelectedDepartments()" [disabled]="!selectedDepartments || !selectedDepartments.length" />
+        <p-button severity="danger" label="Eliminar" icon="pi pi-trash" outlined (onClick)="deleteSelectedLocations()" [disabled]="!selectedLocations || !selectedLocations.length" />
     </ng-template>
 
     <ng-template #end>
@@ -21,13 +21,13 @@
 <p-table
     #dt
     *ngIf="!loading"
-    [value]="departments()"
+    [value]="locations()"
     [rows]="20"
     [columns]="cols"
     [paginator]="true"
     [globalFilterFields]="['name', 'description', 'address']"
     [tableStyle]="{ 'min-width': '75rem' }"
-    [(selection)]="selectedDepartments"
+    [(selection)]="selectedLocations"
     [rowHover]="true"
     dataKey="id"
     currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} departamentos"
@@ -64,49 +64,49 @@
             <th></th>
         </tr>
     </ng-template>
-    <ng-template #body let-department>
+    <ng-template #body let-location>
         <tr>
             <td style="width: 3rem">
-                <p-tableCheckbox [value]="department" />
+                <p-tableCheckbox [value]="location" />
             </td>
-            <td style="min-width: 16rem">{{ department.address }}</td>
-            <td style="min-width: 16rem">{{ department.name }}</td>
-            <td style="min-width: 20rem">{{ department.description }}</td>
+            <td style="min-width: 16rem">{{ location.address }}</td>
+            <td style="min-width: 16rem">{{ location.name }}</td>
+            <td style="min-width: 20rem">{{ location.description }}</td>
             <td>
-                {{ department.createdAt | date: 'short' }}
+                {{ location.createdAt | date: 'short' }}
             </td>
             <td>
-                <p-button icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true" (click)="editDepartment(department)" />
-                <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true" (click)="deleteDepartment(department)" />
+                <p-button icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true" (click)="editLocation(location)" />
+                <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true" (click)="deleteLocation(location)" />
             </td>
         </tr>
     </ng-template>
 </p-table>
 
-<p-dialog [(visible)]="departmentDialog" [style]="{ width: '450px' }" header="Detalles del Departamento" [modal]="true">
+<p-dialog [(visible)]="locationDialog" [style]="{ width: '450px' }" header="Detalles del Departamento" [modal]="true">
     <ng-template #content>
         <div class="flex flex-col gap-6">
             <div>
                 <label for="name" class="block font-bold mb-3">Nombre</label>
-                <input type="text" pInputText id="name" [(ngModel)]="department.name" required autofocus fluid />
-                <small class="text-red-500" *ngIf="submitted && !department.name">El nombre es requerido.</small>
+                <input type="text" pInputText id="name" [(ngModel)]="location.name" required autofocus fluid />
+                <small class="text-red-500" *ngIf="submitted && !location.name">El nombre es requerido.</small>
             </div>
             <div>
                 <label for="address" class="block font-bold mb-3">Dirección</label>
-                <input type="text" pInputText id="address" [(ngModel)]="department.address" fluid />
+                <input type="text" pInputText id="address" [(ngModel)]="location.address" fluid />
             </div>
             <div>
                 <label for="description" class="block font-bold mb-3">Descripción</label>
-                <textarea id="description" pTextarea [(ngModel)]="department.description" rows="3" cols="20" fluid></textarea>
+                <textarea id="description" pTextarea [(ngModel)]="location.description" rows="3" cols="20" fluid></textarea>
             </div>
             <div class="grid grid-cols-12 gap-4">
                 <div class="col-span-6">
                     <label for="latitude" class="block font-bold mb-3">Latitud</label>
-                    <input type="number" pInputText id="latitude" [(ngModel)]="department.latitude" fluid />
+                    <input type="number" pInputText id="latitude" [(ngModel)]="location.latitude" fluid />
                 </div>
                 <div class="col-span-6">
                     <label for="longitude" class="block font-bold mb-3">Longitud</label>
-                    <input type="number" pInputText id="longitude" [(ngModel)]="department.longitude" fluid />
+                    <input type="number" pInputText id="longitude" [(ngModel)]="location.longitude" fluid />
                 </div>
             </div>
         </div>
@@ -114,7 +114,7 @@
 
     <ng-template #footer>
         <p-button label="Cancelar" icon="pi pi-times" text (click)="hideDialog()" />
-        <p-button label="Guardar" icon="pi pi-check" (click)="saveDepartment()" />
+        <p-button label="Guardar" icon="pi pi-check" (click)="saveLocation()" />
     </ng-template>
 </p-dialog>
 
