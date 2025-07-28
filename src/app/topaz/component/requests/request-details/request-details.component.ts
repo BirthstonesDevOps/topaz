@@ -22,6 +22,7 @@ import {
   AreaResponseModel
 } from '@birthstonesdevops/topaz.backend.organizationservice';
 import { StatusNoteTreeComponent } from '../../shared/status-note-tree/status-note-tree.component';
+import { ItemListComponent } from '../../shared/item-list/item-list.component';
 
 // Extended request interface for detailed display
 interface EnrichedRequestDetails extends RequestDetailsResponseModel {
@@ -34,7 +35,7 @@ interface EnrichedRequestDetails extends RequestDetailsResponseModel {
 @Component({
   selector: 'app-request-details',
   standalone: true,
-  imports: [CommonModule, ButtonModule, ToastModule, ProgressSpinnerModule, TabsModule, TagModule, StatusNoteTreeComponent],
+  imports: [CommonModule, ButtonModule, ToastModule, ProgressSpinnerModule, TabsModule, TagModule, StatusNoteTreeComponent, ItemListComponent],
   templateUrl: './request-details.component.html',
   styleUrl: './request-details.component.css',
   providers: [MessageService]

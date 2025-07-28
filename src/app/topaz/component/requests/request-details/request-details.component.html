@@ -71,6 +71,15 @@
                             </span>
                         </div>
                     </div>
+                    
+                    <!-- Items Section -->
+                    <div class="px-4 pb-4">
+                        <app-item-list 
+                            [items]="requestDetails()?.items || []"
+                            [showMeasurement]="true"
+                            [showDescription]="true">
+                        </app-item-list>
+                    </div>
                 </p-tabpanel>
 
                 <!-- Status Tab -->
