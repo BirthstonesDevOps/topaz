@@ -51,8 +51,8 @@
                 Descripción
                 <p-sortIcon field="description" />
             </th>
-            <th style="min-width: 8rem">Fecha Creación</th>
-            <th style="min-width: 8rem">Última Actualización</th>
+            <th style="min-width: 8rem">Creación</th>
+            <th style="min-width: 8rem">Actualización</th>
             <th></th>
         </tr>
     </ng-template>
@@ -64,7 +64,7 @@
                 {{ area.createdAt | date: 'short' }}
             </td>
             <td>
-                {{ area.updatedAt | date: 'short' }}
+                {{ area.updatedAt ? (area.updatedAt | date: 'short') : '-' }}
             </td>
             <td>
                 <p-button icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true" (click)="editArea(area)" />
