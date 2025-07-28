@@ -5,7 +5,7 @@ import { ProvidersComponent } from './component/providers/providers.component';
 import { ItemsComponent } from './component/items/items.component';
 
 export const topazRoutes: Routes = [
-    { path: 'departments', component: LocationsComponent },
+    { path: 'locations', component: LocationsComponent },
     { path: 'areas', component: AreasComponent },
     { path: 'providers', component: ProvidersComponent },
     { path: 'items', component: ItemsComponent }

@@ -105,7 +105,7 @@ export class LocationsComponent implements OnInit {
                 this.messageService.add({
                     severity: 'error',
                     summary: 'Error',
-                    detail: 'Error al cargar los departamentos',
+                    detail: 'Error al cargar los centros de producción',
                     life: 3000
                 });
                 console.error('Error loading locations:', error);
@@ -115,7 +115,7 @@ export class LocationsComponent implements OnInit {
 
     initializeColumns() {
         this.cols = [
-            { field: 'address', header: 'Dirección', customExportHeader: 'Dirección del Departamento' },
+            { field: 'address', header: 'Dirección', customExportHeader: 'Dirección del Centro de Producción' },
             { field: 'name', header: 'Nombre' },
             { field: 'description', header: 'Descripción' },
             { field: 'createdAt', header: 'Fecha Creación' }
@@ -184,7 +184,7 @@ export class LocationsComponent implements OnInit {
                             this.messageService.add({
                                 severity: 'success',
                                 summary: 'Exitoso',
-                                detail: 'Departamento Eliminado',
+                                detail: 'Centro de Producción Eliminado',
                                 life: 3000
                             });
                         },
@@ -193,7 +193,7 @@ export class LocationsComponent implements OnInit {
                             this.messageService.add({
                                 severity: 'error',
                                 summary: 'Error',
-                                detail: 'Error al eliminar el departamento',
+                                detail: 'Error al eliminar el centro de producción',
                                 life: 3000
                             });
                             console.error('Error deleting location:', error);
@@ -235,7 +235,7 @@ export class LocationsComponent implements OnInit {
                         this.messageService.add({
                             severity: 'success',
                             summary: 'Exitoso',
-                            detail: 'Departamento Actualizado',
+                            detail: 'Centro de Producción Actualizado',
                             life: 3000
                         });
                         this.locationDialog = false;
@@ -251,7 +251,7 @@ export class LocationsComponent implements OnInit {
                         this.messageService.add({
                             severity: 'error',
                             summary: 'Error',
-                            detail: 'Error al actualizar el departamento',
+                            detail: 'Error al actualizar el centro de producción',
                             life: 3000
                         });
                         console.error('Error updating location:', error);
@@ -265,7 +265,7 @@ export class LocationsComponent implements OnInit {
                         this.messageService.add({
                             severity: 'success',
                             summary: 'Exitoso',
-                            detail: 'Departamento Creado',
+                            detail: 'Centro de Producción Creado',
                             life: 3000
                         });
                         this.locationDialog = false;
@@ -281,7 +281,7 @@ export class LocationsComponent implements OnInit {
                         this.messageService.add({
                             severity: 'error',
                             summary: 'Error',
-                            detail: 'Error al crear el departamento',
+                            detail: 'Error al crear el centro de producción',
                             life: 3000
                         });
                         console.error('Error creating location:', error);

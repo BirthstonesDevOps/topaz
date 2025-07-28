@@ -106,7 +106,7 @@ export class AreasComponent implements OnInit {
                 this.messageService.add({
                     severity: 'error',
                     summary: 'Error',
-                    detail: 'Error al cargar los centros de producción',
+                    detail: 'Error al cargar los departamentos',
                     life: 3000
                 });
                 console.error('Error loading areas:', error);
@@ -176,7 +176,7 @@ export class AreasComponent implements OnInit {
                             this.messageService.add({
                                 severity: 'success',
                                 summary: 'Exitoso',
-                                detail: 'Centro de Producción Eliminado',
+                                detail: 'Departamento Eliminado',
                                 life: 3000
                             });
                         },
@@ -185,7 +185,7 @@ export class AreasComponent implements OnInit {
                             this.messageService.add({
                                 severity: 'error',
                                 summary: 'Error',
-                                detail: 'Error al eliminar el centro de producción',
+                                detail: 'Error al eliminar el departamento',
                                 life: 3000
                             });
                             console.error('Error deleting area:', error);
@@ -230,7 +230,7 @@ export class AreasComponent implements OnInit {
                         this.messageService.add({
                             severity: 'success',
                             summary: 'Exitoso',
-                            detail: 'Centro de Producción Actualizado',
+                            detail: 'Departamento Actualizado',
                             life: 3000
                         });
                         this.areaDialog = false;
@@ -243,7 +243,7 @@ export class AreasComponent implements OnInit {
                         this.messageService.add({
                             severity: 'error',
                             summary: 'Error',
-                            detail: 'Error al actualizar el centro de producción',
+                            detail: 'Error al actualizar el departamento',
                             life: 3000
                         });
                         console.error('Error updating area:', error);
@@ -257,7 +257,7 @@ export class AreasComponent implements OnInit {
                         this.messageService.add({
                             severity: 'success',
                             summary: 'Exitoso',
-                            detail: 'Centro de Producción Creado',
+                            detail: 'Departamento Creado',
                             life: 3000
                         });
                         this.areaDialog = false;
@@ -270,7 +270,7 @@ export class AreasComponent implements OnInit {
                         this.messageService.add({
                             severity: 'error',
                             summary: 'Error',
-                            detail: 'Error al crear el centro de producción',
+                            detail: 'Error al crear el departamento',
                             life: 3000
                         });
                         console.error('Error creating area:', error);
