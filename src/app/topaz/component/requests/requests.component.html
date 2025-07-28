@@ -1,29 +1,42 @@
-<div class="card">
-  <div class="flex justify-between items-center mb-6">
-    <div>
-      <h1 class="text-2xl font-bold text-surface-900">Solicitudes</h1>
-      <p class="text-surface-600 mt-1">Gestione las solicitudes de materiales y equipos</p>
-    </div>
-    
-    <p-button 
-      label="Nueva Solicitud" 
-      icon="pi pi-plus" 
-      (onClick)="openCreateDialog()"
-      class="ml-auto" />
-  </div>
+<p-toast></p-toast>
 
-  <!-- Placeholder content for future requests list -->
-  <div class="text-center py-8 text-surface-500">
-    <i class="pi pi-inbox text-6xl mb-4 block"></i>
-    <h3 class="text-xl font-semibold mb-2">No hay solicitudes</h3>
-    <p class="mb-4">Comience creando una nueva solicitud</p>
-    <p-button 
-      label="Crear Primera Solicitud" 
-      icon="pi pi-plus" 
-      severity="secondary"
-      (onClick)="openCreateDialog()" />
-  </div>
+<div *ngIf="loading()" class="card">
+    <div class="text-center">
+        <p-progressSpinner [style]="{ width: '50px', height: '50px' }" strokeWidth="6" styleClass="custom-spinner"> </p-progressSpinner>
+        <div class="mt-3 text-primary font-bold text-lg">Cargando...</div>
+    </div>
 </div>
+
+<div *ngIf="!loading() && requests().length === 0" class="card">
+    <div class="text-center">
+        <i class="pi pi-shopping-cart big-icon text-gray-400 mb-4"></i>
+        <div class="text-gray-600 font-bold text-xl mb-2">No hay pedidos</div>
+        <div class="text-gray-500 mb-4">No se han registrado pedidos aún. Comienza creando el primer pedido.</div>
+        <p-button label="Crear pedido" icon="pi pi-plus" severity="primary" (onClick)="openCreateDialog()"></p-button>
+    </div>
+</div>
+
+<p-toolbar styleClass="mb-6" *ngIf="!loading() && requests().length > 0">
+    <ng-template #start>
+        <p-button label="Nuevo pedido" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openCreateDialog()" />
+    </ng-template>
+
+    <ng-template #center>
+        <div class="flex items-center gap-2">
+            <p-iconfield>
+                <p-inputicon class="pi pi-search" />
+                <input type="text" 
+                pInputText 
+                placeholder="Buscar pedidos..." 
+                [(ngModel)]="searchTerm" 
+                (input)="filterRequests()"
+                class="w-80"
+                fluid  />
+            </p-iconfield>
+
+        </div>
+    </ng-template>
+</p-toolbar>
 
 <!-- Request Creation Dialog -->
 <app-request-creation-dialog
@@ -31,5 +44,3 @@
   (requestCreated)="handleRequestCreated($event)">
 </app-request-creation-dialog>
 
-<!-- Toast messages -->
-<p-toast />
