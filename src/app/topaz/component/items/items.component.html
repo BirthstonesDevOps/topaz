@@ -33,7 +33,8 @@
     header="Nuevo Artículo" 
     [modal]="true" 
     [draggable]="false"
-    [resizable]="false">
+    [resizable]="false"
+    appendTo="body">
     
     <ng-template pTemplate="content">
         <p-fluid>
@@ -47,6 +48,7 @@
                         placeholder="Seleccionar categoría"
                         [filter]="true"
                         filterBy="label"
+                        appendTo="body"
                         [class]="{'ng-invalid ng-dirty': submitted && !selectedCategoryNode}">
                     </p-treeSelect>
                     <small class="p-error" *ngIf="submitted && !selectedCategoryNode">
@@ -118,6 +120,9 @@
                                     optionLabel="name"
                                     optionValue="id"
                                     placeholder="Seleccionar proveedor"
+                                    [filter]="true"
+                                    filterBy="name"
+                                    appendTo="body"
                                     [class]="{'ng-invalid ng-dirty': submitted && !price.providerId}">
                                 </p-select>
                             </div>
@@ -130,6 +135,9 @@
                                     optionLabel="name"
                                     optionValue="id"
                                     placeholder="Seleccionar moneda"
+                                    [filter]="true"
+                                    filterBy="name"
+                                    appendTo="body"
                                     [class]="{'ng-invalid ng-dirty': submitted && !price.currencyId}">
                                 </p-select>
                             </div>
