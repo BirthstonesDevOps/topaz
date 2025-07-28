@@ -55,15 +55,15 @@ export class StatusNoteTreeComponent {
       notes: history.notes || [],
       createdAt: history.createdAt,
       statusSeverity: history.status?.tag || 'secondary',
-      statusIcon: history.status?.icon || 'pi pi-circle',
+      statusIcon: 'pi ' + (history.status?.icon || 'pi-circle'),
       statusColor: this.getSeverityColor(history.status?.tag || 'secondary')
     }));
     
-    // Sort by creation date (newest first)
+    // Sort by creation date (oldest first)
     this.timelineEvents.sort((a, b) => {
       const dateA = new Date(a.createdAt || '').getTime();
       const dateB = new Date(b.createdAt || '').getTime();
-      return dateB - dateA;
+      return dateA - dateB;
     });
   }
   

@@ -11,17 +11,17 @@
   }
   
   .note-item:hover {
-    background-color: #f8fafc;
+    background-color: var(--surface-hover);
   }
   
   .notes-section h4 {
-    color: #374151;
-    border-bottom: 1px solid #e5e7eb;
+    color: var(--text-color);
+    border-bottom: 1px solid var(--surface-border);
     padding-bottom: 0.5rem;
   }
   
   .empty-state {
-    color: #6b7280;
+    color: var(--text-color-secondary);
   }
   
   ::ng-deep .customized-timeline .p-timeline-event-marker {
@@ -33,4 +33,14 @@
     background: transparent;
     border: none;
     box-shadow: none;
+  }
+
+  /* Enhanced shadow for p-card */
+  ::ng-deep .customized-timeline .p-card {
+    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  }
+
+  /* Enhanced shadow for dark theme */
+  ::ng-deep .customized-timeline .p-card {
+    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.25), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
   }
