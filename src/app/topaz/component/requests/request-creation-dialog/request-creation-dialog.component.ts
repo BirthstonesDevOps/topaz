@@ -213,19 +213,32 @@ export class RequestCreationDialogComponent implements OnInit, OnChanges {
 
   // Item list handlers
   addItemHandler = (item: ItemRequestModel) => {
-    // Create a mock ItemDetailsResponseModel for display
-    const itemDetails: ItemDetailsResponseModel = {
-      itemId: item.itemId,
-      quantity: item.quantity,
-      createdAt: new Date().toISOString(),
-      updatedAt: null
-    };
-    
-    // Update signal with new array
-    this.stepData.update(data => ({
-      ...data,
-      items: [...data.items, itemDetails]
-    }));
+    this.stepData.update(data => {
+      // Check if item already exists
+      const existingItemIndex = data.items.findIndex((existingItem: any) => existingItem.itemId === item.itemId);
+      
+      if (existingItemIndex !== -1) {
+        // Item exists, sum the quantities
+        const updatedItems = [...data.items];
+        const existingItem = updatedItems[existingItemIndex];
+        const currentQuantity = existingItem.quantity || 0;
+        updatedItems[existingItemIndex] = {
+          ...existingItem,
+          quantity: currentQuantity + item.quantity,
+          updatedAt: new Date().toISOString()
+        };
+        return { ...data, items: updatedItems };
+      } else {
+        // Item doesn't exist, add as new
+        const itemDetails: ItemDetailsResponseModel = {
+          itemId: item.itemId,
+          quantity: item.quantity,
+          createdAt: new Date().toISOString(),
+          updatedAt: null
+        };
+        return { ...data, items: [...data.items, itemDetails] };
+      }
+    });
     
     this.messageService.add({
       severity: 'success',
