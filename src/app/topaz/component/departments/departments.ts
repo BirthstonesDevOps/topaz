@@ -16,6 +16,7 @@ import { TagModule } from 'primeng/tag';
 import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { DeleteRequest, LocationService } from '@birthstonesdevops/topaz.backend.organizationservice';
 import { LocationResponseModel, LocationRequestModel } from '@birthstonesdevops/topaz.backend.organizationservice';
 
@@ -49,7 +50,8 @@ interface ExportColumn {
         TagModule,
         InputIconModule,
         IconFieldModule,
-        ConfirmDialogModule
+        ConfirmDialogModule,
+        ProgressSpinnerModule
     ],
     template: `
         <p-toast></p-toast>
@@ -57,29 +59,45 @@ interface ExportColumn {
         <p-toolbar styleClass="mb-6">
                         <ng-template #start>
                             <p-button label="Nuevo" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openNew()" />
-                            <p-button severity="secondary" label="Eliminar" icon="pi pi-trash" outlined (onClick)="deleteSelectedDepartments()" [disabled]="!selectedDepartments || !selectedDepartments.length" />
+                            <p-button severity="danger" label="Eliminar" icon="pi pi-trash" outlined (onClick)="deleteSelectedDepartments()" [disabled]="!selectedDepartments || !selectedDepartments.length" />
                         </ng-template>
 
                         <ng-template #end>
                             <p-button label="Exportar" icon="pi pi-upload" severity="secondary" (onClick)="exportCSV()" />
                         </ng-template>
-                    </p-toolbar>
+                            </p-toolbar>
 
-                    <p-table
-                        #dt
-                        [value]="departments()"
-                        [rows]="10"
-                        [columns]="cols"
-                        [paginator]="true"
-                        [globalFilterFields]="['name', 'description', 'address']"
-                        [tableStyle]="{ 'min-width': '75rem' }"
-                        [(selection)]="selectedDepartments"
-                        [rowHover]="true"
-                        dataKey="id"
-                        currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} departamentos"
-                        [showCurrentPageReport]="true"
-                        [rowsPerPageOptions]="[10, 20, 30]"
-                    >
+        <div class="card no-padding" style="height: calc(100vh - 250px); display: flex; flex-direction: column; padding: 0; margin: 0;">
+            <div class="relative flex-1" style="min-height: 0;">
+                <div *ngIf="loading" class="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-50">
+                    <div class="text-center">
+                        <p-progressSpinner 
+                            [style]="{'width': '50px', 'height': '50px'}"
+                            strokeWidth="6"
+                            styleClass="custom-spinner">
+                        </p-progressSpinner>
+                        <div class="mt-3 text-primary font-bold text-lg">Cargando...</div>
+                    </div>
+                </div>
+                
+                                <p-table
+                    #dt
+                    [value]="departments()"
+                    [rows]="20"
+                    [columns]="cols"
+                    [paginator]="true"
+                    [globalFilterFields]="['name', 'description', 'address']"
+                    [tableStyle]="{ 'min-width': '75rem', 'height': '100%' }"
+                    [scrollable]="true"
+                    scrollHeight="flex"
+                    [(selection)]="selectedDepartments"
+                    [rowHover]="true"
+                    dataKey="id"
+                    currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} departamentos"
+                    [showCurrentPageReport]="true"
+                    [rowsPerPageOptions]="[10, 20, 30, 50]"
+                    styleClass="flex-table"
+                >
                         <ng-template #caption>
                             <div class="flex items-center justify-between">
                                 <h5 class="m-0">Gestionar Departamentos</h5>
@@ -109,7 +127,7 @@ interface ExportColumn {
                                 <th style="min-width: 8rem">
                                     Fecha Creación
                                 </th>
-                                <th style="min-width: 12rem"></th>
+                                <th></th>
                             </tr>
                         </ng-template>
                         <ng-template #body let-department>
@@ -129,9 +147,11 @@ interface ExportColumn {
                                 </td>
                             </tr>
                         </ng-template>
-                    </p-table>
+                                </p-table>
+            </div>
+        </div>
 
-                    <p-dialog [(visible)]="departmentDialog" [style]="{ width: '450px' }" header="Detalles del Departamento" [modal]="true">
+        <p-dialog [(visible)]="departmentDialog" [style]="{ width: '450px' }" header="Detalles del Departamento" [modal]="true">
                         <ng-template #content>
                             <div class="flex flex-col gap-6">
                                 <div>
@@ -168,7 +188,60 @@ interface ExportColumn {
 
         <p-confirmdialog [style]="{ width: '450px' }" />
     `,
-    providers: [MessageService, ConfirmationService]
+    providers: [MessageService, ConfirmationService],
+    styles: [`
+        ::ng-deep .custom-spinner .p-progressspinner-circle {
+            stroke: var(--primary-color) !important;
+            stroke-dasharray: 89, 200 !important;
+            stroke-dashoffset: 0 !important;
+            animation: p-progressspinner-dash 1.5s ease-in-out infinite !important;
+        }
+        
+        @keyframes p-progressspinner-dash {
+            0% {
+                stroke-dasharray: 1, 200;
+                stroke-dashoffset: 0;
+            }
+            50% {
+                stroke-dasharray: 89, 200;
+                stroke-dashoffset: -35px;
+            }
+            100% {
+                stroke-dasharray: 89, 200;
+                stroke-dashoffset: -124px;
+            }
+        }
+
+        ::ng-deep .flex-table {
+            height: 100% !important;
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        ::ng-deep .flex-table .p-datatable-wrapper {
+            flex: 1 !important;
+            overflow: auto !important;
+        }
+
+        ::ng-deep .flex-table .p-paginator {
+            flex-shrink: 0 !important;
+            margin-top: auto !important;
+        }
+
+        ::ng-deep .flex-table .p-datatable-header {
+            flex-shrink: 0 !important;
+        }
+
+        .no-padding {
+            padding: 1rem !important;
+            margin: 0 !important;
+        }
+
+        ::ng-deep .no-padding.card {
+            padding: 1rem !important;
+            margin: 0 !important;
+        }
+    `],
 })
 export class Departments implements OnInit {
     departmentDialog: boolean = false;
@@ -178,6 +251,8 @@ export class Departments implements OnInit {
     department!: LocationRequestModel;
 
     editingDepartmentId: number | null = null;
+
+    loading: boolean = false;
 
     selectedDepartments!: LocationResponseModel[] | null;
 
@@ -205,11 +280,14 @@ export class Departments implements OnInit {
     }
 
     loadDepartments() {
+        this.loading = true;
         this.locationService.locationGetAll().subscribe({
             next: (data) => {
                 this.departments.set(data);
+                this.loading = false;
             },
             error: (error) => {
+                this.loading = false;
                 this.messageService.add({
                     severity: 'error',
                     summary: 'Error',
@@ -268,38 +346,66 @@ export class Departments implements OnInit {
             icon: 'pi pi-exclamation-triangle',
             accept: () => {
                 if (this.selectedDepartments) {
-                    const idsToDelete = this.selectedDepartments
-                        .filter(dept => dept.id)
-                        .map(dept => new Number(dept.id!));
+                    const departmentsToDelete = this.selectedDepartments.filter(dept => dept.id);
                     
-                    if (idsToDelete.length > 0) {
-                        this.locationService.locationDelete({ ids: idsToDelete }).subscribe({
-                            next: () => {
-                                this.departments.set(
-                                    this.departments().filter((val) => !this.selectedDepartments?.includes(val))
-                                );
-                                this.selectedDepartments = null;
-                                this.messageService.add({
-                                    severity: 'success',
-                                    summary: 'Exitoso',
-                                    detail: 'Departamentos Eliminados',
-                                    life: 3000
-                                });
-                            },
-                            error: (error) => {
-                                this.messageService.add({
-                                    severity: 'error',
-                                    summary: 'Error',
-                                    detail: 'Error al eliminar los departamentos',
-                                    life: 3000
-                                });
-                                console.error('Error deleting departments:', error);
-                            }
+                    if (departmentsToDelete.length > 0) {
+                        this.loading = true;
+                        let completedDeletes = 0;
+                        let successfulDeletes = 0;
+                        const totalDeletes = departmentsToDelete.length;
+                        
+                        departmentsToDelete.forEach(department => {
+                            this.locationService.locationDelete({ ids: [new Number(department.id!)] }).subscribe({
+                                next: () => {
+                                    successfulDeletes++;
+                                    completedDeletes++;
+                                    this.checkDeletionCompletion(completedDeletes, totalDeletes, successfulDeletes);
+                                },
+                                error: (error) => {
+                                    completedDeletes++;
+                                    console.error('Error deleting department:', department.name, error);
+                                    this.checkDeletionCompletion(completedDeletes, totalDeletes, successfulDeletes);
+                                }
+                            });
                         });
                     }
                 }
             }
         });
+    }
+
+    private checkDeletionCompletion(completed: number, total: number, successful: number) {
+        if (completed === total) {
+            this.loading = false;
+            
+            // Refresh the departments list
+            this.loadDepartments();
+            
+            this.selectedDepartments = null;
+            
+            if (successful === total) {
+                this.messageService.add({
+                    severity: 'success',
+                    summary: 'Exitoso',
+                    detail: `${successful} departamento(s) eliminado(s)`,
+                    life: 3000
+                });
+            } else if (successful > 0) {
+                this.messageService.add({
+                    severity: 'warn',
+                    summary: 'Parcialmente exitoso',
+                    detail: `${successful} de ${total} departamento(s) eliminado(s)`,
+                    life: 3000
+                });
+            } else {
+                this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: 'No se pudieron eliminar los departamentos',
+                    life: 3000
+                });
+            }
+        }
     }
 
     hideDialog() {
@@ -314,11 +420,13 @@ export class Departments implements OnInit {
             icon: 'pi pi-exclamation-triangle',
             accept: () => {
                 if (department.id) {
+                    this.loading = true;
                     this.locationService.locationDelete({ ids: [new Number(department.id)] }).subscribe({
                         next: () => {
-                            this.departments.set(
-                                this.departments().filter((val) => val.id !== department.id)
-                            );
+                            this.loading = false;
+                            // Refresh the departments list
+                            this.loadDepartments();
+                            
                             this.department = {
                                 name: '',
                                 address: '',
@@ -334,6 +442,7 @@ export class Departments implements OnInit {
                             });
                         },
                         error: (error) => {
+                            this.loading = false;
                             this.messageService.add({
                                 severity: 'error',
                                 summary: 'Error',
