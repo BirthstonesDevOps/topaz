@@ -1,6 +1,22 @@
 <p-toast></p-toast>
 
-<p-toolbar styleClass="mb-6" *ngIf="!loading">
+<div *ngIf="loading" class="card">
+    <div class="text-center">
+        <p-progressSpinner [style]="{ width: '50px', height: '50px' }" strokeWidth="6" styleClass="custom-spinner"> </p-progressSpinner>
+        <div class="mt-3 text-primary font-bold text-lg">Cargando...</div>
+    </div>
+</div>
+
+<div *ngIf="!loading && providers.length === 0" class="card">
+    <div class="text-center">
+        <i class="pi pi-users text-6xl text-gray-400 mb-4"></i>
+        <div class="text-gray-600 font-bold text-xl mb-2">No hay proveedores</div>
+        <div class="text-gray-500 mb-4">No se han registrado proveedores aún. Comienza agregando el primer proveedor.</div>
+        <p-button label="Agregar proveedor" icon="pi pi-plus" severity="primary" (onClick)="openNew()"></p-button>
+    </div>
+</div>
+
+<p-toolbar styleClass="mb-6" *ngIf="!loading && providers.length > 0">
     <ng-template #start>
         <p-button label="Nuevo" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openNew()" />
     </ng-template>
@@ -10,14 +26,7 @@
     </ng-template>
 </p-toolbar>
 
-<div *ngIf="loading" class="card">
-    <div class="text-center">
-        <p-progressSpinner [style]="{ width: '50px', height: '50px' }" strokeWidth="6" styleClass="custom-spinner"> </p-progressSpinner>
-        <div class="mt-3 text-primary font-bold text-lg">Cargando...</div>
-    </div>
-</div>
-
-<div class="card">
+<div class="card" *ngIf="!loading && providers.length > 0">
     <div class="flex mb-4 justify-between w-full">
         <div class="font-semibold text-xl">Gestionar Proveedores</div>
         <p-button icon="pi pi-chevron-up" severity="secondary" (onClick)="collapseAll()" text />
@@ -108,3 +117,15 @@
         </p-accordion-panel>
     </p-accordion>
 </div>
+
+<p-dialog header="Dialog" [(visible)]="addProviderDialog" [breakpoints]="{ '960px': '75vw' }" [style]="{ width: '30vw' }" [modal]="true">
+    <ng-template #content>
+        <div class="flex flex-col gap-6">
+
+        </div>
+    </ng-template>
+
+    <ng-template #footer>
+
+    </ng-template>
+</p-dialog>
