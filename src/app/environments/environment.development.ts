@@ -1,5 +1,5 @@
 export const environment = {
   production: false,
   environment: 'development',
-  apiUrl: 'https://topaz-dev.birthstones.app'
+  apiUrl: 'https://topaz-dev.birthstones.app/api'
 }; 
