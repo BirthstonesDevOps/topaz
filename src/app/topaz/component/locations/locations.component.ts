@@ -133,8 +133,8 @@ export class LocationsComponent implements OnInit {
             name: '',
             address: '',
             description: '',
-            latitude: null,
-            longitude: null
+            latitude: 0.0,
+            longitude: 0.0
         };
         this.editingLocationId = null;
         this.submitted = false;
@@ -146,8 +146,8 @@ export class LocationsComponent implements OnInit {
             name: location.name || '',
             address: location.address || '',
             description: location.description || '',
-            latitude: location.latitude,
-            longitude: location.longitude
+            latitude: 0.0,
+            longitude: 0.0
         };
         this.editingLocationId = location.id || null;
         this.locationDialog = true;
@@ -178,8 +178,8 @@ export class LocationsComponent implements OnInit {
                                 name: '',
                                 address: '',
                                 description: '',
-                                latitude: null,
-                                longitude: null
+                                latitude: 0.0,
+                                longitude: 0.0
                             };
                             this.messageService.add({
                                 severity: 'success',
@@ -243,8 +243,8 @@ export class LocationsComponent implements OnInit {
                             name: '',
                             address: '',
                             description: '',
-                            latitude: null,
-                            longitude: null
+                            latitude: 0.0,
+                            longitude: 0.0
                         };
                     },
                     error: (error) => {
@@ -273,8 +273,8 @@ export class LocationsComponent implements OnInit {
                             name: '',
                             address: '',
                             description: '',
-                            latitude: null,
-                            longitude: null
+                            latitude: 0.0,
+                            longitude: 0.0
                         };
                     },
                     error: (error) => {

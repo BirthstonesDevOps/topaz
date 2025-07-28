@@ -474,8 +474,4 @@ export class ItemsComponent implements OnInit {
     );
   }
 
-  exportCSV() {
-    this.dt.exportCSV();
-  }
-
 }
