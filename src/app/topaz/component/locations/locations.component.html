@@ -1,6 +1,6 @@
 <p-toast></p-toast>
 
-<p-toolbar styleClass="mb-6" *ngIf="!loading">
+<p-toolbar styleClass="mb-6" *ngIf="!loading && locations().length > 0">
     <ng-template #start>
         <p-button label="Nuevo" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openNew()" />
     </ng-template>
@@ -17,9 +17,18 @@
     </div>
 </div>
 
+<div *ngIf="!loading && locations().length === 0" class="card">
+    <div class="text-center">
+        <i class="pi pi-building big-icon text-gray-400 mb-4"></i>
+        <div class="text-gray-600 font-bold text-xl mb-2">No hay departamentos</div>
+        <div class="text-gray-500 mb-4">No se han registrado departamentos aún. Comienza agregando el primer departamento.</div>
+        <p-button label="Agregar departamento" icon="pi pi-plus" severity="primary" (onClick)="openNew()"></p-button>
+    </div>
+</div>
+
 <p-table
     #dt
-    *ngIf="!loading"
+    *ngIf="!loading && locations().length > 0"
     [value]="locations()"
     [rows]="20"
     [columns]="cols"
