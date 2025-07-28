@@ -1,0 +1,65 @@
+<div class="status-note-tree">
+  <div class="card">
+    <p-timeline 
+      [value]="statusHistory" 
+      align="left" 
+      styleClass="customized-timeline">
+      
+      <!-- Timeline marker with status icon -->
+      <ng-template #marker let-item>
+        <span class="flex w-8 h-8 items-center justify-center text-white rounded-full z-10 shadow-sm"
+              [ngClass]="'bg-' + getStatusSeverity(item.status?.status)">
+          <i [class]="getStatusIcon(item.status?.status)"></i>
+        </span>
+      </ng-template>
+      
+      <!-- Timeline content -->
+      <ng-template #content let-item>
+        <div class="timeline-content">
+          <!-- Status header with tag -->
+          <div class="flex items-center gap-3 mb-3">
+            <p-tag 
+              [value]="item.status?.status || 'Unknown Status'" 
+              [severity]="getStatusSeverity(item.status?.status)">
+            </p-tag>
+            <small class="text-gray-500">
+              {{ formatDate(item.createdAt) }}
+            </small>
+          </div>
+          
+          <!-- Status tag if available -->
+          <div *ngIf="item.status?.tag" class="mb-3">
+            <span class="text-sm font-medium text-gray-600">{{ item.status.tag }}</span>
+          </div>
+          
+          <!-- Notes cards -->
+          <div *ngIf="item.notes && item.notes.length > 0" class="notes-container">
+            <div *ngFor="let note of item.notes" class="mb-3">
+              <p-card styleClass="note-card">
+                <div class="note-content">
+                  <p class="mb-2">{{ note.note }}</p>
+                  <small class="text-gray-400">
+                    <i class="pi pi-calendar mr-1"></i>
+                    {{ formatDate(note.createdAt) }}
+                  </small>
+                </div>
+              </p-card>
+            </div>
+          </div>
+          
+          <!-- No notes message -->
+          <div *ngIf="!item.notes || item.notes.length === 0" class="text-gray-500 text-sm italic">
+            No notes available for this status
+          </div>
+        </div>
+      </ng-template>
+      
+    </p-timeline>
+  </div>
+  
+  <!-- Empty state -->
+  <div *ngIf="!statusHistory || statusHistory.length === 0" class="empty-state text-center py-8">
+    <i class="pi pi-clock text-4xl text-gray-400 mb-4"></i>
+    <p class="text-gray-500">No status history available</p>
+  </div>
+</div>
