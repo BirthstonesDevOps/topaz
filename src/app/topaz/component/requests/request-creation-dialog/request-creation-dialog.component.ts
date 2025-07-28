@@ -76,41 +76,58 @@ export class RequestCreationDialogComponent implements OnInit {
   
 
   // Form data
-  stepData: StepData = {
+  stepData = signal<StepData>({
     areaId: null,
     locationId: null,
     neededAt: null,
     items: [],
     notes: []
-  };
+  });
 
   // New note input
   newNote: string = '';
 
   // Computed properties
-  selectedArea = computed(() => {
-    if (!this.stepData.areaId) return null;
-    return this.areas().find(area => area.id === this.stepData.areaId) || null;
+    selectedArea = computed(() => {
+    const data = this.stepData();
+    if (!data.areaId) return null;
+    return this.areas().find(area => area.id === data.areaId) || null;
   });
 
   selectedLocation = computed(() => {
-    if (!this.stepData.locationId) return null;
-    return this.locations().find(location => location.id === this.stepData.locationId) || null;
+    const data = this.stepData();
+    if (!data.locationId) return null;
+    return this.locations().find(location => location.id === data.locationId) || null;
   });
 
   step1Valid = computed(() => {
-    return this.stepData.areaId && this.stepData.locationId && this.stepData.neededAt;
+    const data = this.stepData();
+    return !!(data.areaId && data.locationId && data.neededAt);
   });
 
   step2Valid = computed(() => {
-      return true;
-    });
+    const data = this.stepData();
+    return data.items.length > 0;
+  });
 
   constructor(
     private locationService: LocationService,
     private areaService: AreaService,
     private messageService: MessageService
   ) {}
+
+  // Update methods for form binding
+  updateAreaId(areaId: number | null) {
+    this.stepData.update(data => ({ ...data, areaId }));
+  }
+
+  updateLocationId(locationId: number | null) {
+    this.stepData.update(data => ({ ...data, locationId }));
+  }
+
+  updateNeededAt(neededAt: Date | null) {
+    this.stepData.update(data => ({ ...data, neededAt }));
+  }
 
   ngOnInit() {
     this.loadInitialData();
@@ -158,13 +175,13 @@ export class RequestCreationDialogComponent implements OnInit {
   resetForm() {
     this.currentStep.set(1);
     
-    this.stepData = {
+    this.stepData.set({
       areaId: null,
       locationId: null,
       neededAt: null,
       items: [],
       notes: []
-    };
+    });
     this.newNote = '';
   }
 
@@ -195,8 +212,12 @@ export class RequestCreationDialogComponent implements OnInit {
       updatedAt: null
     };
     
-    // Create new array to trigger change detection
-    this.stepData.items = [...this.stepData.items, itemDetails];
+    // Update signal with new array
+    this.stepData.update(data => ({
+      ...data,
+      items: [...data.items, itemDetails]
+    }));
+    
     this.messageService.add({
       severity: 'success',
       summary: 'Éxito',
@@ -205,44 +226,52 @@ export class RequestCreationDialogComponent implements OnInit {
   };
 
   editItemHandler = (data: { id: number; quantity: number }) => {
-    const index = this.stepData.items.findIndex(item => item.itemId === data.id);
-    if (index !== -1) {
-      // Create new array with updated item
-      const updatedItems = [...this.stepData.items];
-      updatedItems[index] = { ...updatedItems[index], quantity: data.quantity };
-      this.stepData.items = updatedItems;
-      
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Éxito',
-        detail: 'Artículo actualizado correctamente'
-      });
-    }
+    this.stepData.update(stepData => {
+      const index = stepData.items.findIndex((item: any) => item.itemId === data.id);
+      if (index !== -1) {
+        const updatedItems = [...stepData.items];
+        updatedItems[index] = { ...updatedItems[index], quantity: data.quantity };
+        return { ...stepData, items: updatedItems };
+      }
+      return stepData;
+    });
+    
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Éxito',
+      detail: 'Artículo actualizado correctamente'
+    });
   };
 
   deleteItemHandler = (itemId: number) => {
-    const index = this.stepData.items.findIndex(item => item.itemId === itemId);
-    if (index !== -1) {
-      // Create new array without the deleted item
-      this.stepData.items = this.stepData.items.filter(item => item.itemId !== itemId);
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Éxito',
-        detail: 'Artículo eliminado correctamente'
-      });
-    }
+    this.stepData.update(data => ({
+      ...data,
+      items: data.items.filter((item: any) => item.itemId !== itemId)
+    }));
+    
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Éxito',
+      detail: 'Artículo eliminado correctamente'
+    });
   };
 
   // Notes management
   addNote() {
     if (this.newNote.trim()) {
-      this.stepData.notes.push({ note: this.newNote.trim() });
+      this.stepData.update(data => ({
+        ...data,
+        notes: [...data.notes, { note: this.newNote.trim() }]
+      }));
       this.newNote = '';
     }
   }
 
   removeNote(index: number) {
-    this.stepData.notes.splice(index, 1);
+    this.stepData.update(data => ({
+      ...data,
+      notes: data.notes.filter((_, i) => i !== index)
+    }));
   }
 
   // Final submission
@@ -256,15 +285,16 @@ export class RequestCreationDialogComponent implements OnInit {
       return;
     }
 
+    const data = this.stepData();
     const request: CreateRequestRequestModel = {
-      areaId: this.stepData.areaId!,
-      locationId: this.stepData.locationId!,
-      neededAt: this.stepData.neededAt!.toISOString(),
-      items: this.stepData.items.map(item => ({
+      areaId: data.areaId!,
+      locationId: data.locationId!,
+      neededAt: data.neededAt!.toISOString(),
+      items: data.items.map((item: any) => ({
         itemId: item.itemId!,
         quantity: item.quantity!
       })),
-      notes: this.stepData.notes.length > 0 ? this.stepData.notes : undefined
+      notes: data.notes.length > 0 ? data.notes : undefined
     };
 
     this.requestCreated.emit(request);
