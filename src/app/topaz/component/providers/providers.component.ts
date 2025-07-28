@@ -296,6 +296,76 @@ export class ProvidersComponent implements OnInit {
     });
   }
 
+  deletePhone(phone: any, provider: ProviderDetailsResponseModel): void {
+    this.confirmationService.confirm({
+      message: `¿Está seguro de que desea eliminar el teléfono ${phone.phoneNumber}?`,
+      header: 'Confirmar Eliminación',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        if (phone.id) {
+          const deleteRequest: DeleteRequest = {
+            ids: [new Number(phone.id)]
+          };
+          
+          this.providerPhoneService.providerPhoneDelete(deleteRequest).subscribe({
+            next: () => {
+              this.loadProviders(); // Reload to get updated data
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Éxito',
+                detail: 'Teléfono eliminado correctamente',
+                life: 3000
+              });
+            },
+            error: () => {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Error al eliminar el teléfono',
+                life: 3000
+              });
+            }
+          });
+        }
+      }
+    });
+  }
+
+  deleteNote(note: any, provider: ProviderDetailsResponseModel): void {
+    this.confirmationService.confirm({
+      message: `¿Está seguro de que desea eliminar la nota "${note.title || 'Sin título'}"?`,
+      header: 'Confirmar Eliminación',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        if (note.id) {
+          const deleteRequest: DeleteRequest = {
+            ids: [new Number(note.id)]
+          };
+          
+          this.providerNoteService.providerNoteDelete(deleteRequest).subscribe({
+            next: () => {
+              this.loadProviders(); // Reload to get updated data
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Éxito',
+                detail: 'Nota eliminada correctamente',
+                life: 3000
+              });
+            },
+            error: () => {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Error al eliminar la nota',
+                life: 3000
+              });
+            }
+          });
+        }
+      }
+    });
+  }
+
   // Helper methods for creating new providers
   addTempPhone(): void {
     this.tempPhones.push({ phoneNumber: '' });
