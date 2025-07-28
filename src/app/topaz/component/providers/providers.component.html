@@ -7,7 +7,7 @@
     </div>
 </div>
 
-<div *ngIf="!loading && providers.length === 0" class="card">
+<div *ngIf="!loading && providers().length === 0" class="card">
     <div class="text-center">
         <i class="pi pi-users text-6xl text-gray-400 mb-4"></i>
         <div class="text-gray-600 font-bold text-xl mb-2">No hay proveedores</div>
@@ -16,7 +16,7 @@
     </div>
 </div>
 
-<p-toolbar styleClass="mb-6" *ngIf="!loading && providers.length > 0">
+<p-toolbar styleClass="mb-6" *ngIf="!loading && providers().length > 0">
     <ng-template #start>
         <p-button label="Nuevo" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openNew()" />
     </ng-template>
@@ -26,19 +26,19 @@
     </ng-template>
 </p-toolbar>
 
-<div class="card" *ngIf="!loading && providers.length > 0">
+<div class="card" *ngIf="!loading && providers().length > 0">
     <div class="flex mb-4 justify-between w-full">
         <div class="font-semibold text-xl">Gestionar Proveedores</div>
         <p-button icon="pi pi-chevron-up" severity="secondary" (onClick)="collapseAll()" text />
     </div>
     <p-accordion [multiple]="true" value="[0]" #accordion>
-        <p-accordion-panel *ngFor="let provider of providers" [value]="provider.id!">
+        <p-accordion-panel *ngFor="let provider of providers()" [value]="provider.id!">
             <p-accordion-header>
                 <div class="flex justify-between items-center w-full mr-4">
                     <span>{{ provider.name }}</span>
                     <div>
-                        <p-button icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true" (click)="editProvider()" />
-                        <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true" (click)="deleteProvider()" />
+                        <p-button icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true" (click)="editProvider(provider)" />
+                        <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true" (click)="deleteProvider(provider)" />
                     </div>
                 </div>
             </p-accordion-header>
@@ -118,14 +118,141 @@
     </p-accordion>
 </div>
 
-<p-dialog header="Dialog" [(visible)]="addProviderDialog" [breakpoints]="{ '960px': '75vw' }" [style]="{ width: '30vw' }" [modal]="true">
+<!-- Add Provider Dialog -->
+<p-dialog header="Agregar Proveedor" [(visible)]="addProviderDialog" [breakpoints]="{ '960px': '75vw' }" [style]="{ width: '50vw' }" [modal]="true">
     <ng-template #content>
         <div class="flex flex-col gap-6">
+            <!-- Basic Information -->
+            <div>
+                <label for="name" class="block font-bold mb-3">Nombre *</label>
+                <input type="text" pInputText id="name" [(ngModel)]="providerForm.name" required autofocus fluid />
+                <small class="text-red-500" *ngIf="submitted && !providerForm.name">El nombre es requerido.</small>
+            </div>
 
+            <div>
+                <label for="address" class="block font-bold mb-3">Dirección</label>
+                <input type="text" pInputText id="address" [(ngModel)]="providerForm.address" fluid />
+            </div>
+
+            <div>
+                <label for="email" class="block font-bold mb-3">Email</label>
+                <input type="email" pInputText id="email" [(ngModel)]="providerForm.email" fluid />
+            </div>
+
+            <!-- Phones Section -->
+            <div>
+                <div class="flex justify-between items-center mb-3">
+                    <label class="block font-bold">Teléfonos</label>
+                    <p-button icon="pi pi-plus" label="Agregar Teléfono" severity="secondary" [outlined]="true" size="small" (onClick)="addTempPhone()" />
+                </div>
+                <div *ngFor="let phone of tempPhones; let i = index" class="flex items-center gap-2 mb-2">
+                    <input type="text" pInputText [(ngModel)]="phone.phoneNumber" placeholder="Número de teléfono" fluid />
+                    <p-button icon="pi pi-times" severity="danger" [outlined]="true" size="small" (onClick)="removeTempPhone(i)" />
+                </div>
+                <div *ngIf="tempPhones.length === 0" class="text-gray-500 text-sm italic">No hay teléfonos agregados</div>
+            </div>
+
+            <!-- Notes Section -->
+            <div>
+                <div class="flex justify-between items-center mb-3">
+                    <label class="block font-bold">Notas</label>
+                    <p-button icon="pi pi-plus" label="Agregar Nota" severity="secondary" [outlined]="true" size="small" (onClick)="addTempNote()" />
+                </div>
+                <div *ngFor="let note of tempNotes; let i = index" class="border p-3 rounded mb-3">
+                    <div class="mb-2">
+                        <label class="block font-bold text-sm mb-1">Título</label>
+                        <input type="text" pInputText [(ngModel)]="note.title" placeholder="Título de la nota" fluid />
+                    </div>
+                    <div class="mb-2">
+                        <label class="block font-bold text-sm mb-1">Contenido</label>
+                        <textarea pTextarea [(ngModel)]="note.content" placeholder="Contenido de la nota" rows="3" fluid></textarea>
+                    </div>
+                    <div class="flex justify-end">
+                        <p-button icon="pi pi-times" label="Eliminar" severity="danger" [outlined]="true" size="small" (onClick)="removeTempNote(i)" />
+                    </div>
+                </div>
+                <div *ngIf="tempNotes.length === 0" class="text-gray-500 text-sm italic">No hay notas agregadas</div>
+            </div>
         </div>
     </ng-template>
 
     <ng-template #footer>
-
+        <p-button label="Cancelar" icon="pi pi-times" text (click)="close()" />
+        <p-button label="Guardar" icon="pi pi-check" (click)="saveProvider()" />
     </ng-template>
 </p-dialog>
+
+<!-- Edit Provider Dialog -->
+<p-dialog header="Editar Proveedor" [(visible)]="editProviderDialog" [breakpoints]="{ '960px': '75vw' }" [style]="{ width: '40vw' }" [modal]="true">
+    <ng-template #content>
+        <div class="flex flex-col gap-6">
+            <div>
+                <label for="editName" class="block font-bold mb-3">Nombre *</label>
+                <input type="text" pInputText id="editName" [(ngModel)]="editingProvider.name" required autofocus fluid />
+            </div>
+
+            <div>
+                <label for="editAddress" class="block font-bold mb-3">Dirección</label>
+                <input type="text" pInputText id="editAddress" [(ngModel)]="editingProvider.address" fluid />
+            </div>
+
+            <div>
+                <label for="editEmail" class="block font-bold mb-3">Email</label>
+                <input type="email" pInputText id="editEmail" [(ngModel)]="editingProvider.email" fluid />
+            </div>
+        </div>
+    </ng-template>
+
+    <ng-template #footer>
+        <p-button label="Cancelar" icon="pi pi-times" text (click)="close()" />
+        <p-button label="Actualizar" icon="pi pi-check" (click)="updateProvider()" />
+    </ng-template>
+</p-dialog>
+
+<!-- Add Phone Dialog -->
+<p-dialog header="Agregar Teléfono" [(visible)]="addPhoneDialog" [breakpoints]="{ '960px': '75vw' }" [style]="{ width: '30vw' }" [modal]="true">
+    <ng-template #content>
+        <div class="flex flex-col gap-4">
+            <div>
+                <label class="block font-bold mb-2">Proveedor</label>
+                <div class="text-gray-700">{{ selectedProvider.name }}</div>
+            </div>
+            <div>
+                <label for="phoneNumber" class="block font-bold mb-3">Número de Teléfono *</label>
+                <input type="text" pInputText id="phoneNumber" [(ngModel)]="newPhone.phoneNumber" required autofocus fluid />
+            </div>
+        </div>
+    </ng-template>
+
+    <ng-template #footer>
+        <p-button label="Cancelar" icon="pi pi-times" text (click)="close()" />
+        <p-button label="Agregar" icon="pi pi-check" (click)="savePhone()" />
+    </ng-template>
+</p-dialog>
+
+<!-- Add Note Dialog -->
+<p-dialog header="Agregar Nota" [(visible)]="addNoteDialog" [breakpoints]="{ '960px': '75vw' }" [style]="{ width: '40vw' }" [modal]="true">
+    <ng-template #content>
+        <div class="flex flex-col gap-4">
+            <div>
+                <label class="block font-bold mb-2">Proveedor</label>
+                <div class="text-gray-700">{{ selectedProvider.name }}</div>
+            </div>
+            <div>
+                <label for="noteTitle" class="block font-bold mb-3">Título</label>
+                <input type="text" pInputText id="noteTitle" [(ngModel)]="newNote.title" fluid />
+            </div>
+            <div>
+                <label for="noteContent" class="block font-bold mb-3">Contenido *</label>
+                <textarea pTextarea id="noteContent" [(ngModel)]="newNote.content" required rows="4" fluid></textarea>
+            </div>
+        </div>
+    </ng-template>
+
+    <ng-template #footer>
+        <p-button label="Cancelar" icon="pi pi-times" text (click)="close()" />
+        <p-button label="Agregar" icon="pi pi-check" (click)="saveNote()" />
+    </ng-template>
+</p-dialog>
+
+<p-confirmdialog [style]="{ width: '450px' }" />

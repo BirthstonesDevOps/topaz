@@ -1,5 +1,6 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { ToolbarModule } from 'primeng/toolbar';
@@ -8,32 +9,308 @@ import { ProgressSpinner } from 'primeng/progressspinner';
 import { AccordionModule } from 'primeng/accordion';
 import { Accordion } from 'primeng/accordion';
 import { DialogModule } from 'primeng/dialog';
-import { CreateProviderRequestModel, ProviderDetailsResponseModel } from '@birthstonesdevops/topaz.backend.organizationservice';
+import { InputTextModule } from 'primeng/inputtext';
+import { TextareaModule } from 'primeng/textarea';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { 
+  CreateProviderRequestModel, 
+  ProviderDetailsResponseModel, 
+  ProviderService,
+  UpdateRequestOfProviderUpdateRequestModel,
+  ProviderUpdateRequestModel,
+  ProviderPhoneService,
+  ProviderPhoneRequestModel,
+  ProviderNoteService,
+  ProviderNoteRequestModel,
+  NoteRequestModel,
+  PhoneRequestModel,
+  DeleteRequest
+} from '@birthstonesdevops/topaz.backend.organizationservice';
 
 @Component({
   selector: 'app-providers',
   standalone: true,
-  imports: [CommonModule, ToastModule, ToolbarModule, ButtonModule, ProgressSpinner, AccordionModule, DialogModule],
+  imports: [
+    CommonModule, 
+    FormsModule,
+    ToastModule, 
+    ToolbarModule, 
+    ButtonModule, 
+    ProgressSpinner, 
+    AccordionModule, 
+    DialogModule,
+    InputTextModule,
+    TextareaModule,
+    ConfirmDialogModule
+  ],
   templateUrl: './providers.component.html',
   styleUrl: './providers.component.css',
   providers: [MessageService, ConfirmationService]
 })
 export class ProvidersComponent implements OnInit {
-  providers: ProviderDetailsResponseModel[] = [];
+  providers = signal<ProviderDetailsResponseModel[]>([]);
+  
+  // Dialog states
   addProviderDialog: boolean = false;
+  editProviderDialog: boolean = false;
+  addPhoneDialog: boolean = false;
+  addNoteDialog: boolean = false;
+  
+  // Form models
+  providerForm: CreateProviderRequestModel = {};
+  editingProvider: ProviderDetailsResponseModel = {};
+  selectedProvider: ProviderDetailsResponseModel = {};
+  newPhone: ProviderPhoneRequestModel = {};
+  newNote: ProviderNoteRequestModel = {};
+  tempPhones: PhoneRequestModel[] = [];
+  tempNotes: NoteRequestModel[] = [];
+  
+  // States
   @ViewChild('accordion') accordion!: Accordion;
   loading: boolean = false;
+  submitted: boolean = false;
 
-  constructor(private messageService: MessageService) { }
+  constructor(
+    private messageService: MessageService,
+    private confirmationService: ConfirmationService,
+    private providerService: ProviderService,
+    private providerPhoneService: ProviderPhoneService,
+    private providerNoteService: ProviderNoteService
+  ) { }
 
-  ngOnInit(): void { }
+  ngOnInit(): void {
+    this.loadProviders();
+  }
+
+  loadProviders(): void {
+    this.loading = true;
+    this.providerService.providerGetAllProviderDetails().subscribe({
+      next: (data) => {
+        this.providers.set(data);
+        this.loading = false;
+      },
+      error: (error) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Error loading providers',
+          life: 3000
+        });
+        this.loading = false;
+      }
+    });
+  }
 
   openNew(): void {
+    this.providerForm = {};
+    this.tempPhones = [];
+    this.tempNotes = [];
+    this.submitted = false;
     this.addProviderDialog = true;
   }
 
-  close(): void {
-    this.addProviderDialog = false;
+  editProvider(provider: ProviderDetailsResponseModel): void {
+    this.editingProvider = { ...provider };
+    this.editProviderDialog = true;
+  }
+
+  deleteProvider(provider: ProviderDetailsResponseModel): void {
+    this.confirmationService.confirm({
+      message: `¿Está seguro de que desea eliminar el proveedor ${provider.name}?`,
+      header: 'Confirmar Eliminación',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        if (provider.id) {
+          const deleteRequest: DeleteRequest = {
+            ids: [new Number(provider.id)]
+          };
+          
+          this.providerService.providerDelete(deleteRequest).subscribe({
+            next: () => {
+              this.providers.set(this.providers().filter(p => p.id !== provider.id));
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Éxito',
+                detail: 'Proveedor eliminado correctamente',
+                life: 3000
+              });
+            },
+            error: () => {
+              this.messageService.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Error al eliminar el proveedor',
+                life: 3000
+              });
+            }
+          });
+        }
+      }
+    });
+  }
+
+  saveProvider(): void {
+    this.submitted = true;
+    
+    if (!this.providerForm.name?.trim()) {
+      return;
+    }
+
+    const createRequest: CreateProviderRequestModel = {
+      name: this.providerForm.name,
+      address: this.providerForm.address,
+      email: this.providerForm.email,
+      phones: this.tempPhones,
+      notes: this.tempNotes
+    };
+
+    this.providerService.providerCreateProvider(createRequest).subscribe({
+      next: (newProvider) => {
+        this.providers.set([...this.providers(), newProvider]);
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Proveedor creado correctamente',
+          life: 3000
+        });
+        this.addProviderDialog = false;
+        this.resetForm();
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Error al crear el proveedor',
+          life: 3000
+        });
+      }
+    });
+  }
+
+  updateProvider(): void {
+    if (!this.editingProvider.name?.trim()) {
+      return;
+    }
+
+    const updateModel: ProviderUpdateRequestModel = {
+      name: this.editingProvider.name,
+      address: this.editingProvider.address,
+      email: this.editingProvider.email
+    };
+
+    const updateRequest: UpdateRequestOfProviderUpdateRequestModel = {
+      ids: [new Number(this.editingProvider.id!)],
+      model: updateModel
+    };
+
+    this.providerService.providerUpdate(updateRequest).subscribe({
+      next: () => {
+        const updatedProviders = this.providers().map(p => 
+          p.id === this.editingProvider.id ? { ...this.editingProvider } : p
+        );
+        this.providers.set(updatedProviders);
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Proveedor actualizado correctamente',
+          life: 3000
+        });
+        this.editProviderDialog = false;
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Error al actualizar el proveedor',
+          life: 3000
+        });
+      }
+    });
+  }
+
+  addPhone(provider: ProviderDetailsResponseModel): void {
+    this.selectedProvider = provider;
+    this.newPhone = { providerId: provider.id };
+    this.addPhoneDialog = true;
+  }
+
+  savePhone(): void {
+    if (!this.newPhone.phoneNumber?.trim()) {
+      return;
+    }
+
+    this.providerPhoneService.providerPhoneCreate(this.newPhone).subscribe({
+      next: () => {
+        this.loadProviders(); // Reload to get updated data
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Teléfono agregado correctamente',
+          life: 3000
+        });
+        this.addPhoneDialog = false;
+        this.newPhone = {};
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Error al agregar el teléfono',
+          life: 3000
+        });
+      }
+    });
+  }
+
+  addNote(provider: ProviderDetailsResponseModel): void {
+    this.selectedProvider = provider;
+    this.newNote = { providerId: provider.id };
+    this.addNoteDialog = true;
+  }
+
+  saveNote(): void {
+    if (!this.newNote.content?.trim()) {
+      return;
+    }
+
+    this.providerNoteService.providerNoteCreate(this.newNote).subscribe({
+      next: () => {
+        this.loadProviders(); // Reload to get updated data
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Nota agregada correctamente',
+          life: 3000
+        });
+        this.addNoteDialog = false;
+        this.newNote = {};
+      },
+      error: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Error al agregar la nota',
+          life: 3000
+        });
+      }
+    });
+  }
+
+  // Helper methods for creating new providers
+  addTempPhone(): void {
+    this.tempPhones.push({ phoneNumber: '' });
+  }
+
+  removeTempPhone(index: number): void {
+    this.tempPhones.splice(index, 1);
+  }
+
+  addTempNote(): void {
+    this.tempNotes.push({ title: '', content: '' });
+  }
+
+  removeTempNote(index: number): void {
+    this.tempNotes.splice(index, 1);
   }
 
   exportCSV(): void {
@@ -47,20 +324,21 @@ export class ProvidersComponent implements OnInit {
     }
   }
 
-  addPhone(provider: any): void {
-    // TODO: Implement add phone functionality
-    console.log('Add phone for provider:', provider.name);
+  close(): void {
+    this.addProviderDialog = false;
+    this.editProviderDialog = false;
+    this.addPhoneDialog = false;
+    this.addNoteDialog = false;
+    this.resetForm();
   }
 
-  addNote(provider: any): void {
-    // TODO: Implement add note functionality
-    console.log('Add note for provider:', provider.name);
-  }
-
-  deleteProvider() {
-    throw new Error('Method not implemented.');
-  }
-  editProvider() {
-    throw new Error('Method not implemented.');
+  private resetForm(): void {
+    this.providerForm = {};
+    this.editingProvider = {};
+    this.newPhone = {};
+    this.newNote = {};
+    this.tempPhones = [];
+    this.tempNotes = [];
+    this.submitted = false;
   }
 }
