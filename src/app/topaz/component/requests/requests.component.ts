@@ -1,17 +1,44 @@
-import { Component, signal, computed } from '@angular/core';
+import { Component, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
+import { MessageService, ConfirmationService } from 'primeng/api';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputIconModule } from 'primeng/inputicon';
+import { TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
+import { DialogModule } from 'primeng/dialog';
+import { TextareaModule } from 'primeng/textarea';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 
-import { CreateRequestRequestModel } from '@birthstonesdevops/topaz.backend.ordersservice';
+import { 
+  CreateRequestRequestModel, 
+  RequestDetailsResponseModel, 
+  RequestService,
+  ChangeStatusRequestModel,
+  NoteRequestModel,
+  StatusHistoryDetailsResponseModel,
+  StatusDetailsResponseModel
+} from '@birthstonesdevops/topaz.backend.ordersservice';
+import { 
+  LocationService, 
+  AreaService,
+  LocationResponseModel,
+  AreaResponseModel,
+  GetRequest
+} from '@birthstonesdevops/topaz.backend.organizationservice';
 import { RequestCreationDialogComponent } from './request-creation-dialog/request-creation-dialog.component';
 import { ToolbarModule } from "primeng/toolbar";
 import { IconFieldModule } from "primeng/iconfield";
+
+// Extended request interface for table display
+interface RequestTableData extends RequestDetailsResponseModel {
+  areaName?: string;
+  locationName?: string;
+  currentStatus?: StatusDetailsResponseModel;
+}
 
 @Component({
   selector: 'app-requests',
@@ -24,51 +51,108 @@ import { IconFieldModule } from "primeng/iconfield";
     ProgressSpinnerModule,
     InputTextModule,
     InputIconModule,
+    TableModule,
+    TagModule,
+    DialogModule,
+    TextareaModule,
+    ConfirmDialogModule,
     RequestCreationDialogComponent,
     ToolbarModule,
     IconFieldModule
 ],
   templateUrl: './requests.component.html',
   styleUrl: './requests.component.css',
-  providers: [MessageService]
+  providers: [MessageService, ConfirmationService]
 })
-export class RequestsComponent {
+export class RequestsComponent implements OnInit {
   showCreateDialog: boolean = false;
   
   // Loading state
   loading = signal<boolean>(false);
   
-  // Requests data (mock data for now)
-  allRequests = signal<CreateRequestRequestModel[]>([]);
+  // Requests data
+  allRequests = signal<RequestTableData[]>([]);
   
   // Search functionality
   searchTerm: string = '';
+  
+  // Delete confirmation dialog
+  showDeleteDialog: boolean = false;
+  deleteRequestId: number | null = null;
+  deleteNotes: string = '';
+  deletingRequest = signal<boolean>(false);
   
   // Computed filtered requests
   requests = computed(() => {
     const term = this.searchTerm.toLowerCase().trim();
     if (!term) return this.allRequests();
     
-    // Filter requests based on search term
-    // You can customize this filtering logic based on your request properties
     return this.allRequests().filter(request => 
-      // Add filtering logic here when you have request properties to search
-      true // Placeholder for now
+      request.areaName?.toLowerCase().includes(term) ||
+      request.locationName?.toLowerCase().includes(term) ||
+      request.currentStatus?.status?.toLowerCase().includes(term) ||
+      request.id?.toString().includes(term)
     );
   });
 
-  constructor(private messageService: MessageService) {
-    // Load initial data
+  constructor(
+    private messageService: MessageService,
+    private confirmationService: ConfirmationService,
+    private requestService: RequestService,
+    private areaService: AreaService,
+    private locationService: LocationService
+  ) {}
+
+  ngOnInit() {
     this.loadRequests();
   }
 
   async loadRequests() {
     this.loading.set(true);
     try {
-      // Here you would load requests from a service
-      // For now, just simulate loading
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      this.allRequests.set([]);
+      // Get all request details
+      const requests = await this.requestService.requestGetAllRequestDetails().toPromise();
+      
+      if (requests) {
+        // Enrich requests with area and location names, and current status
+        const enrichedRequests = await Promise.all(
+          requests.map(async (request) => {
+            const enrichedRequest: RequestTableData = { ...request };
+            
+            // Get area name
+            if (request.areaId) {
+              try {
+                const area = await this.areaService.areaGetById({ ids: [request.areaId] }).toPromise();
+                enrichedRequest.areaName = area?.name || 'N/A';
+              } catch (error) {
+                enrichedRequest.areaName = 'Error';
+              }
+            }
+            
+            // Get location name
+            if (request.locationId) {
+              try {
+                const location = await this.locationService.locationGetById({ ids: [request.locationId] }).toPromise();
+                enrichedRequest.locationName = location?.name || 'N/A';
+              } catch (error) {
+                enrichedRequest.locationName = 'Error';
+              }
+            }
+            
+            // Get current status (latest status from status history)
+            if (request.statusHistory && request.statusHistory.length > 0) {
+              const latestStatusHistory = request.statusHistory.sort((a, b) => 
+                new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
+              )[0];
+              enrichedRequest.currentStatus = latestStatusHistory.status || undefined;
+            }
+            
+            return enrichedRequest;
+          })
+        );
+        
+        this.allRequests.set(enrichedRequests);
+      }
     } catch (error) {
       console.error('Error loading requests:', error);
       this.messageService.add({
@@ -90,23 +174,103 @@ export class RequestsComponent {
     this.showCreateDialog = true;
   }
 
-  handleRequestCreated(request: CreateRequestRequestModel) {
-    console.log('New request created:', request);
-    
-    // Add the new request to the list
-    this.allRequests.update(requests => [...requests, request]);
-    
-    // Show success message
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Éxito',
-      detail: 'Solicitud creada correctamente'
-    });
+  async handleRequestCreated(request: CreateRequestRequestModel) {
+    try {
+      // Create the request using the service
+      const createdRequest = await this.requestService.requestCreateRequest(request).toPromise();
+      
+      if (createdRequest) {
+        // Reload all requests to get the updated list
+        await this.loadRequests();
+        
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Solicitud creada correctamente'
+        });
+      }
+    } catch (error) {
+      console.error('Error creating request:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Error creando la solicitud'
+      });
+    }
 
-    // Hide dialog
     this.showCreateDialog = false;
+  }
 
-    // Here you would typically call a service to save the request
-    // Example: this.requestService.createRequest(request).subscribe(...)
+  // Delete functionality
+  confirmDelete(requestId: number) {
+    this.deleteRequestId = requestId;
+    this.deleteNotes = '';
+    this.showDeleteDialog = true;
+  }
+
+  cancelDelete() {
+    this.showDeleteDialog = false;
+    this.deleteRequestId = null;
+    this.deleteNotes = '';
+  }
+
+  async executeDelete() {
+    if (!this.deleteRequestId) return;
+
+    this.deletingRequest.set(true);
+    
+    try {
+      const deleteRequest: ChangeStatusRequestModel = {
+        id: this.deleteRequestId,
+        notes: this.deleteNotes.trim() ? [{ note: this.deleteNotes.trim() }] : undefined
+      };
+
+      await this.requestService.requestDeleteRequest(deleteRequest).toPromise();
+      
+      // Remove from local list
+      this.allRequests.update(requests => 
+        requests.filter(request => request.id !== this.deleteRequestId)
+      );
+      
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Éxito',
+        detail: 'Solicitud eliminada correctamente'
+      });
+      
+      this.cancelDelete();
+    } catch (error) {
+      console.error('Error deleting request:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Error eliminando la solicitud'
+      });
+    } finally {
+      this.deletingRequest.set(false);
+    }
+  }
+
+  // Utility methods
+  formatDate(dateString: string | undefined): string {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+  }
+
+  getStatusSeverity(tag: string | null | undefined): "success" | "secondary" | "info" | "warn" | "danger" | "contrast" {
+    if (!tag) return 'secondary';
+    
+    switch (tag.toLowerCase()) {
+      case 'success': return 'success';
+      case 'danger': return 'danger';
+      case 'warning': case 'warn': return 'warn';
+      case 'info': return 'info';
+      case 'contrast': return 'contrast';
+      default: return 'secondary';
+    }
   }
 }
