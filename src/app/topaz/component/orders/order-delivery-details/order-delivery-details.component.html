@@ -1,0 +1,72 @@
+<div class="card" *ngIf="deliveryDetails">
+  <div class="flex flex-col gap-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <h5 class="m-0 text-xl font-semibold">Detalles de Entrega</h5>
+      <div class="flex gap-2">
+        <p-tag *ngIf="deliveryDetails.id" 
+               [value]="'#' + deliveryDetails.id" 
+               severity="info" />
+      </div>
+    </div>
+
+    <!-- Metadata -->
+    <div class="flex flex-col sm:flex-row gap-4 text-sm text-gray-600" *ngIf="deliveryDetails.createdAt || deliveryDetails.updatedAt">
+      <div *ngIf="deliveryDetails.createdAt" class="flex items-center gap-2">
+        <i class="pi pi-calendar"></i>
+        <span>Creado: {{ formattedCreatedDate }}</span>
+      </div>
+      <div *ngIf="deliveryDetails.updatedAt" class="flex items-center gap-2">
+        <i class="pi pi-refresh"></i>
+        <span>Actualizado: {{ formattedUpdatedDate }}</span>
+      </div>
+    </div>
+
+    <!-- Image Section -->
+    <div *ngIf="hasImage" class="flex flex-col gap-4">
+      <div class="font-semibold text-lg">Imagen</div>
+      <div class="flex justify-center p-4 bg-gray-50 rounded-lg">
+        <p-image 
+          [src]="deliveryDetails.imageURL!" 
+          alt="Imagen de entrega" 
+          width="300"
+          [preview]="true" />
+      </div>
+    </div>
+
+    <!-- Note Section -->
+    <div *ngIf="hasNote" class="flex flex-col gap-4">
+      <div class="font-semibold text-lg">Notas</div>
+      <div class="p-4 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg">
+        <p class="m-0 text-gray-700 leading-relaxed">{{ deliveryDetails.note }}</p>
+      </div>
+    </div>
+
+    <!-- Items Section -->
+    <div *ngIf="hasItems" class="flex flex-col gap-4">
+      <p-divider />
+      <div class="font-semibold text-lg">Artículos</div>
+      <app-item-list 
+        [items]="deliveryDetails.items!"
+        [showMeasurement]="true"
+        [showDescription]="true">
+      </app-item-list>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!hasImage && !hasNote && !hasItems" class="text-center py-8">
+      <i class="pi pi-info-circle text-4xl text-gray-400 mb-4"></i>
+      <div class="text-gray-600 font-medium text-lg mb-2">Sin detalles adicionales</div>
+      <div class="text-gray-500">No hay imagen, notas o artículos para mostrar.</div>
+    </div>
+  </div>
+</div>
+
+<!-- No Data State -->
+<div *ngIf="!deliveryDetails" class="card">
+  <div class="text-center py-8">
+    <i class="pi pi-exclamation-triangle text-4xl text-yellow-400 mb-4"></i>
+    <div class="text-gray-600 font-medium text-lg mb-2">Sin datos de entrega</div>
+    <div class="text-gray-500">No se han proporcionado detalles de entrega para mostrar.</div>
+  </div>
+</div>

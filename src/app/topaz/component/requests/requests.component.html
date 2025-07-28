@@ -1,1 +1,185 @@
-<p>requests works!</p>
+<p-toast></p-toast>
+
+<div *ngIf="loading()" class="card">
+    <div class="text-center">
+        <p-progressSpinner [style]="{ width: '50px', height: '50px' }" strokeWidth="6" styleClass="custom-spinner"> </p-progressSpinner>
+        <div class="mt-3 text-primary font-bold text-lg">Cargando...</div>
+    </div>
+</div>
+
+<div *ngIf="!loading() && requests().length === 0" class="card">
+    <div class="text-center">
+        <i class="pi pi-shopping-cart big-icon text-gray-400 mb-4"></i>
+        <div class="text-gray-600 font-bold text-xl mb-2">No hay pedidos</div>
+        <div class="text-gray-500 mb-4">No se han registrado pedidos aún. Comienza creando el primer pedido.</div>
+        <p-button label="Crear pedido" icon="pi pi-plus" severity="primary" (onClick)="openCreateDialog()"></p-button>
+    </div>
+</div>
+
+<p-toolbar styleClass="mb-6" *ngIf="!loading() && requests().length > 0">
+    <ng-template #start>
+        <p-button label="Nuevo pedido" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openCreateDialog()" />
+    </ng-template>
+
+    <ng-template #center>
+        <div class="flex items-center gap-2">
+            <p-iconfield>
+                <p-inputicon class="pi pi-search" />
+                <input type="text" 
+                pInputText 
+                placeholder="Buscar pedidos..." 
+                [(ngModel)]="searchTerm" 
+                (input)="filterRequests()"
+                class="w-80"
+                fluid  />
+            </p-iconfield>
+
+        </div>
+    </ng-template>
+</p-toolbar>
+
+<!-- Requests Data Table -->
+<div class="card" *ngIf="!loading() && requests().length > 0">
+  <p-table 
+    [value]="requests()" 
+    [paginator]="true" 
+    [rows]="10" 
+    [rowsPerPageOptions]="[5, 10, 25, 50]"
+    [globalFilterFields]="['areaName', 'locationName', 'currentStatus.status', 'id']"
+    responsiveLayout="scroll"
+    styleClass="p-datatable-gridlines">
+    
+    <ng-template pTemplate="header">
+      <tr>
+        <th>ID</th>
+        <th>Área</th>
+        <th>Ubicación</th>
+        <th>Fecha Necesaria</th>
+        <th>Fecha Creación</th>
+        <th>Última Actualización</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </ng-template>
+    
+    <ng-template pTemplate="body" let-request>
+      <tr>
+        <td>{{ request.id || 'N/A' }}</td>
+        <td>{{ request.areaName || 'N/A' }}</td>
+        <td>{{ request.locationName || 'N/A' }}</td>
+        <td>{{ formatDate(request.neededAt) }}</td>
+        <td>{{ formatDate(request.createdAt) }}</td>
+        <td>{{ formatDate(request.updatedAt) }}</td>
+        <td>
+          <p-tag 
+            *ngIf="request.currentStatus" 
+            [severity]="getStatusSeverity(request.currentStatus.tag)"
+            [value]="request.currentStatus.status || 'Sin estado'"
+            [icon]="request.currentStatus.icon || 'pi pi-circle'">
+          </p-tag>
+          <span *ngIf="!request.currentStatus" class="text-gray-500">Sin estado</span>
+        </td>
+        <td>
+          <div class="flex gap-1">
+            <!-- Edit Button -->
+            <p-button 
+              *ngIf="canEditRequest(request)"
+              icon="pi pi-pencil" 
+              severity="secondary" 
+              size="small"
+              [text]="true"
+              (onClick)="editRequest(request.id!)"
+              [disabled]="!request.id"
+              pTooltip="Editar pedido">
+            </p-button>
+            
+            <!-- Delete Button -->
+            <p-button 
+              *ngIf="canDeleteRequest(request)"
+              icon="pi pi-trash" 
+              severity="danger" 
+              size="small"
+              [text]="true"
+              (onClick)="confirmDelete(request.id!)"
+              [disabled]="!request.id"
+              pTooltip="Eliminar pedido">
+            </p-button>
+            
+            <!-- No Actions Available Message -->
+            <span 
+              *ngIf="!canEditRequest(request) && !canDeleteRequest(request)" 
+              class="text-gray-400 text-sm">
+              Sin acciones
+            </span>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="8" class="text-center">No se encontraron pedidos</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Delete Confirmation Dialog -->
+<p-dialog 
+  header="Confirmar eliminación" 
+  [(visible)]="showDeleteDialog" 
+  [modal]="true" 
+  [closable]="true"
+  [style]="{ width: '450px' }"
+  (onHide)="cancelDelete()">
+  
+  <div class="flex flex-col gap-4">
+    <p class="text-gray-700">
+      ¿Está seguro que desea eliminar este pedido? Esta acción no se puede deshacer.
+    </p>
+    
+    <div class="flex flex-col gap-2">
+      <label for="deleteNotes" class="font-medium text-gray-700">
+        Notas (opcional):
+      </label>
+      <textarea 
+        id="deleteNotes"
+        pInputTextarea 
+        [(ngModel)]="deleteNotes" 
+        placeholder="Agregue una nota sobre la eliminación..."
+        rows="3"
+        class="w-full">
+      </textarea>
+    </div>
+  </div>
+  
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-2">
+      <p-button 
+        label="Cancelar" 
+        icon="pi pi-times" 
+        severity="secondary"
+        [text]="true"
+        (onClick)="cancelDelete()"
+        [disabled]="deletingRequest()">
+      </p-button>
+      <p-button 
+        label="Eliminar" 
+        icon="pi pi-trash" 
+        severity="danger"
+        (onClick)="executeDelete()"
+        [loading]="deletingRequest()">
+      </p-button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- Request Creation Dialog -->
+<app-request-creation-dialog
+  [(visible)]="showCreateDialog"
+  (requestCreated)="handleRequestCreated($event)">
+</app-request-creation-dialog>
+
+<!-- Toast and Confirm Dialog -->
+<p-confirmDialog></p-confirmDialog>
+

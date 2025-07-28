@@ -63,7 +63,7 @@
         <ng-template #body let-item>
             <tr>
                 <td>
-                    <span class="font-mono text-sm bg-surface-100 px-2 py-1 rounded">{{ item.code || 'N/A' }}</span>
+                    <span class="font-mono text-sm bg-surface-50 dark:bg-surface-950 px-2 py-1 rounded">{{ item.code || 'N/A' }}</span>
                 </td>
                 <td class="font-semibold">{{ item.name }}</td>
                 <td>{{ item.measurement || '-' }}</td>
@@ -442,7 +442,7 @@
             </div>
 
             <!-- No Prices Message -->
-            <div *ngIf="filteredPrices.length === 0" class="text-center p-6 bg-surface-50 rounded-lg">
+            <div *ngIf="filteredPrices.length === 0" class="text-center p-6 bg-surface-50 dark:bg-surface-950 rounded-lg">
                 <i class="pi pi-money-bill text-surface-400 text-4xl mb-4"></i>
                 <div class="text-surface-600 font-medium text-lg mb-2">
                     {{ priceSearchTerm ? 'No se encontraron precios' : 'Sin precios registrados' }}
@@ -486,8 +486,8 @@
             <!-- Item Basic Info -->
             <div class="grid grid-cols-2 gap-4">
                 <div>
-                    <label class="font-semibold text-sm text-surface-600">Código</label>
-                    <p class="mt-1 font-mono text-sm bg-surface-100 px-2 py-1 rounded">
+                    <label class="font-semibold text-sm text-surface-600 dark:text-surface-400">Código</label>
+                    <p class="mt-1 font-mono text-sm bg-surface-50 dark:bg-surface-950 px-2 py-1 rounded">
                         {{ selectedItemForDescription.code || 'N/A' }}
                     </p>
                 </div>
@@ -513,13 +513,13 @@
                 <label class="font-semibold text-sm text-surface-600">Descripción</label>
                 <div class="mt-2">
                     <div *ngIf="selectedItemForDescription.description" 
-                         class="p-4 bg-surface-50 rounded-lg border-l-4 border-primary-500">
+                         class="p-4 bg-surface-50 dark:bg-surface-950 rounded-lg border-l-4 border-primary-500">
                         <p class="text-surface-700 m-0 leading-relaxed">
                             {{ selectedItemForDescription.description }}
                         </p>
                     </div>
                     <div *ngIf="!selectedItemForDescription.description" 
-                         class="text-center p-6 bg-surface-50 rounded-lg">
+                         class="text-center p-6 bg-surface-50 dark:bg-surface-950 rounded-lg">
                         <i class="pi pi-file-edit text-surface-400 text-3xl mb-2"></i>
                         <div class="text-surface-600 font-medium">Sin descripción</div>
                         <small class="text-surface-500">No se ha agregado una descripción para este artículo.</small>
