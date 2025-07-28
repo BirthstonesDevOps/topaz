@@ -13,11 +13,7 @@
 
 <div *ngIf="loading" class="card">
     <div class="text-center">
-        <p-progressSpinner 
-            [style]="{'width': '50px', 'height': '50px'}"
-            strokeWidth="6"
-            styleClass="custom-spinner">
-        </p-progressSpinner>
+        <p-progressSpinner [style]="{ width: '50px', height: '50px' }" strokeWidth="6" styleClass="custom-spinner"> </p-progressSpinner>
         <div class="mt-3 text-primary font-bold text-lg">Cargando...</div>
     </div>
 </div>
@@ -52,20 +48,16 @@
             <th style="width: 3rem">
                 <p-tableHeaderCheckbox />
             </th>
-            <th pSortableColumn="name" style="min-width:16rem">
+            <th pSortableColumn="name" style="min-width: 16rem">
                 Nombre
                 <p-sortIcon field="name" />
             </th>
-            <th pSortableColumn="description" style="min-width:20rem">
+            <th pSortableColumn="description" style="min-width: 20rem">
                 Descripción
                 <p-sortIcon field="description" />
             </th>
-            <th style="min-width: 8rem">
-                Fecha Creación
-            </th>
-            <th style="min-width: 8rem">
-                Última Actualización
-            </th>
+            <th style="min-width: 8rem">Fecha Creación</th>
+            <th style="min-width: 8rem">Última Actualización</th>
             <th></th>
         </tr>
     </ng-template>
@@ -77,10 +69,10 @@
             <td style="min-width: 16rem">{{ area.name }}</td>
             <td style="min-width: 20rem">{{ area.description }}</td>
             <td>
-                {{ area.createdAt | date:'short' }}
+                {{ area.createdAt | date: 'short' }}
             </td>
             <td>
-                {{ area.updatedAt | date:'short' }}
+                {{ area.updatedAt | date: 'short' }}
             </td>
             <td>
                 <p-button icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true" (click)="editArea(area)" />
@@ -111,4 +103,4 @@
     </ng-template>
 </p-dialog>
 
-<p-confirmdialog [style]="{ width: '450px' }" /> 
+<p-confirmdialog [style]="{ width: '450px' }" />

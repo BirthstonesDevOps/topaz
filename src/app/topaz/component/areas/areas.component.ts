@@ -17,7 +17,7 @@ import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { DeleteRequest, AreaService } from '@birthstonesdevops/topaz.backend.organizationservice';
+import { AreaService } from '@birthstonesdevops/topaz.backend.organizationservice';
 import { AreaResponseModel, AreaRequestModel } from '@birthstonesdevops/topaz.backend.organizationservice';
 
 interface Column {
