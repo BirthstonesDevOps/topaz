@@ -17,10 +17,12 @@ import {
   CreateRequestRequestModel, 
   RequestDetailsResponseModel, 
   RequestService,
+  RequestStatusService,
   ChangeStatusRequestModel,
   NoteRequestModel,
   StatusHistoryDetailsResponseModel,
-  StatusDetailsResponseModel
+  StatusDetailsResponseModel,
+  StatusFullDetailsResponseModel
 } from '@birthstonesdevops/topaz.backend.ordersservice';
 import { 
   LocationService, 
@@ -30,6 +32,7 @@ import {
   GetRequest
 } from '@birthstonesdevops/topaz.backend.organizationservice';
 import { RequestCreationDialogComponent } from './request-creation-dialog/request-creation-dialog.component';
+import { RequestOperations } from './models/request-operations.enum';
 import { ToolbarModule } from "primeng/toolbar";
 import { IconFieldModule } from "primeng/iconfield";
 
@@ -38,6 +41,7 @@ interface RequestTableData extends RequestDetailsResponseModel {
   areaName?: string;
   locationName?: string;
   currentStatus?: StatusDetailsResponseModel;
+  currentOperations?: number[];
 }
 
 @Component({
@@ -99,6 +103,7 @@ export class RequestsComponent implements OnInit {
     private messageService: MessageService,
     private confirmationService: ConfirmationService,
     private requestService: RequestService,
+    private requestStatusService: RequestStatusService,
     private areaService: AreaService,
     private locationService: LocationService
   ) {}
@@ -145,6 +150,28 @@ export class RequestsComponent implements OnInit {
                 new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
               )[0];
               enrichedRequest.currentStatus = latestStatusHistory.status || undefined;
+              
+              // Get status details and operations if we have a current status
+              if (enrichedRequest.currentStatus?.id) {
+                try {
+                  const statusDetails = await this.requestStatusService
+                    .requestStatusGetRequestStatusDetailsById({ ids: [enrichedRequest.currentStatus.id] })
+                    .toPromise();
+                  
+                  if (statusDetails?.operations) {
+                    // Extract distinct operation IDs
+                    const operationIds = statusDetails.operations
+                      .map(op => op.operationId)
+                      .filter((id): id is number => id !== undefined && id !== null)
+                      .filter((id, index, arr) => arr.indexOf(id) === index); // Remove duplicates
+                    
+                    enrichedRequest.currentOperations = operationIds;
+                  }
+                } catch (error) {
+                  console.error('Error loading status details:', error);
+                  enrichedRequest.currentOperations = [];
+                }
+              }
             }
             
             return enrichedRequest;
@@ -227,10 +254,8 @@ export class RequestsComponent implements OnInit {
 
       await this.requestService.requestDeleteRequest(deleteRequest).toPromise();
       
-      // Remove from local list
-      this.allRequests.update(requests => 
-        requests.filter(request => request.id !== this.deleteRequestId)
-      );
+      // Reload requests to get updated list and operations
+      await this.loadRequests();
       
       this.messageService.add({
         severity: 'success',
@@ -272,5 +297,26 @@ export class RequestsComponent implements OnInit {
       case 'contrast': return 'contrast';
       default: return 'secondary';
     }
+  }
+
+  // Operation availability checks
+  canDeleteRequest(request: RequestTableData): boolean {
+    return request.currentOperations?.includes(RequestOperations.DeleteRequest) ?? false;
+  }
+
+  canEditRequest(request: RequestTableData): boolean {
+    return (request.currentOperations?.includes(RequestOperations.AddRequestItem) ?? false) ||
+           (request.currentOperations?.includes(RequestOperations.DeleteRequestItem) ?? false);
+  }
+
+  // Edit functionality (placeholder for now)
+  editRequest(requestId: number) {
+    console.log('Edit request:', requestId);
+    // TODO: Implement edit functionality
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Info',
+      detail: 'Funcionalidad de edición próximamente disponible'
+    });
   }
 }

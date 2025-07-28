@@ -80,15 +80,38 @@
           <span *ngIf="!request.currentStatus" class="text-gray-500">Sin estado</span>
         </td>
         <td>
-          <p-button 
-            icon="pi pi-trash" 
-            severity="danger" 
-            size="small"
-            [text]="true"
-            (onClick)="confirmDelete(request.id!)"
-            [disabled]="!request.id"
-            pTooltip="Eliminar pedido">
-          </p-button>
+          <div class="flex gap-1">
+            <!-- Edit Button -->
+            <p-button 
+              *ngIf="canEditRequest(request)"
+              icon="pi pi-pencil" 
+              severity="secondary" 
+              size="small"
+              [text]="true"
+              (onClick)="editRequest(request.id!)"
+              [disabled]="!request.id"
+              pTooltip="Editar pedido">
+            </p-button>
+            
+            <!-- Delete Button -->
+            <p-button 
+              *ngIf="canDeleteRequest(request)"
+              icon="pi pi-trash" 
+              severity="danger" 
+              size="small"
+              [text]="true"
+              (onClick)="confirmDelete(request.id!)"
+              [disabled]="!request.id"
+              pTooltip="Eliminar pedido">
+            </p-button>
+            
+            <!-- No Actions Available Message -->
+            <span 
+              *ngIf="!canEditRequest(request) && !canDeleteRequest(request)" 
+              class="text-gray-400 text-sm">
+              Sin acciones
+            </span>
+          </div>
         </td>
       </tr>
     </ng-template>
