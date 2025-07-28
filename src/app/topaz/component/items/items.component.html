@@ -1,4 +1,5 @@
 <p-toast></p-toast>
+<p-confirmDialog></p-confirmDialog>
 
 <p-toolbar styleClass="mb-6" *ngIf="!loading && items().length > 0">
     <ng-template #start>
@@ -25,3 +26,158 @@
         <p-button label="Agregar artículo" icon="pi pi-plus" severity="primary" (onClick)="openNew()"></p-button>
     </div>
 </div>
+
+<p-dialog 
+    [(visible)]="itemDialog" 
+    [style]="{ width: '700px' }" 
+    header="Nuevo Artículo" 
+    [modal]="true" 
+    [draggable]="false"
+    [resizable]="false">
+    
+    <ng-template pTemplate="content">
+        <p-fluid>
+            <div class="flex flex-col gap-6">
+                <div class="flex flex-col gap-2">
+                    <label for="category">Categoría *</label>
+                    <p-treeSelect 
+                        id="category"
+                        [(ngModel)]="selectedCategoryNode"
+                        [options]="categoryTreeNodes()"
+                        placeholder="Seleccionar categoría"
+                        [filter]="true"
+                        filterBy="label"
+                        [class]="{'ng-invalid ng-dirty': submitted && !selectedCategoryNode}">
+                    </p-treeSelect>
+                    <small class="p-error" *ngIf="submitted && !selectedCategoryNode">
+                        La categoría es requerida.
+                    </small>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label for="name">Nombre *</label>
+                    <input 
+                        type="text" 
+                        pInputText 
+                        id="name" 
+                        [(ngModel)]="itemForm.name" 
+                        required 
+                        autofocus 
+                        [class]="{'ng-invalid ng-dirty': submitted && !itemForm.name?.trim()}" />
+                    <small class="p-error" *ngIf="submitted && !itemForm.name?.trim()">
+                        El nombre es requerido.
+                    </small>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label for="description">Descripción</label>
+                    <textarea 
+                        pTextarea 
+                        id="description" 
+                        [(ngModel)]="itemForm.description" 
+                        rows="3">
+                    </textarea>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label for="measurement">Unidad de Medida</label>
+                    <input 
+                        type="text" 
+                        pInputText 
+                        id="measurement" 
+                        [(ngModel)]="itemForm.measurement" 
+                        placeholder="ej: kg, unidad, litro" />
+                </div>
+
+                <div class="flex flex-col gap-4">
+                    <div class="flex justify-between items-center">
+                        <label class="text-lg font-semibold">Precios</label>
+                        <p-button 
+                            label="Agregar Precio" 
+                            icon="pi pi-plus" 
+                            severity="secondary" 
+                            size="small"
+                            [fluid]="false"
+                            (onClick)="addPrice()">
+                        </p-button>
+                    </div>
+
+                    <div *ngIf="prices.length === 0" class="text-center p-4 border border-dashed border-surface-300 rounded-lg">
+                        <i class="pi pi-money-bill text-4xl text-surface-400 mb-2"></i>
+                        <div class="text-surface-600 font-medium">No hay precios agregados</div>
+                        <small class="text-surface-500">Agrega al menos un precio para continuar</small>
+                    </div>
+
+                    <div *ngFor="let price of prices; let i = index" class="border border-surface-200 rounded-lg p-4">
+                        <div class="flex flex-col md:flex-row gap-4">
+                            <div class="flex flex-col gap-2 md:flex-1">
+                                <label>Proveedor *</label>
+                                <p-select 
+                                    [(ngModel)]="price.providerId"
+                                    [options]="providers()"
+                                    optionLabel="name"
+                                    optionValue="id"
+                                    placeholder="Seleccionar proveedor"
+                                    [class]="{'ng-invalid ng-dirty': submitted && !price.providerId}">
+                                </p-select>
+                            </div>
+
+                            <div class="flex flex-col gap-2 md:flex-1">
+                                <label>Moneda *</label>
+                                <p-select 
+                                    [(ngModel)]="price.currencyId"
+                                    [options]="currencies()"
+                                    optionLabel="name"
+                                    optionValue="id"
+                                    placeholder="Seleccionar moneda"
+                                    [class]="{'ng-invalid ng-dirty': submitted && !price.currencyId}">
+                                </p-select>
+                            </div>
+
+                            <div class="flex flex-col gap-2 md:flex-1">
+                                <label>Precio *</label>
+                                <p-inputNumber 
+                                    [(ngModel)]="price.price"
+                                    mode="decimal"
+                                    [minFractionDigits]="2"
+                                    [maxFractionDigits]="2"
+                                    placeholder="0.00"
+                                    [class]="{'ng-invalid ng-dirty': submitted && !price.price}">
+                                </p-inputNumber>
+                            </div>
+
+                            <div class="flex items-end">
+                                <p-button 
+                                    icon="pi pi-trash" 
+                                    severity="danger" 
+                                    size="small"
+                                    [text]="true"
+                                    [fluid]="false"
+                                    (onClick)="removePrice(i)">
+                                </p-button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <small class="p-error" *ngIf="submitted && !hasValidPrices()">
+                        Se requiere al menos un precio válido.
+                    </small>
+                </div>
+            </div>
+        </p-fluid>
+    </ng-template>
+
+    <ng-template pTemplate="footer">
+        <p-button 
+            label="Cancelar" 
+            icon="pi pi-times" 
+            [text]="true" 
+            (onClick)="hideDialog()">
+        </p-button>
+        <p-button 
+            label="Guardar" 
+            icon="pi pi-check" 
+            (onClick)="saveItem()">
+        </p-button>
+    </ng-template>
+</p-dialog>
