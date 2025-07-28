@@ -5,7 +5,7 @@ import { ImageModule } from 'primeng/image';
 import { TagModule } from 'primeng/tag';
 import { DividerModule } from 'primeng/divider';
 import { PurchaseOrderDeliveryDetailsResponseModel } from '@birthstonesdevops/topaz.backend.ordersservice';
-import { ItemListComponent } from '../../../shared/item-list/item-list.component';
+import { ItemListComponent } from '../../shared/item-list/item-list.component';
 
 @Component({
   selector: 'app-order-delivery-details',

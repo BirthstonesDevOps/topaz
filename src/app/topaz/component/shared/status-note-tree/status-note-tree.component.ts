@@ -81,16 +81,16 @@ export class StatusNoteTreeComponent {
   }
   
   getStatusDisplayName(status?: StatusDetailsResponseModel | null): string {
-    if (!status) return 'Unknown Status';
-    return status.status || 'Unnamed Status';
+    if (!status) return 'Estado Desconocido';
+    return status.status || 'Estado Sin Nombre';
   }
   
   formatDate(dateString?: string): string {
-    if (!dateString) return 'No date available';
+    if (!dateString) return 'Fecha no disponible';
     
     try {
       const date = new Date(dateString);
-      return date.toLocaleDateString('en-US', {
+      return date.toLocaleDateString('es-ES', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
@@ -98,7 +98,7 @@ export class StatusNoteTreeComponent {
         minute: '2-digit'
       });
     } catch (error) {
-      return 'Invalid date';
+      return 'Fecha inválida';
     }
   }
   

@@ -1,0 +1,248 @@
+<p-dialog 
+  header="Crear Nueva Solicitud" 
+  [(visible)]="visible" 
+  [modal]="true" 
+  [style]="{ width: '90vw', maxWidth: '1200px' }" 
+  [breakpoints]="{ '1199px': '75vw', '575px': '90vw' }"
+  [closable]="false"
+  styleClass="p-fluid">
+
+  <p-toast />
+
+  <!-- Loading Spinner -->
+  <div *ngIf="loading()" class="flex items-center justify-center p-8">
+    <p-progressspinner [style]="{ width: '50px', height: '50px' }" strokeWidth="4" />
+    <span class="ml-3 text-lg">Cargando datos...</span>
+  </div>
+
+  <!-- Main Content -->
+  <div *ngIf="!loading() && dataLoaded()">
+    
+    <!-- Stepper -->
+    <p-stepper [value]="currentStep()" class="mb-6">
+      <p-step-list>
+        <p-step [value]="1" (onClick)="goToStep(1)">
+          <span [class.text-primary]="currentStep() >= 0">Información Básica</span>
+        </p-step>
+        <p-step [value]="2" (onClick)="canProceedToStep2() && goToStep(2)" [disabled]="!canProceedToStep2()">
+          <span [class.text-primary]="currentStep() >= 1">Artículos</span>
+        </p-step>
+        <p-step [value]="3" (onClick)="canProceedToStep3() && goToStep(3)" [disabled]="!canProceedToStep3()">
+          <span [class.text-primary]="currentStep() >= 2">Resumen</span>
+        </p-step>
+      </p-step-list>
+    </p-stepper>
+
+    <!-- Step 1: Basic Information -->
+    <div *ngIf="currentStep() === 1" class="step-content">
+      <h3 class="text-xl font-semibold mb-6">Información de la Solicitud</h3>
+      
+      <div class="flex flex-col gap-6">
+        <!-- Area Selection -->
+        <div class="flex flex-col gap-2">
+          <label for="area" class="font-medium">Departamento *</label>
+          <p-select 
+            id="area"
+            [(ngModel)]="stepData.areaId" 
+            [options]="areas()" 
+            optionLabel="name" 
+            optionValue="id"
+            placeholder="Seleccione un departamento"
+            [filter]="true"
+            filterBy="name"
+            [showClear]="true"
+            class="w-full">
+            <ng-template #selecteditem let-option>
+              {{ option?.name }}
+            </ng-template>
+            <ng-template #item let-option>
+              <div class="flex flex-col">
+                <span class="font-medium">{{ option.name }}</span>
+                <span *ngIf="option.description" class="text-sm text-surface-500">{{ option.description }}</span>
+              </div>
+            </ng-template>
+          </p-select>
+        </div>
+
+        <!-- Location Selection -->
+        <div class="flex flex-col gap-2">
+          <label for="location" class="font-medium">Centro de Producción *</label>
+          <p-select 
+            id="location"
+            [(ngModel)]="stepData.locationId" 
+            [options]="locations()" 
+            optionLabel="name" 
+            optionValue="id"
+            placeholder="Seleccione un centro de producción"
+            [filter]="true"
+            filterBy="name"
+            [showClear]="true"
+            class="w-full">
+            <ng-template #selecteditem let-option>
+              {{ option?.name }}
+            </ng-template>
+            <ng-template #item let-option>
+              <div class="flex flex-col">
+                <span class="font-medium">{{ option.name }}</span>
+                <span *ngIf="option.address" class="text-sm text-surface-500">{{ option.address }}</span>
+                <span *ngIf="option.description" class="text-sm text-surface-500">{{ option.description }}</span>
+              </div>
+            </ng-template>
+          </p-select>
+        </div>
+
+        <!-- Date Selection -->
+        <div class="flex flex-col gap-2">
+          <label for="neededAt" class="font-medium">Fecha Requerida *</label>
+          <p-datepicker 
+            id="neededAt"
+            [(ngModel)]="stepData.neededAt" 
+            [showIcon]="true"
+            dateFormat="dd/mm/yy"
+            placeholder="Seleccione una fecha"
+            [minDate]="tomorrowDate"
+            class="w-full" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 2: Items -->
+    <div *ngIf="currentStep() === 2" class="step-content">
+      <h3 class="text-xl font-semibold mb-6">Artículos de la Solicitud</h3>
+      
+      <app-item-list
+        [items]="stepData.items"
+        [showMeasurement]="true"
+        [showDescription]="false"
+        [onItemSave]="addItemHandler"
+        [onItemEdit]="editItemHandler"
+        [onItemDelete]="deleteItemHandler">
+      </app-item-list>
+    </div>
+
+    <!-- Step 3: Summary -->
+    <div *ngIf="currentStep() === 3" class="step-content">
+      <h3 class="text-xl font-semibold mb-6">Resumen de la Solicitud</h3>
+      
+      <div class="flex flex-col gap-6">
+        <!-- Basic Information Summary -->
+        <div class="bg-surface-50 p-4 rounded-lg">
+          <h4 class="font-semibold mb-3">Información Básica</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="text-sm font-medium text-surface-600">Departamento:</label>
+              <p class="mt-1">{{ selectedArea()?.name || 'No seleccionado' }}</p>
+            </div>
+            <div>
+              <label class="text-sm font-medium text-surface-600">Centro de Producción:</label>
+              <p class="mt-1">{{ selectedLocation()?.name || 'No seleccionado' }}</p>
+            </div>
+            <div class="md:col-span-2">
+              <label class="text-sm font-medium text-surface-600">Fecha Requerida:</label>
+              <p class="mt-1">{{ stepData.neededAt | date:'dd/MM/yyyy' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Items Summary -->
+        <div class="bg-surface-50 p-4 rounded-lg">
+          <h4 class="font-semibold mb-3">Artículos ({{ stepData.items.length }})</h4>
+          <app-item-list
+            [items]="stepData.items"
+            [showMeasurement]="true"
+            [showDescription]="false">
+          </app-item-list>
+        </div>
+
+        <!-- Notes Section -->
+        <div class="bg-surface-50 p-4 rounded-lg">
+          <h4 class="font-semibold mb-3">Notas</h4>
+          
+          <!-- Add Note -->
+          <div class="flex gap-2 mb-4">
+            <input 
+              pInputText 
+              [(ngModel)]="newNote" 
+              placeholder="Agregar una nota..."
+              class="flex-1"
+              (keydown.enter)="addNote()" />
+            <p-button 
+              icon="pi pi-plus" 
+              (onClick)="addNote()"
+              [disabled]="!newNote.trim()"
+              severity="secondary" />
+          </div>
+
+          <!-- Notes List -->
+          <div *ngIf="stepData.notes.length > 0" class="flex flex-col gap-2">
+            <div 
+              *ngFor="let note of stepData.notes; let i = index" 
+              class="flex items-start gap-2 p-3 bg-surface-0 rounded border">
+              <span class="flex-1">{{ note.note }}</span>
+              <p-button 
+                icon="pi pi-times" 
+                (onClick)="removeNote(i)"
+                severity="danger"
+                size="small"
+                text />
+            </div>
+          </div>
+
+          <div *ngIf="stepData.notes.length === 0" class="text-surface-500 text-center py-4">
+            No hay notas agregadas
+          </div>
+        </div>
+              </div>
+      </div>
+
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="!loading() && !dataLoaded()" class="flex items-center justify-center p-8">
+    <div class="text-center">
+      <i class="pi pi-exclamation-triangle text-4xl text-orange-500 mb-3"></i>
+      <p class="text-lg mb-3">Error cargando datos</p>
+      <p-button label="Reintentar" (onClick)="loadInitialData()" />
+    </div>
+  </div>
+
+  <!-- Dialog Footer -->
+  <ng-template #footer>
+    <div class="flex justify-between w-full">
+      <!-- Previous Button -->
+      <p-button 
+        *ngIf="currentStep() > 1 && dataLoaded()"
+        label="Anterior" 
+        icon="pi pi-arrow-left"
+        severity="secondary"
+        (onClick)="previousStep()" />
+      
+      <div class="flex-1"></div>
+
+      <!-- Cancel Button -->
+      <p-button 
+        label="Cancelar" 
+        severity="secondary"
+        outlined
+        (onClick)="hide()"
+        class="mr-2" />
+
+      <!-- Next/Finish Button -->
+      <p-button 
+        *ngIf="currentStep() < 3 && dataLoaded()"
+        [label]="currentStep() === 1 ? 'Siguiente' : 'Continuar'"
+        icon="pi pi-arrow-right"
+        iconPos="right"
+        [disabled]="(currentStep() === 1 && !step1Valid()) || (currentStep() === 2 && !step2Valid())"
+        (onClick)="nextStep()" />
+
+      <p-button 
+        *ngIf="currentStep() === 3 && dataLoaded()"
+        label="Crear Solicitud"
+        icon="pi pi-check"
+        [disabled]="!step1Valid() || !step2Valid()"
+        (onClick)="createRequest()" />
+    </div>
+  </ng-template>
+
+</p-dialog>

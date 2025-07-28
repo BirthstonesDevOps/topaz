@@ -1,0 +1,109 @@
+/* Main card styling */
+.card {
+  background: var(--surface-card);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  box-shadow: 0 2px 1px -1px rgba(0,0,0,.2), 0 1px 1px 0 rgba(0,0,0,.14), 0 1px 3px 0 rgba(0,0,0,.12);
+  margin: 1rem;
+}
+
+/* Header section */
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+/* Empty state styling */
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--surface-500);
+}
+
+.empty-state i {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  display: block;
+  opacity: 0.6;
+}
+
+.empty-state h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--surface-700);
+}
+
+.empty-state p {
+  margin-bottom: 1rem;
+  color: var(--surface-600);
+}
+
+/* Button styling */
+::ng-deep .p-button {
+  transition: all 0.2s ease;
+}
+
+::ng-deep .p-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .card {
+    margin: 0.5rem;
+    padding: 1rem;
+  }
+  
+  .header-section {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .header-section .p-button {
+    width: 100%;
+  }
+  
+  .empty-state {
+    padding: 2rem 0.5rem;
+  }
+  
+  .empty-state i {
+    font-size: 3rem;
+  }
+}
+
+/* Animation for smooth transitions */
+.card {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Title styling */
+h1 {
+  color: var(--surface-900);
+  font-weight: 700;
+  margin: 0;
+}
+
+/* Subtitle styling */
+.subtitle {
+  color: var(--surface-600);
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+}

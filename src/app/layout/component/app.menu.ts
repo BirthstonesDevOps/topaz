@@ -49,6 +49,7 @@ export class AppMenu {
         ];
 
         this.model = [
+            ...this.topazMenu,
             {
                 label: 'UI Components',
                 items: [

@@ -1,24 +1,62 @@
-::ng-deep .custom-spinner .p-progressspinner-circle {
-    stroke-dasharray: 89, 200;
-    stroke-dashoffset: 0;
-    animation: p-progressspinner-dash 1.5s ease-in-out infinite;
+/* Auto-width table styling */
+::ng-deep .auto-width-table {
+  width: 100%;
+  table-layout: auto;
 }
 
-@keyframes p-progressspinner-dash {
-    0% {
-        stroke-dasharray: 1, 200;
-        stroke-dashoffset: 0;
-    }
-    50% {
-        stroke-dasharray: 89, 200;
-        stroke-dashoffset: -35px;
-    }
-    100% {
-        stroke-dasharray: 89, 200;
-        stroke-dashoffset: -124px;
-    }
+::ng-deep .auto-width-table .p-datatable-table {
+  width: auto;
+  min-width: 100%;
 }
 
+::ng-deep .auto-width-table th,
+::ng-deep .auto-width-table td {
+  white-space: nowrap;
+  padding: 0.75rem 0.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Specific column adjustments */
+::ng-deep .auto-width-table th:nth-child(1),
+::ng-deep .auto-width-table td:nth-child(1) {
+  width: 1%;
+  min-width: 80px;
+}
+
+::ng-deep .auto-width-table th:nth-child(2),
+::ng-deep .auto-width-table td:nth-child(2) {
+  width: auto;
+  min-width: 150px;
+}
+
+::ng-deep .auto-width-table th:last-child,
+::ng-deep .auto-width-table td:last-child {
+  width: 1%;
+  min-width: 120px;
+}
+
+/* Button container styling */
+.flex.gap-2 {
+  align-items: center;
+  justify-content: center;
+}
+
+/* Loading state */
 .big-icon {
-    font-size: 4rem;
+  font-size: 4rem !important;
+}
+
+/* Custom spinner */
+::ng-deep .custom-spinner .p-progress-spinner-circle {
+  animation: p-progress-spinner-dash 1.5s ease-in-out infinite;
+}
+
+/* Responsive table */
+@media (max-width: 768px) {
+  ::ng-deep .auto-width-table th,
+  ::ng-deep .auto-width-table td {
+    padding: 0.5rem 0.25rem;
+    font-size: 0.875rem;
+  }
 }

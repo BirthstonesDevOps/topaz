@@ -1,26 +1,13 @@
 <p-toast></p-toast>
 
 <!-- Toolbar -->
-<p-toolbar styleClass="mb-6" *ngIf="!isLoading && hasItems">
+<p-toolbar styleClass="mb-6" *ngIf="!isLoading && hasItems && canAdd">
     <ng-template #start>
         <p-button 
-            *ngIf="canAdd"
             label="Agregar Artículo" 
             icon="pi pi-plus" 
             severity="secondary" 
-            class="mr-2" 
             (onClick)="openNew()" />
-    </ng-template>
-
-    <ng-template #end>
-        <p-iconfield>
-            <p-inputicon styleClass="pi pi-search" />
-            <input 
-                pInputText 
-                type="text" 
-                (input)="onGlobalFilter(dt, $event)" 
-                placeholder="Buscar por nombre o código..." />
-        </p-iconfield>
     </ng-template>
 </p-toolbar>
 
@@ -57,12 +44,12 @@
     [columns]="cols"
     [paginator]="true"
     [globalFilterFields]="['itemDetails.name', 'itemDetails.code']"
-    [tableStyle]="{ 'min-width': '75rem' }"
     [rowHover]="true"
     dataKey="orderItem.itemId"
     currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} artículos"
     [showCurrentPageReport]="true"
     [rowsPerPageOptions]="[10, 20, 30, 50]"
+    styleClass="auto-width-table"
 >
     <ng-template #caption>
         <div class="flex items-center justify-between">
@@ -80,71 +67,74 @@
 
     <ng-template #header>
         <tr>
-            <th pSortableColumn="itemDetails.code" style="min-width: 10rem">
+            <th pSortableColumn="itemDetails.code">
                 Código
                 <p-sortIcon field="itemDetails.code" />
             </th>
-            <th pSortableColumn="itemDetails.name" style="min-width: 16rem">
+            <th pSortableColumn="itemDetails.name">
                 Nombre
                 <p-sortIcon field="itemDetails.name" />
             </th>
-            <th *ngIf="showMeasurement" pSortableColumn="itemDetails.measurement" style="min-width: 10rem">
+            <th *ngIf="showMeasurement" pSortableColumn="itemDetails.measurement">
                 Medida
                 <p-sortIcon field="itemDetails.measurement" />
             </th>
-            <th *ngIf="showDescription" pSortableColumn="itemDetails.description" style="min-width: 16rem">
+            <th *ngIf="showDescription" pSortableColumn="itemDetails.description">
                 Descripción
                 <p-sortIcon field="itemDetails.description" />
             </th>
-            <th pSortableColumn="orderItem.quantity" style="min-width: 8rem">
+            <th pSortableColumn="orderItem.quantity">
                 Cantidad
                 <p-sortIcon field="orderItem.quantity" />
             </th>
-            <th *ngIf="hasActions" style="min-width: 8rem">Acciones</th>
+            <th *ngIf="hasActions">Acciones</th>
         </tr>
     </ng-template>
 
     <ng-template #body let-item>
         <tr>
-            <td style="min-width: 10rem">
+            <td>
                 <span *ngIf="item.loading" class="text-gray-400">Cargando...</span>
                 <span *ngIf="!item.loading">{{ item.itemDetails?.code || '-' }}</span>
             </td>
-            <td style="min-width: 16rem">
+            <td>
                 <span *ngIf="item.loading" class="text-gray-400">Cargando...</span>
                 <span *ngIf="!item.loading">{{ item.itemDetails?.name || '-' }}</span>
             </td>
-            <td *ngIf="showMeasurement" style="min-width: 10rem">
+            <td *ngIf="showMeasurement">
                 <span *ngIf="item.loading" class="text-gray-400">-</span>
                 <span *ngIf="!item.loading">{{ item.itemDetails?.measurement || '-' }}</span>
             </td>
-            <td *ngIf="showDescription" style="min-width: 16rem">
+            <td *ngIf="showDescription">
                 <span *ngIf="item.loading" class="text-gray-400">-</span>
                 <span *ngIf="!item.loading">{{ item.itemDetails?.description || '-' }}</span>
             </td>
-            <td style="min-width: 8rem">
+            <td>
                 <p-tag 
                     [value]="item.orderItem.quantity?.toString() || '0'"
                     severity="info">
                 </p-tag>
             </td>
-            <td *ngIf="hasActions" style="min-width: 8rem">
-                <p-button 
-                    *ngIf="onItemEdit && !item.loading"
-                    icon="pi pi-pencil" 
-                    class="mr-2" 
-                    [rounded]="true" 
-                    [outlined]="true" 
-                    (click)="editItem(item)"
-                    pTooltip="Editar cantidad" />
-                <p-button 
-                    *ngIf="onItemDelete && !item.loading"
-                    icon="pi pi-trash" 
-                    severity="danger" 
-                    [rounded]="true" 
-                    [outlined]="true" 
-                    (click)="deleteItem(item)"
-                    pTooltip="Eliminar artículo" />
+            <td *ngIf="hasActions">
+                <div class="flex gap-2">
+                    <p-button 
+                        *ngIf="onItemEdit && !item.loading"
+                        icon="pi pi-pencil" 
+                        [rounded]="true" 
+                        [outlined]="true" 
+                        size="small"
+                        (click)="editItem(item)"
+                        pTooltip="Editar cantidad" />
+                    <p-button 
+                        *ngIf="onItemDelete && !item.loading"
+                        icon="pi pi-trash" 
+                        severity="danger" 
+                        [rounded]="true" 
+                        [outlined]="true" 
+                        size="small"
+                        (click)="deleteItem(item)"
+                        pTooltip="Eliminar artículo" />
+                </div>
             </td>
         </tr>
     </ng-template>

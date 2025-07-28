@@ -19,7 +19,7 @@
  * Where orderItems is of type: ItemDetailsResponseModel[] (from orders service)
  */
 
-import { Component, Input, OnInit, ViewChild, signal, computed } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, ViewChild, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -87,7 +87,7 @@ interface Column {
   styleUrl: './item-list.component.css',
   providers: [MessageService, ConfirmationService]
 })
-export class ItemListComponent implements OnInit {
+export class ItemListComponent implements OnInit, OnChanges {
   @Input() items: OrderItemDetailsResponseModel[] = [];
   @Input() showMeasurement: boolean = false;
   @Input() showDescription: boolean = false;
@@ -143,6 +143,12 @@ export class ItemListComponent implements OnInit {
   ngOnInit() {
     this.initializeColumns();
     this.loadItemDetails();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['items'] && !changes['items'].firstChange) {
+      this.loadItemDetails();
+    }
   }
 
   initializeColumns() {

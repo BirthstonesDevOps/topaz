@@ -1,0 +1,175 @@
+/* Step content styling */
+.step-content {
+  min-height: 400px;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Dialog content styling - no cards needed */
+::ng-deep .p-dialog-content {
+  padding: 2rem;
+  overflow: visible !important;
+}
+
+/* Fix overlay z-index hierarchy within dialog */
+::ng-deep .p-dialog .p-select-overlay {
+  z-index: 1050;
+}
+
+/* Ensure select dropdowns appear above dialog */
+::ng-deep .p-select-overlay {
+  z-index: 1100 !important;
+}
+
+/* Fix dialog overflow for dropdowns */
+::ng-deep .p-dialog {
+  overflow: visible !important;
+}
+
+::ng-deep .p-dialog .p-dialog-content {
+  overflow: visible !important;
+}
+
+/* Loading state */
+.loading-container {
+  min-height: 200px;
+}
+
+/* Notes section styling */
+.note-item {
+  transition: all 0.2s ease;
+}
+
+.note-item:hover {
+  background-color: var(--surface-hover);
+}
+
+/* Form field spacing */
+.form-field {
+  margin-bottom: 1rem;
+}
+
+/* Summary sections */
+.summary-section {
+  background: var(--surface-50);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--surface-200);
+}
+
+/* Stepper customization */
+::ng-deep .p-stepper .p-stepper-header {
+  background: transparent;
+}
+
+::ng-deep .p-stepper .p-stepper-content {
+  background: transparent;
+  padding: 0;
+}
+
+/* Button spacing in footer */
+::ng-deep .p-dialog-footer .p-button {
+  margin-left: 0.5rem;
+}
+
+::ng-deep .p-dialog-footer .p-button:first-child {
+  margin-left: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .step-content {
+    min-height: 300px;
+  }
+}
+
+/* Success/error states */
+.success-indicator {
+  color: var(--green-500);
+}
+
+.error-indicator {
+  color: var(--red-500);
+}
+
+/* Custom select dropdown styling */
+::ng-deep .p-select-panel .p-select-items .p-select-item {
+  padding: 0.75rem 1rem;
+}
+
+::ng-deep .p-select-panel .p-select-items .p-select-item .flex.flex-col {
+  gap: 0.25rem;
+}
+
+/* Loading spinner center alignment */
+.loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+/* Form labels */
+label {
+  color: var(--surface-700);
+  font-weight: 500;
+}
+
+/* Step title styling */
+h3 {
+  color: var(--surface-900);
+  border-bottom: 1px solid var(--surface-200);
+  padding-bottom: 0.75rem;
+}
+
+/* Summary sections with subtle backgrounds */
+.bg-surface-50 {
+  border: 1px solid var(--surface-200);
+  transition: all 0.2s ease;
+}
+
+.bg-surface-50:hover {
+  border-color: var(--surface-300);
+}
+
+/* Note items styling */
+.note-item {
+  background: var(--surface-0);
+  border: 1px solid var(--surface-200);
+  border-radius: var(--border-radius);
+  padding: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.note-item:hover {
+  border-color: var(--surface-300);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+/* Input focus styling */
+::ng-deep .p-inputtext:focus,
+::ng-deep .p-select:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem var(--primary-color-alpha);
+}
+
+
+
+/* Stepper spacing */
+::ng-deep .p-stepper {
+  margin-bottom: 2rem;
+}
+
+/* Step content proper spacing */
+.step-content {
+  padding-top: 1rem;
+}
