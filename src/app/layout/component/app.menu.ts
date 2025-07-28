@@ -29,7 +29,7 @@ export class AppMenu {
                 label: 'Organización',
                 items: [
                     { label: 'Departamentos', icon: 'pi pi-fw pi-sitemap', routerLink: ['/departments'] },
-                    { label: 'Centros de producción', icon: 'pi pi-fw pi-building', routerLink: ['/'] },
+                    { label: 'Centros de producción', icon: 'pi pi-fw pi-building', routerLink: ['/areas'] },
                     { label: 'Proveedores', icon: 'pi pi-fw pi-truck', routerLink: ['/'] },
                 ]
             },

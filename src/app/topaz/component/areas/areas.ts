@@ -17,8 +17,8 @@ import { InputIconModule } from 'primeng/inputicon';
 import { IconFieldModule } from 'primeng/iconfield';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { DeleteRequest, LocationService } from '@birthstonesdevops/topaz.backend.organizationservice';
-import { LocationResponseModel, LocationRequestModel } from '@birthstonesdevops/topaz.backend.organizationservice';
+import { DeleteRequest, AreaService } from '@birthstonesdevops/topaz.backend.organizationservice';
+import { AreaResponseModel, AreaRequestModel } from '@birthstonesdevops/topaz.backend.organizationservice';
 
 interface Column {
     field: string;
@@ -32,7 +32,7 @@ interface ExportColumn {
 }
 
 @Component({
-    selector: 'app-departments',
+    selector: 'app-areas',
     standalone: true,
     imports: [
         CommonModule,
@@ -59,7 +59,7 @@ interface ExportColumn {
         <p-toolbar styleClass="mb-6" *ngIf="!loading">
                         <ng-template #start>
                             <p-button label="Nuevo" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openNew()" />
-                            <p-button severity="danger" label="Eliminar" icon="pi pi-trash" outlined (onClick)="deleteSelectedDepartments()" [disabled]="!selectedDepartments || !selectedDepartments.length" />
+                            <p-button severity="danger" label="Eliminar" icon="pi pi-trash" outlined (onClick)="deleteSelectedAreas()" [disabled]="!selectedAreas || !selectedAreas.length" />
                         </ng-template>
 
                         <ng-template #end>
@@ -79,24 +79,24 @@ interface ExportColumn {
         </div>
 
         <p-table
-            #dt
             *ngIf="!loading"
-            [value]="departments()"
+            #dt
+            [value]="areas()"
             [rows]="20"
             [columns]="cols"
             [paginator]="true"
-            [globalFilterFields]="['name', 'description', 'address']"
+            [globalFilterFields]="['name', 'description']"
             [tableStyle]="{ 'min-width': '75rem' }"
-            [(selection)]="selectedDepartments"
+            [(selection)]="selectedAreas"
             [rowHover]="true"
             dataKey="id"
-            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} departamentos"
+            currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} centros de producción"
             [showCurrentPageReport]="true"
             [rowsPerPageOptions]="[10, 20, 30, 50]"
         >
                         <ng-template #caption>
                             <div class="flex items-center justify-between">
-                                <h5 class="m-0">Gestionar Departamentos</h5>
+                                <h5 class="m-0">Gestionar Centros de Producción</h5>
                                 <p-iconfield>
                                     <p-inputicon styleClass="pi pi-search" />
                                     <input pInputText type="text" (input)="onGlobalFilter(dt, $event)" placeholder="Buscar..." />
@@ -107,10 +107,6 @@ interface ExportColumn {
                             <tr>
                                 <th style="width: 3rem">
                                     <p-tableHeaderCheckbox />
-                                </th>
-                                <th pSortableColumn="address" style="min-width: 16rem">
-                                    Dirección
-                                    <p-sortIcon field="address" />
                                 </th>
                                 <th pSortableColumn="name" style="min-width:16rem">
                                     Nombre
@@ -123,60 +119,51 @@ interface ExportColumn {
                                 <th style="min-width: 8rem">
                                     Fecha Creación
                                 </th>
+                                <th style="min-width: 8rem">
+                                    Última Actualización
+                                </th>
                                 <th></th>
                             </tr>
                         </ng-template>
-                        <ng-template #body let-department>
+                        <ng-template #body let-area>
                             <tr>
                                 <td style="width: 3rem">
-                                    <p-tableCheckbox [value]="department" />
+                                    <p-tableCheckbox [value]="area" />
                                 </td>
-                                <td style="min-width: 16rem">{{ department.address }}</td>
-                                <td style="min-width: 16rem">{{ department.name }}</td>
-                                <td style="min-width: 20rem">{{ department.description }}</td>
+                                <td style="min-width: 16rem">{{ area.name }}</td>
+                                <td style="min-width: 20rem">{{ area.description }}</td>
                                 <td>
-                                    {{ department.createdAt | date:'short' }}
+                                    {{ area.createdAt | date:'short' }}
                                 </td>
                                 <td>
-                                    <p-button icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true" (click)="editDepartment(department)" />
-                                    <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true" (click)="deleteDepartment(department)" />
+                                    {{ area.updatedAt | date:'short' }}
+                                </td>
+                                <td>
+                                    <p-button icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true" (click)="editArea(area)" />
+                                    <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true" (click)="deleteArea(area)" />
                                 </td>
                             </tr>
                         </ng-template>
         </p-table>
 
-        <p-dialog [(visible)]="departmentDialog" [style]="{ width: '450px' }" header="Detalles del Departamento" [modal]="true">
+        <p-dialog [(visible)]="areaDialog" [style]="{ width: '450px' }" header="Detalles del Centro de Producción" [modal]="true">
                         <ng-template #content>
                             <div class="flex flex-col gap-6">
                                 <div>
                                     <label for="name" class="block font-bold mb-3">Nombre</label>
-                                    <input type="text" pInputText id="name" [(ngModel)]="department.name" required autofocus fluid />
-                                    <small class="text-red-500" *ngIf="submitted && !department.name">El nombre es requerido.</small>
-                                </div>
-                                <div>
-                                    <label for="address" class="block font-bold mb-3">Dirección</label>
-                                    <input type="text" pInputText id="address" [(ngModel)]="department.address" fluid />
+                                    <input type="text" pInputText id="name" [(ngModel)]="area.name" required autofocus fluid />
+                                    <small class="text-red-500" *ngIf="submitted && !area.name">El nombre es requerido.</small>
                                 </div>
                                 <div>
                                     <label for="description" class="block font-bold mb-3">Descripción</label>
-                                    <textarea id="description" pTextarea [(ngModel)]="department.description" rows="3" cols="20" fluid></textarea>
-                                </div>
-                                <div class="grid grid-cols-12 gap-4">
-                                    <div class="col-span-6">
-                                        <label for="latitude" class="block font-bold mb-3">Latitud</label>
-                                        <input type="number" pInputText id="latitude" [(ngModel)]="department.latitude" fluid />
-                                    </div>
-                                    <div class="col-span-6">
-                                        <label for="longitude" class="block font-bold mb-3">Longitud</label>
-                                        <input type="number" pInputText id="longitude" [(ngModel)]="department.longitude" fluid />
-                                    </div>
+                                    <textarea id="description" pTextarea [(ngModel)]="area.description" rows="3" cols="20" fluid></textarea>
                                 </div>
                             </div>
                         </ng-template>
 
                         <ng-template #footer>
                             <p-button label="Cancelar" icon="pi pi-times" text (click)="hideDialog()" />
-                            <p-button label="Guardar" icon="pi pi-check" (click)="saveDepartment()" />
+                            <p-button label="Guardar" icon="pi pi-check" (click)="saveArea()" />
                         </ng-template>
                     </p-dialog>
 
@@ -207,18 +194,18 @@ interface ExportColumn {
         }
     `],
 })
-export class Departments implements OnInit {
-    departmentDialog: boolean = false;
+export class Areas implements OnInit {
+    areaDialog: boolean = false;
 
-    departments = signal<LocationResponseModel[]>([]);
+    areas = signal<AreaResponseModel[]>([]);
 
-    department!: LocationRequestModel;
+    area!: AreaRequestModel;
 
-    editingDepartmentId: number | null = null;
+    editingAreaId: number | null = null;
 
     loading: boolean = false;
 
-    selectedDepartments!: LocationResponseModel[] | null;
+    selectedAreas!: AreaResponseModel[] | null;
 
     submitted: boolean = false;
 
@@ -229,7 +216,7 @@ export class Departments implements OnInit {
     cols!: Column[];
 
     constructor(
-        private locationService: LocationService,
+        private areaService: AreaService,
         private messageService: MessageService,
         private confirmationService: ConfirmationService
     ) {}
@@ -239,15 +226,15 @@ export class Departments implements OnInit {
     }
 
     ngOnInit() {
-        this.loadDepartments();
+        this.loadAreas();
         this.initializeColumns();
     }
 
-    loadDepartments() {
+    loadAreas() {
         this.loading = true;
-        this.locationService.locationGetAll().subscribe({
+        this.areaService.areaGetAll().subscribe({
             next: (data) => {
-                this.departments.set(data);
+                this.areas.set(data);
                 //this.loading = false;
             },
             error: (error) => {
@@ -255,20 +242,20 @@ export class Departments implements OnInit {
                 this.messageService.add({
                     severity: 'error',
                     summary: 'Error',
-                    detail: 'Error al cargar los departamentos',
+                    detail: 'Error al cargar los centros de producción',
                     life: 3000
                 });
-                console.error('Error loading departments:', error);
+                console.error('Error loading areas:', error);
             }
         });
     }
 
     initializeColumns() {
         this.cols = [
-            { field: 'address', header: 'Dirección', customExportHeader: 'Dirección del Departamento' },
             { field: 'name', header: 'Nombre' },
             { field: 'description', header: 'Descripción' },
-            { field: 'createdAt', header: 'Fecha Creación' }
+            { field: 'createdAt', header: 'Fecha Creación' },
+            { field: 'updatedAt', header: 'Última Actualización' }
         ];
 
         this.exportColumns = this.cols.map((col) => ({ title: col.header, dataKey: col.field }));
@@ -279,47 +266,41 @@ export class Departments implements OnInit {
     }
 
     openNew() {
-        this.department = {
+        this.area = {
             name: '',
-            address: '',
-            description: '',
-            latitude: null,
-            longitude: null
+            description: ''
         };
-        this.editingDepartmentId = null;
+        this.editingAreaId = null;
         this.submitted = false;
-        this.departmentDialog = true;
+        this.areaDialog = true;
     }
 
-    editDepartment(department: LocationResponseModel) {
-        this.department = { 
-            name: department.name || '',
-            address: department.address || '',
-            description: department.description || '',
-            latitude: department.latitude,
-            longitude: department.longitude
+    editArea(area: AreaResponseModel) {
+        this.area = { 
+            name: area.name || '',
+            description: area.description || ''
         };
-        this.editingDepartmentId = department.id || null;
-        this.departmentDialog = true;
+        this.editingAreaId = area.id || null;
+        this.areaDialog = true;
     }
 
-    deleteSelectedDepartments() {
+    deleteSelectedAreas() {
         this.confirmationService.confirm({
-            message: '¿Está seguro de que desea eliminar los departamentos seleccionados?',
+            message: '¿Está seguro de que desea eliminar los centros de producción seleccionados?',
             header: 'Confirmar',
             icon: 'pi pi-exclamation-triangle',
             accept: () => {
-                if (this.selectedDepartments) {
-                    const departmentsToDelete = this.selectedDepartments.filter(dept => dept.id);
+                if (this.selectedAreas) {
+                    const areasToDelete = this.selectedAreas.filter(area => area.id);
                     
-                    if (departmentsToDelete.length > 0) {
+                    if (areasToDelete.length > 0) {
                         this.loading = true;
                         let completedDeletes = 0;
                         let successfulDeletes = 0;
-                        const totalDeletes = departmentsToDelete.length;
+                        const totalDeletes = areasToDelete.length;
                         
-                        departmentsToDelete.forEach(department => {
-                            this.locationService.locationDelete({ ids: [new Number(department.id!)] }).subscribe({
+                        areasToDelete.forEach(area => {
+                            this.areaService.areaDelete({ ids: [new Number(area.id!)] }).subscribe({
                                 next: () => {
                                     successfulDeletes++;
                                     completedDeletes++;
@@ -327,7 +308,7 @@ export class Departments implements OnInit {
                                 },
                                 error: (error) => {
                                     completedDeletes++;
-                                    console.error('Error deleting department:', department.name, error);
+                                    console.error('Error deleting area:', area.name, error);
                                     this.checkDeletionCompletion(completedDeletes, totalDeletes, successfulDeletes);
                                 }
                             });
@@ -342,30 +323,30 @@ export class Departments implements OnInit {
         if (completed === total) {
             //this.loading = false;
             
-            // Refresh the departments list
-            this.loadDepartments();
+            // Refresh the areas list
+            this.loadAreas();
             
-            this.selectedDepartments = null;
+            this.selectedAreas = null;
             
             if (successful === total) {
                 this.messageService.add({
                     severity: 'success',
                     summary: 'Exitoso',
-                    detail: `${successful} departamento(s) eliminado(s)`,
+                    detail: `${successful} centro(s) de producción eliminado(s)`,
                     life: 3000
                 });
             } else if (successful > 0) {
                 this.messageService.add({
                     severity: 'warn',
                     summary: 'Parcialmente exitoso',
-                    detail: `${successful} de ${total} departamento(s) eliminado(s)`,
+                    detail: `${successful} de ${total} centro(s) de producción eliminado(s)`,
                     life: 3000
                 });
             } else {
                 this.messageService.add({
                     severity: 'error',
                     summary: 'Error',
-                    detail: 'No se pudieron eliminar los departamentos',
+                    detail: 'No se pudieron eliminar los centros de producción',
                     life: 3000
                 });
             }
@@ -373,35 +354,32 @@ export class Departments implements OnInit {
     }
 
     hideDialog() {
-        this.departmentDialog = false;
+        this.areaDialog = false;
         this.submitted = false;
     }
 
-    deleteDepartment(department: LocationResponseModel) {
+    deleteArea(area: AreaResponseModel) {
         this.confirmationService.confirm({
-            message: '¿Está seguro de que desea eliminar ' + department.name + '?',
+            message: '¿Está seguro de que desea eliminar ' + area.name + '?',
             header: 'Confirmar',
             icon: 'pi pi-exclamation-triangle',
             accept: () => {
-                if (department.id) {
+                if (area.id) {
                     this.loading = true;
-                    this.locationService.locationDelete({ ids: [new Number(department.id)] }).subscribe({
+                    this.areaService.areaDelete({ ids: [new Number(area.id)] }).subscribe({
                         next: () => {
                             //this.loading = false;
-                            // Refresh the departments list
-                            this.loadDepartments();
+                            // Refresh the areas list
+                            this.loadAreas();
                             
-                            this.department = {
+                            this.area = {
                                 name: '',
-                                address: '',
-                                description: '',
-                                latitude: null,
-                                longitude: null
+                                description: ''
                             };
                             this.messageService.add({
                                 severity: 'success',
                                 summary: 'Exitoso',
-                                detail: 'Departamento Eliminado',
+                                detail: 'Centro de Producción Eliminado',
                                 life: 3000
                             });
                         },
@@ -410,10 +388,10 @@ export class Departments implements OnInit {
                             this.messageService.add({
                                 severity: 'error',
                                 summary: 'Error',
-                                detail: 'Error al eliminar el departamento',
+                                detail: 'Error al eliminar el centro de producción',
                                 life: 3000
                             });
-                            console.error('Error deleting department:', error);
+                            console.error('Error deleting area:', error);
                         }
                     });
                 }
@@ -423,8 +401,8 @@ export class Departments implements OnInit {
 
     findIndexById(id: number): number {
         let index = -1;
-        for (let i = 0; i < this.departments().length; i++) {
-            if (this.departments()[i].id === id) {
+        for (let i = 0; i < this.areas().length; i++) {
+            if (this.areas()[i].id === id) {
                 index = i;
                 break;
             }
@@ -432,76 +410,73 @@ export class Departments implements OnInit {
         return index;
     }
 
-    saveDepartment() {
+    saveArea() {
         this.submitted = true;
         
-        if (this.department.name?.trim()) {
-            if (this.editingDepartmentId) {
-                // Update existing department
-                this.locationService.locationUpdate({
-                    ids: [new Number(this.editingDepartmentId)],
-                    model: this.department
+        if (this.area.name?.trim()) {
+            if (this.editingAreaId) {
+                // Update existing area
+                this.areaService.areaUpdate({
+                    ids: [new Number(this.editingAreaId)],
+                    model: {
+                        name: this.area.name,
+                        description: this.area.description
+                    }
                 }).subscribe({
-                    next: (updatedDepartment) => {
-                        const index = this.findIndexById(this.editingDepartmentId!);
+                    next: (updatedArea) => {
+                        const index = this.findIndexById(this.editingAreaId!);
                         if (index !== -1) {
-                            const departments = [...this.departments()];
-                            departments[index] = updatedDepartment;
-                            this.departments.set(departments);
+                            const areas = [...this.areas()];
+                            areas[index] = updatedArea;
+                            this.areas.set(areas);
                         }
                         this.messageService.add({
                             severity: 'success',
                             summary: 'Exitoso',
-                            detail: 'Departamento Actualizado',
+                            detail: 'Centro de Producción Actualizado',
                             life: 3000
                         });
-                        this.departmentDialog = false;
-                        this.department = {
+                        this.areaDialog = false;
+                        this.area = {
                             name: '',
-                            address: '',
-                            description: '',
-                            latitude: null,
-                            longitude: null
+                            description: ''
                         };
                     },
                     error: (error) => {
                         this.messageService.add({
                             severity: 'error',
                             summary: 'Error',
-                            detail: 'Error al actualizar el departamento',
+                            detail: 'Error al actualizar el centro de producción',
                             life: 3000
                         });
-                        console.error('Error updating department:', error);
+                        console.error('Error updating area:', error);
                     }
                 });
             } else {
-                // Create new department
-                this.locationService.locationCreate(this.department).subscribe({
-                    next: (newDepartment) => {
-                        this.departments.set([...this.departments(), newDepartment]);
+                // Create new area
+                this.areaService.areaCreate(this.area).subscribe({
+                    next: (newArea) => {
+                        this.areas.set([...this.areas(), newArea]);
                         this.messageService.add({
                             severity: 'success',
                             summary: 'Exitoso',
-                            detail: 'Departamento Creado',
+                            detail: 'Centro de Producción Creado',
                             life: 3000
                         });
-                        this.departmentDialog = false;
-                        this.department = {
+                        this.areaDialog = false;
+                        this.area = {
                             name: '',
-                            address: '',
-                            description: '',
-                            latitude: null,
-                            longitude: null
+                            description: ''
                         };
                     },
                     error: (error) => {
                         this.messageService.add({
                             severity: 'error',
                             summary: 'Error',
-                            detail: 'Error al crear el departamento',
+                            detail: 'Error al crear el centro de producción',
                             life: 3000
                         });
-                        console.error('Error creating department:', error);
+                        console.error('Error creating area:', error);
                     }
                 });
             }
