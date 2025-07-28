@@ -1,4 +1,4 @@
-import { Component, OnInit, Output, EventEmitter, Input, signal, computed } from '@angular/core';
+import { Component, OnInit, OnChanges, SimpleChanges, Output, EventEmitter, Input, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DialogModule } from 'primeng/dialog';
@@ -55,7 +55,7 @@ interface StepData {
   styleUrl: './request-creation-dialog.component.css',
   providers: [MessageService]
 })
-export class RequestCreationDialogComponent implements OnInit {
+export class RequestCreationDialogComponent implements OnInit, OnChanges {
   @Input() visible: boolean = false;
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() requestCreated = new EventEmitter<CreateRequestRequestModel>();
@@ -135,6 +135,15 @@ export class RequestCreationDialogComponent implements OnInit {
     this.tomorrowDate.setDate(this.tomorrowDate.getDate() + 1);
   }
 
+  ngOnChanges(changes: SimpleChanges) {
+    // Reset form when dialog becomes visible (but not on initial component creation)
+    if (changes['visible'] && 
+        changes['visible'].currentValue === true && 
+        changes['visible'].previousValue === false) {
+      this.resetForm();
+    }
+  }
+
   async loadInitialData() {
     this.loading.set(true);
     this.dataLoaded.set(false);
@@ -164,7 +173,7 @@ export class RequestCreationDialogComponent implements OnInit {
   show() {
     this.visible = true;
     this.visibleChange.emit(true);
-    this.resetForm();
+    // resetForm() is now called in ngOnChanges when visible becomes true
   }
 
   hide() {
