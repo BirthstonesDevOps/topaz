@@ -36,8 +36,8 @@ export class AppMenu {
             {
                 label: 'Pedidos',
                 items: [
-                    { label: 'Pedidos', icon: 'pi pi-fw pi-shopping-cart', routerLink: ['/'] },
-                    { label: 'Ordenes de compra', icon: 'pi pi-fw pi-file', routerLink: ['/'] },
+                    { label: 'Pedidos', icon: 'pi pi-fw pi-shopping-cart', routerLink: ['/requests'] },
+                    { label: 'Ordenes de compra', icon: 'pi pi-fw pi-file', routerLink: ['/orders'] },
                 ]
             },
             {
