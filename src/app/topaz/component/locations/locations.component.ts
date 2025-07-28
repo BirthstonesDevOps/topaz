@@ -68,7 +68,7 @@ export class LocationsComponent implements OnInit {
 
     loading: boolean = false;
 
-    selectedLocations!: LocationResponseModel[] | null;
+
 
     submitted: boolean = false;
 
@@ -153,74 +153,7 @@ export class LocationsComponent implements OnInit {
         this.locationDialog = true;
     }
 
-    deleteSelectedLocations() {
-        this.confirmationService.confirm({
-            message: '¿Está seguro de que desea eliminar los departamentos seleccionados?',
-            header: 'Confirmar',
-            icon: 'pi pi-exclamation-triangle',
-            accept: () => {
-                if (this.selectedLocations) {
-                    const locationsToDelete = this.selectedLocations.filter(loc => loc.id);
-                    
-                    if (locationsToDelete.length > 0) {
-                        this.loading = true;
-                        let completedDeletes = 0;
-                        let successfulDeletes = 0;
-                        const totalDeletes = locationsToDelete.length;
-                        
-                        locationsToDelete.forEach(location => {
-                            this.locationService.locationDelete({ ids: [new Number(location.id!)] }).subscribe({
-                                next: () => {
-                                    successfulDeletes++;
-                                    completedDeletes++;
-                                    this.checkDeletionCompletion(completedDeletes, totalDeletes, successfulDeletes);
-                                },
-                                error: (error) => {
-                                    completedDeletes++;
-                                    console.error('Error deleting location:', location.name, error);
-                                    this.checkDeletionCompletion(completedDeletes, totalDeletes, successfulDeletes);
-                                }
-                            });
-                        });
-                    }
-                }
-            }
-        });
-    }
 
-    private checkDeletionCompletion(completed: number, total: number, successful: number) {
-        if (completed === total) {
-            this.loading = false;
-            
-            // Refresh the locations list
-            this.loadLocations();
-            
-            this.selectedLocations = null;
-            
-            if (successful === total) {
-                this.messageService.add({
-                    severity: 'success',
-                    summary: 'Exitoso',
-                    detail: `${successful} departamento(s) eliminado(s)`,
-                    life: 3000
-                });
-            } else if (successful > 0) {
-                this.messageService.add({
-                    severity: 'warn',
-                    summary: 'Parcialmente exitoso',
-                    detail: `${successful} de ${total} departamento(s) eliminado(s)`,
-                    life: 3000
-                });
-            } else {
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Error',
-                    detail: 'No se pudieron eliminar los departamentos',
-                    life: 3000
-                });
-            }
-        }
-    }
 
     hideDialog() {
         this.locationDialog = false;

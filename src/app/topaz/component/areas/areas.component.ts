@@ -69,7 +69,7 @@ export class AreasComponent implements OnInit {
 
     loading: boolean = false;
 
-    selectedAreas!: AreaResponseModel[] | null;
+
 
     submitted: boolean = false;
 
@@ -148,74 +148,7 @@ export class AreasComponent implements OnInit {
         this.areaDialog = true;
     }
 
-    deleteSelectedAreas() {
-        this.confirmationService.confirm({
-            message: '¿Está seguro de que desea eliminar los centros de producción seleccionados?',
-            header: 'Confirmar',
-            icon: 'pi pi-exclamation-triangle',
-            accept: () => {
-                if (this.selectedAreas) {
-                    const areasToDelete = this.selectedAreas.filter(area => area.id);
-                    
-                    if (areasToDelete.length > 0) {
-                        this.loading = true;
-                        let completedDeletes = 0;
-                        let successfulDeletes = 0;
-                        const totalDeletes = areasToDelete.length;
-                        
-                        areasToDelete.forEach(area => {
-                            this.areaService.areaDelete({ ids: [new Number(area.id!)] }).subscribe({
-                                next: () => {
-                                    successfulDeletes++;
-                                    completedDeletes++;
-                                    this.checkDeletionCompletion(completedDeletes, totalDeletes, successfulDeletes);
-                                },
-                                error: (error) => {
-                                    completedDeletes++;
-                                    console.error('Error deleting area:', area.name, error);
-                                    this.checkDeletionCompletion(completedDeletes, totalDeletes, successfulDeletes);
-                                }
-                            });
-                        });
-                    }
-                }
-            }
-        });
-    }
 
-    private checkDeletionCompletion(completed: number, total: number, successful: number) {
-        if (completed === total) {
-            this.loading = false;
-            
-            // Refresh the areas list
-            this.loadAreas();
-            
-            this.selectedAreas = null;
-            
-            if (successful === total) {
-                this.messageService.add({
-                    severity: 'success',
-                    summary: 'Exitoso',
-                    detail: `${successful} centro(s) de producción eliminado(s)`,
-                    life: 3000
-                });
-            } else if (successful > 0) {
-                this.messageService.add({
-                    severity: 'warn',
-                    summary: 'Parcialmente exitoso',
-                    detail: `${successful} de ${total} centro(s) de producción eliminado(s)`,
-                    life: 3000
-                });
-            } else {
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Error',
-                    detail: 'No se pudieron eliminar los centros de producción',
-                    life: 3000
-                });
-            }
-        }
-    }
 
     hideDialog() {
         this.areaDialog = false;

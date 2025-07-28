@@ -3,7 +3,6 @@
 <p-toolbar styleClass="mb-6" *ngIf="!loading">
     <ng-template #start>
         <p-button label="Nuevo" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openNew()" />
-        <p-button severity="danger" label="Eliminar" icon="pi pi-trash" outlined (onClick)="deleteSelectedLocations()" [disabled]="!selectedLocations || !selectedLocations.length" />
     </ng-template>
 
     <ng-template #end>
@@ -27,7 +26,6 @@
     [paginator]="true"
     [globalFilterFields]="['name', 'description', 'address']"
     [tableStyle]="{ 'min-width': '75rem' }"
-    [(selection)]="selectedLocations"
     [rowHover]="true"
     dataKey="id"
     currentPageReportTemplate="Mostrando {first} a {last} de {totalRecords} departamentos"
@@ -45,9 +43,6 @@
     </ng-template>
     <ng-template #header>
         <tr>
-            <th style="width: 3rem">
-                <p-tableHeaderCheckbox />
-            </th>
             <th pSortableColumn="address" style="min-width: 16rem">
                 Dirección
                 <p-sortIcon field="address" />
@@ -66,9 +61,6 @@
     </ng-template>
     <ng-template #body let-location>
         <tr>
-            <td style="width: 3rem">
-                <p-tableCheckbox [value]="location" />
-            </td>
             <td style="min-width: 16rem">{{ location.address }}</td>
             <td style="min-width: 16rem">{{ location.name }}</td>
             <td style="min-width: 20rem">{{ location.description }}</td>
