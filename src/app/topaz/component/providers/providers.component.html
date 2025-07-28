@@ -16,9 +16,34 @@
     </div>
 </div>
 
+<div *ngIf="!loading && providers().length > 0 && filteredProviders().length === 0" class="card">
+    <div class="text-center">
+        <i class="pi pi-search text-6xl text-gray-400 mb-4"></i>
+        <div class="text-gray-600 font-bold text-xl mb-2">No se encontraron proveedores</div>
+        <div class="text-gray-500 mb-4">No hay proveedores que coincidan con la búsqueda "{{ searchTerm }}".</div>
+        <p-button label="Limpiar búsqueda" icon="pi pi-times" severity="secondary" (onClick)="clearSearch()"></p-button>
+    </div>
+</div>
+
 <p-toolbar styleClass="mb-6" *ngIf="!loading && providers().length > 0">
     <ng-template #start>
         <p-button label="Nuevo" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openNew()" />
+    </ng-template>
+
+    <ng-template #center>
+        <div class="flex items-center gap-2">
+            <p-iconfield>
+                <p-inputicon class="pi pi-search" />
+                <input type="text" 
+                pInputText 
+                placeholder="Buscar proveedores..." 
+                [(ngModel)]="searchTerm" 
+                (input)="filterProviders()"
+                class="w-80"
+                fluid  />
+            </p-iconfield>
+
+        </div>
     </ng-template>
 
     <ng-template #end>
@@ -26,13 +51,13 @@
     </ng-template>
 </p-toolbar>
 
-<div class="card" *ngIf="!loading && providers().length > 0">
+<div class="card" *ngIf="!loading && filteredProviders().length > 0">
     <div class="flex mb-4 justify-between w-full">
         <div class="font-semibold text-xl">Gestionar Proveedores</div>
         <p-button icon="pi pi-chevron-up" severity="secondary" (onClick)="collapseAll()" text />
     </div>
     <p-accordion [multiple]="true" value="[0]" #accordion>
-        <p-accordion-panel *ngFor="let provider of providers()" [value]="provider.id!">
+        <p-accordion-panel *ngFor="let provider of filteredProviders()" [value]="provider.id!">
             <p-accordion-header>
                 <div class="flex justify-between items-center w-full mr-4">
                     <span>{{ provider.name }}</span>

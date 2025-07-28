@@ -26,29 +26,34 @@ import {
   PhoneRequestModel,
   DeleteRequest
 } from '@birthstonesdevops/topaz.backend.organizationservice';
+import { IconFieldModule } from "primeng/iconfield";
+import { InputIconModule } from "primeng/inputicon";
 
 @Component({
   selector: 'app-providers',
   standalone: true,
   imports: [
-    CommonModule, 
+    CommonModule,
     FormsModule,
-    ToastModule, 
-    ToolbarModule, 
-    ButtonModule, 
-    ProgressSpinner, 
-    AccordionModule, 
+    ToastModule,
+    ToolbarModule,
+    ButtonModule,
+    ProgressSpinner,
+    AccordionModule,
     DialogModule,
     InputTextModule,
     TextareaModule,
-    ConfirmDialogModule
-  ],
+    ConfirmDialogModule,
+    IconFieldModule,
+    InputIconModule
+],
   templateUrl: './providers.component.html',
   styleUrl: './providers.component.css',
   providers: [MessageService, ConfirmationService]
 })
 export class ProvidersComponent implements OnInit {
   providers = signal<ProviderDetailsResponseModel[]>([]);
+  filteredProviders = signal<ProviderDetailsResponseModel[]>([]);
   
   // Dialog states
   addProviderDialog: boolean = false;
@@ -64,6 +69,9 @@ export class ProvidersComponent implements OnInit {
   newNote: ProviderNoteRequestModel = {};
   tempPhones: PhoneRequestModel[] = [];
   tempNotes: NoteRequestModel[] = [];
+  
+  // Search
+  searchTerm: string = '';
   
   // States
   @ViewChild('accordion') accordion!: Accordion;
@@ -87,6 +95,7 @@ export class ProvidersComponent implements OnInit {
     this.providerService.providerGetAllProviderDetails().subscribe({
       next: (data) => {
         this.providers.set(data);
+        this.filteredProviders.set(data); // Initialize filtered providers
         this.loading = false;
       },
       error: (error) => {
@@ -128,6 +137,7 @@ export class ProvidersComponent implements OnInit {
           this.providerService.providerDelete(deleteRequest).subscribe({
             next: () => {
               this.providers.set(this.providers().filter(p => p.id !== provider.id));
+              this.filteredProviders.set(this.filteredProviders().filter(p => p.id !== provider.id)); // Update filtered providers
               this.messageService.add({
                 severity: 'success',
                 summary: 'Éxito',
@@ -167,6 +177,7 @@ export class ProvidersComponent implements OnInit {
     this.providerService.providerCreateProvider(createRequest).subscribe({
       next: (newProvider) => {
         this.providers.set([...this.providers(), newProvider]);
+        this.filteredProviders.set([...this.filteredProviders(), newProvider]); // Update filtered providers
         this.messageService.add({
           severity: 'success',
           summary: 'Éxito',
@@ -209,6 +220,7 @@ export class ProvidersComponent implements OnInit {
           p.id === this.editingProvider.id ? { ...this.editingProvider } : p
         );
         this.providers.set(updatedProviders);
+        this.filteredProviders.set(updatedProviders); // Update filtered providers
         this.messageService.add({
           severity: 'success',
           summary: 'Éxito',
@@ -410,5 +422,24 @@ export class ProvidersComponent implements OnInit {
     this.tempPhones = [];
     this.tempNotes = [];
     this.submitted = false;
+  }
+
+  filterProviders(): void {
+    if (!this.searchTerm) {
+      this.filteredProviders.set(this.providers());
+      return;
+    }
+
+    const lowerCaseSearchTerm = this.searchTerm.toLowerCase();
+    this.filteredProviders.set(
+      this.providers().filter(provider => 
+        provider.name?.toLowerCase().includes(lowerCaseSearchTerm) || false
+      )
+    );
+  }
+
+  clearSearch(): void {
+    this.searchTerm = '';
+    this.filteredProviders.set(this.providers());
   }
 }
