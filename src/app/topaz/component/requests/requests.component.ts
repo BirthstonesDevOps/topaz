@@ -1,6 +1,7 @@
 import { Component, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
 import { MessageService, ConfirmationService } from 'primeng/api';
@@ -105,7 +106,8 @@ export class RequestsComponent implements OnInit {
     private requestService: RequestService,
     private requestStatusService: RequestStatusService,
     private areaService: AreaService,
-    private locationService: LocationService
+    private locationService: LocationService,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -318,5 +320,10 @@ export class RequestsComponent implements OnInit {
       summary: 'Info',
       detail: 'Funcionalidad de edición próximamente disponible'
     });
+  }
+
+  // Navigation to request details
+  navigateToRequestDetails(requestId: number) {
+    this.router.navigate(['/requests', requestId]);
   }
 }

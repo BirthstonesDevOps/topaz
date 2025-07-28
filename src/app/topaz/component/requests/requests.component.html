@@ -63,7 +63,10 @@
     </ng-template>
     
     <ng-template pTemplate="body" let-request>
-      <tr>
+      <tr 
+        class="cursor-pointer hover:bg-blue-50 transition-colors"
+        (click)="navigateToRequestDetails(request.id!)"
+        [class.opacity-50]="!request.id">
         <td>{{ request.id || 'N/A' }}</td>
         <td>{{ request.areaName || 'N/A' }}</td>
         <td>{{ request.locationName || 'N/A' }}</td>
@@ -75,12 +78,12 @@
             *ngIf="request.currentStatus" 
             [severity]="getStatusSeverity(request.currentStatus.tag)"
             [value]="request.currentStatus.status || 'Sin estado'"
-            [icon]="request.currentStatus.icon || 'pi pi-circle'">
+            [icon]="'pi ' + (request.currentStatus.icon || 'pi-circle')">
           </p-tag>
           <span *ngIf="!request.currentStatus" class="text-gray-500">Sin estado</span>
         </td>
         <td>
-          <div class="flex gap-1">
+          <div class="flex gap-1" (click)="$event.stopPropagation()">
             <!-- Edit Button -->
             <p-button 
               *ngIf="canEditRequest(request)"

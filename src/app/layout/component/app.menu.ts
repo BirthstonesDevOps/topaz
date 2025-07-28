@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MenuItem } from 'primeng/api';
 import { AppMenuitem } from './app.menuitem';
+import { environment } from '../../environments/environment';
 
 @Component({
     selector: 'app-menu',
@@ -18,9 +19,11 @@ import { AppMenuitem } from './app.menuitem';
 export class AppMenu {
     model: MenuItem[] = [];
     topazMenu: MenuItem[] = [];
+    uiMenu: MenuItem[] = [];
 
     ngOnInit() {
-        this.model = [
+
+        this.topazMenu = [
             {
                 label: 'Home',
                 items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/'] }]
@@ -48,7 +51,7 @@ export class AppMenu {
             }
         ];
 
-        this.topazMenu = [
+        this.uiMenu = [
             {
                 label: 'UI Components',
                 items: [
@@ -178,5 +181,16 @@ export class AppMenu {
                 ]
             }
         ];
+
+        if(environment.environment === 'local') {
+            this.model = [
+                ...this.topazMenu,
+                ...this.uiMenu
+            ];
+        } else {
+            this.model = [
+                ...this.topazMenu
+            ];
+        }
     }
 }
