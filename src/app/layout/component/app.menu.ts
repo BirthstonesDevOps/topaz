@@ -30,7 +30,7 @@ export class AppMenu {
                 items: [
                     { label: 'Departamentos', icon: 'pi pi-fw pi-sitemap', routerLink: ['/departments'] },
                     { label: 'Centros de producción', icon: 'pi pi-fw pi-building', routerLink: ['/areas'] },
-                    { label: 'Proveedores', icon: 'pi pi-fw pi-truck', routerLink: ['/'] },
+                    { label: 'Proveedores', icon: 'pi pi-fw pi-truck', routerLink: ['/providers'] },
                 ]
             },
             {
