@@ -1,4 +1,4 @@
-export enum RequestOperations {
+export enum Operations {
   DeleteRequest = 1,
   ReviseRequest = 2,
   RejectRequest = 3,

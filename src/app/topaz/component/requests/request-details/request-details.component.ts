@@ -33,7 +33,7 @@ import {
 } from '@birthstonesdevops/topaz.backend.organizationservice';
 import { StatusNoteTreeComponent } from '../../shared/status-note-tree/status-note-tree.component';
 import { ItemListComponent } from '../../shared/item-list/item-list.component';
-import { RequestOperations } from '../models/request-operations.enum';
+import { Operations } from '../../models/operations.enum';
 
 // Extended request interface for detailed display
 interface EnrichedRequestDetails extends RequestDetailsResponseModel {
@@ -190,12 +190,12 @@ export class RequestDetailsComponent implements OnInit {
   // Check if specific operations are available
   canAddItems(): boolean {
     const operations = this.requestDetails()?.currentOperations || [];
-    return operations.includes(RequestOperations.AddRequestItem);
+    return operations.includes(Operations.AddRequestItem);
   }
 
   canDeleteItems(): boolean {
     const operations = this.requestDetails()?.currentOperations || [];
-    return operations.includes(RequestOperations.DeleteRequestItem);
+    return operations.includes(Operations.DeleteRequestItem);
   }
 
   canEditItems(): boolean {
@@ -209,8 +209,8 @@ export class RequestDetailsComponent implements OnInit {
     const hasPurchaseOrders = !!(this.requestDetails()?.purchaseOrders && this.requestDetails()!.purchaseOrders!.length > 0);
     
     return (
-      operations.includes(RequestOperations.CreatePurchaseOrder) ||
-      operations.includes(RequestOperations.DeletePurchaseOrder) ||
+      operations.includes(Operations.CreatePurchaseOrder) ||
+      operations.includes(Operations.DeletePurchaseOrder) ||
       hasPurchaseOrders
     );
   }
@@ -218,17 +218,17 @@ export class RequestDetailsComponent implements OnInit {
   // Check if approve/reject operations are available
   canReviseRequest(): boolean {
     const operations = this.requestDetails()?.currentOperations || [];
-    return operations.includes(RequestOperations.ReviseRequest);
+    return operations.includes(Operations.ReviseRequest);
   }
 
   canApproveRequest(): boolean {
     const operations = this.requestDetails()?.currentOperations || [];
-    return operations.includes(RequestOperations.ApproveRequest);
+    return operations.includes(Operations.ApproveRequest);
   }
 
   canRejectRequest(): boolean {
     const operations = this.requestDetails()?.currentOperations || [];
-    return operations.includes(RequestOperations.RejectRequest);
+    return operations.includes(Operations.RejectRequest);
   }
 
   canShowApprovalToolbar(): boolean {

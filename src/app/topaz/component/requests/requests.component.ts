@@ -33,7 +33,7 @@ import {
   GetRequest
 } from '@birthstonesdevops/topaz.backend.organizationservice';
 import { RequestCreationDialogComponent } from './request-creation-dialog/request-creation-dialog.component';
-import { RequestOperations } from './models/request-operations.enum';
+import { Operations } from '../models/operations.enum';
 import { ToolbarModule } from "primeng/toolbar";
 import { IconFieldModule } from "primeng/iconfield";
 
@@ -303,12 +303,12 @@ export class RequestsComponent implements OnInit {
 
   // Operation availability checks
   canDeleteRequest(request: RequestTableData): boolean {
-    return request.currentOperations?.includes(RequestOperations.DeleteRequest) ?? false;
+    return request.currentOperations?.includes(Operations.DeleteRequest) ?? false;
   }
 
   canEditRequest(request: RequestTableData): boolean {
-    return (request.currentOperations?.includes(RequestOperations.AddRequestItem) ?? false) ||
-           (request.currentOperations?.includes(RequestOperations.DeleteRequestItem) ?? false);
+    return (request.currentOperations?.includes(Operations.AddRequestItem) ?? false) ||
+           (request.currentOperations?.includes(Operations.DeleteRequestItem) ?? false);
   }
 
   // Edit functionality (placeholder for now)
