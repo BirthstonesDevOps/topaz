@@ -247,9 +247,9 @@ export class RequestCreationDialogComponent implements OnInit, OnChanges {
     });
   };
 
-  editItemHandler = (data: { id: number; quantity: number }) => {
+  editItemHandler = (data: { itemId: number; correspondentEntityId?: number; quantity: number }) => {
     this.stepData.update(stepData => {
-      const index = stepData.items.findIndex((item: any) => item.itemId === data.id);
+      const index = stepData.items.findIndex((item: any) => item.itemId === data.itemId);
       if (index !== -1) {
         const updatedItems = [...stepData.items];
         updatedItems[index] = { ...updatedItems[index], quantity: data.quantity };
@@ -265,10 +265,10 @@ export class RequestCreationDialogComponent implements OnInit, OnChanges {
     });
   };
 
-  deleteItemHandler = (itemId: number) => {
-    this.stepData.update(data => ({
-      ...data,
-      items: data.items.filter((item: any) => item.itemId !== itemId)
+  deleteItemHandler = (data: { itemId: number; correspondentEntityId?: number }) => {
+    this.stepData.update(stepData => ({
+      ...stepData,
+      items: stepData.items.filter((item: any) => item.itemId !== data.itemId)
     }));
     
     this.messageService.add({

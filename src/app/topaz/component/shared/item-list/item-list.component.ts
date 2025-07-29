@@ -13,8 +13,8 @@
  * 
  * Component handlers:
  * addItemHandler = (item: ItemRequestModel) => { console.log('Add:', item); };
- * editItemHandler = (data: { id: number; quantity: number }) => { console.log('Edit:', data); };
- * deleteItemHandler = (itemId: number) => { console.log('Delete:', itemId); };
+ * editItemHandler = (data: { itemId: number; correspondentEntityId?: number; quantity: number }) => { console.log('Edit:', data); };
+ * deleteItemHandler = (data: { itemId: number; correspondentEntityId?: number }) => { console.log('Delete:', data); };
  * 
  * Where orderItems is of type: ItemDetailsResponseModel[] (from orders service)
  */
@@ -92,8 +92,8 @@ export class ItemListComponent implements OnInit, OnChanges {
   @Input() showMeasurement: boolean = false;
   @Input() showDescription: boolean = false;
   @Input() onItemSave?: (item: ItemRequestModel) => void;
-  @Input() onItemDelete?: (itemId: number) => void;
-  @Input() onItemEdit?: (data: { id: number; quantity: number }) => void;
+  @Input() onItemDelete?: (data: { itemId: number; correspondentEntityId?: number }) => void;
+  @Input() onItemEdit?: (data: { itemId: number; correspondentEntityId?: number; quantity: number }) => void;
 
   @ViewChild('dt') dt!: Table;
 
@@ -291,7 +291,8 @@ export class ItemListComponent implements OnInit, OnChanges {
     
     if (this.onItemEdit && this.editingItem.orderItem.itemId) {
       this.onItemEdit({
-        id: this.editingItem.orderItem.itemId,
+        itemId: this.editingItem.orderItem.itemId,
+        correspondentEntityId: this.editingItem.orderItem.correspondentEntityId,
         quantity: this.quantityForEdit
       });
     }
@@ -310,7 +311,10 @@ export class ItemListComponent implements OnInit, OnChanges {
       rejectLabel: 'No',
       accept: () => {
         if (this.onItemDelete && item.orderItem.itemId) {
-          this.onItemDelete(item.orderItem.itemId);
+          this.onItemDelete({
+            itemId: item.orderItem.itemId,
+            correspondentEntityId: item.orderItem.correspondentEntityId
+          });
         }
       }
     });

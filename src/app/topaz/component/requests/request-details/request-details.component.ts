@@ -13,7 +13,10 @@ import {
   RequestService,
   RequestStatusService,
   StatusDetailsResponseModel,
-  GetRequest
+  GetRequest,
+  ItemRequestModel,
+  RequestItemService,
+  AddItemRequestModel
 } from '@birthstonesdevops/topaz.backend.ordersservice';
 import { 
   LocationService, 
@@ -23,6 +26,7 @@ import {
 } from '@birthstonesdevops/topaz.backend.organizationservice';
 import { StatusNoteTreeComponent } from '../../shared/status-note-tree/status-note-tree.component';
 import { ItemListComponent } from '../../shared/item-list/item-list.component';
+import { RequestOperations } from '../models/request-operations.enum';
 
 // Extended request interface for detailed display
 interface EnrichedRequestDetails extends RequestDetailsResponseModel {
@@ -52,6 +56,7 @@ export class RequestDetailsComponent implements OnInit {
     private messageService: MessageService,
     private requestService: RequestService,
     private requestStatusService: RequestStatusService,
+    private requestItemService: RequestItemService,
     private areaService: AreaService,
     private locationService: LocationService
   ) {}
@@ -141,7 +146,7 @@ export class RequestDetailsComponent implements OnInit {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Pedido no encontrado'
+          detail: 'No se encontró el pedido solicitado'
         });
       }
     } catch (error) {
@@ -160,6 +165,117 @@ export class RequestDetailsComponent implements OnInit {
   goBack() {
     this.router.navigate(['/requests']);
   }
+
+  // Check if specific operations are available
+  canAddItems(): boolean {
+    const operations = this.requestDetails()?.currentOperations || [];
+    return operations.includes(RequestOperations.AddRequestItem);
+  }
+
+  canDeleteItems(): boolean {
+    const operations = this.requestDetails()?.currentOperations || [];
+    return operations.includes(RequestOperations.DeleteRequestItem);
+  }
+
+  canEditItems(): boolean {
+    // For now, we'll allow editing if we can add or delete items
+    return this.canAddItems() || this.canDeleteItems();
+  }
+
+  // Item operation handlers
+  addItemHandler = async (item: ItemRequestModel) => {
+    if (!this.requestId) return;
+    
+    try {
+      console.log('Agregando artículo:', item);
+      
+      const addItemRequest: AddItemRequestModel = {
+        id: this.requestId,
+        items: [item]
+      };
+      
+      await this.requestItemService.requestItemAddRequestItem(addItemRequest).toPromise();
+      
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Éxito',
+        detail: 'Artículo agregado correctamente'
+      });
+      
+      // Reload request details to show updated items
+      await this.loadRequestDetails();
+      
+    } catch (error) {
+      console.error('Error agregando artículo:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Error al agregar el artículo'
+      });
+    }
+  };
+
+  editItemHandler = async (data: { itemId: number; correspondentEntityId?: number; quantity: number }) => {
+    if (!this.requestId) return;
+    
+    try {
+      console.log('Editando artículo:', data);
+      
+      // For editing, we use the same add method with updated quantity
+      const editItemRequest: AddItemRequestModel = {
+        id: this.requestId,
+        items: [{
+          itemId: data.itemId,
+          quantity: data.quantity
+        }]
+      };
+      
+      await this.requestItemService.requestItemAddRequestItem(editItemRequest).toPromise();
+      
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Éxito',
+        detail: 'Cantidad del artículo actualizada correctamente'
+      });
+      
+      // Reload request details to show updated items
+      await this.loadRequestDetails();
+      
+    } catch (error) {
+      console.error('Error editando artículo:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Error al actualizar la cantidad del artículo'
+      });
+    }
+  };
+
+  deleteItemHandler = async (data: { itemId: number; correspondentEntityId?: number }) => {
+    if (!this.requestId) return;
+    
+    try {      
+      const entityIdToDelete = data.correspondentEntityId!;
+      await this.requestItemService.requestItemDeleteRequestItems(entityIdToDelete).toPromise();
+      
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Éxito',
+        detail: 'Artículo eliminado correctamente'
+      });
+      
+      // Reload request details to show updated items
+      await this.loadRequestDetails();
+      
+    } catch (error) {
+      console.error('Error eliminando artículo:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Error al eliminar el artículo'
+      });
+    }
+  };
 
   // Utility methods
   formatDate(dateString: string | undefined): string {

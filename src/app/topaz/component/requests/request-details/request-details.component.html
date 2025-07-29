@@ -73,11 +73,13 @@
                     </div>
                     
                     <!-- Items Section -->
-                    <div class="px-4 pb-4">
+                    <div>
                         <app-item-list 
                             [items]="requestDetails()?.items || []"
                             [showMeasurement]="true"
-                            [showDescription]="true">
+                            [onItemSave]="canAddItems() ? addItemHandler : undefined"
+                            [onItemEdit]="canEditItems() ? editItemHandler : undefined"
+                            [onItemDelete]="canDeleteItems() ? deleteItemHandler : undefined">
                         </app-item-list>
                     </div>
                 </p-tabpanel>
