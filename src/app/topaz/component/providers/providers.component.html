@@ -150,7 +150,7 @@
     </p-accordion>
     
     <!-- Custom Paginator -->
-    <div class="mt-6" *ngIf="getTotalFilteredItems() > itemsPerPage">
+    <div class="mt-6" *ngIf="getTotalFilteredItems() >= itemsPerPage">
         <p-paginator 
             [rows]="itemsPerPage" 
             [totalRecords]="getTotalFilteredItems()" 

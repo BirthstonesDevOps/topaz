@@ -71,6 +71,17 @@
                             </span>
                         </div>
                     </div>
+                    
+                    <!-- Items Section -->
+                    <div>
+                        <app-item-list 
+                            [items]="requestDetails()?.items || []"
+                            [showMeasurement]="true"
+                            [onItemSave]="canAddItems() ? addItemHandler : undefined"
+                            [onItemEdit]="canEditItems() ? editItemHandler : undefined"
+                            [onItemDelete]="canDeleteItems() ? deleteItemHandler : undefined">
+                        </app-item-list>
+                    </div>
                 </p-tabpanel>
 
                 <!-- Status Tab -->
