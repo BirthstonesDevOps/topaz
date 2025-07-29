@@ -18,7 +18,15 @@ import { DatePickerModule } from 'primeng/datepicker';
 
 import { LocationService, AreaService } from '@birthstonesdevops/topaz.backend.organizationservice';
 import { LocationResponseModel, AreaResponseModel } from '@birthstonesdevops/topaz.backend.organizationservice';
-import { CreateRequestRequestModel, ItemRequestModel, NoteRequestModel } from '@birthstonesdevops/topaz.backend.ordersservice';
+import { 
+  CreateRequestRequestModel, 
+  ItemRequestModel, 
+  NoteRequestModel, 
+  RequestDetailsResponseModel,
+  RequestService,
+  RequestUpdateRequestModel,
+  UpdateRequestOfRequestUpdateRequestModel
+} from '@birthstonesdevops/topaz.backend.ordersservice';
 import { ItemDetailsResponseModel } from '@birthstonesdevops/topaz.backend.ordersservice';
 
 import { ItemListComponent } from '../../shared/item-list/item-list.component';
@@ -57,8 +65,11 @@ interface StepData {
 })
 export class RequestCreationDialogComponent implements OnInit, OnChanges {
   @Input() visible: boolean = false;
+  @Input() isEditMode: boolean = false;
+  @Input() requestData: RequestDetailsResponseModel | null = null;
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() requestCreated = new EventEmitter<CreateRequestRequestModel>();
+  @Output() requestUpdated = new EventEmitter<{ id: number; updateData: RequestUpdateRequestModel }>();
 
   // Loading states
   loading = signal<boolean>(false);
@@ -113,6 +124,7 @@ export class RequestCreationDialogComponent implements OnInit, OnChanges {
   constructor(
     private locationService: LocationService,
     private areaService: AreaService,
+    private requestService: RequestService,
     private messageService: MessageService
   ) {}
 
@@ -129,6 +141,19 @@ export class RequestCreationDialogComponent implements OnInit, OnChanges {
     this.stepData.update(data => ({ ...data, neededAt }));
   }
 
+  // Computed properties for edit mode
+  dialogTitle = computed(() => {
+    return this.isEditMode ? 'Editar Solicitud' : 'Crear Nueva Solicitud';
+  });
+
+  shouldShowStepper = computed(() => {
+    return !this.isEditMode;
+  });
+
+  maxStepForMode = computed(() => {
+    return this.isEditMode ? 1 : 3;
+  });
+
   ngOnInit() {
     this.loadInitialData();
     this.tomorrowDate = new Date();
@@ -141,6 +166,11 @@ export class RequestCreationDialogComponent implements OnInit, OnChanges {
         changes['visible'].currentValue === true && 
         changes['visible'].previousValue === false) {
       this.resetForm();
+      
+      // Load request data if in edit mode
+      if (this.isEditMode && this.requestData) {
+        this.loadRequestDataForEdit();
+      }
     }
   }
 
@@ -194,9 +224,24 @@ export class RequestCreationDialogComponent implements OnInit, OnChanges {
     this.newNote = '';
   }
 
+  loadRequestDataForEdit() {
+    if (!this.requestData) return;
+    
+    this.stepData.set({
+      areaId: this.requestData.areaId || null,
+      locationId: this.requestData.locationId || null,
+      neededAt: this.requestData.neededAt ? new Date(this.requestData.neededAt) : null,
+      items: this.requestData.items || [],
+      notes: []
+    });
+    
+    // In edit mode, start and stay on step 1
+    this.currentStep.set(1);
+  }
+
   // Step navigation
   nextStep() {
-    if (this.currentStep() < 3) {
+    if (this.currentStep() < this.maxStepForMode()) {
       this.currentStep.set(this.currentStep() + 1);
     }
   }
@@ -208,7 +253,9 @@ export class RequestCreationDialogComponent implements OnInit, OnChanges {
   }
 
   goToStep(step: number) {
-    this.currentStep.set(step);
+    if (step <= this.maxStepForMode()) {
+      this.currentStep.set(step);
+    }
   }
 
   // Item list handlers
@@ -298,6 +345,11 @@ export class RequestCreationDialogComponent implements OnInit, OnChanges {
 
   // Final submission
   createRequest() {
+    if (this.isEditMode) {
+      this.updateRequest();
+      return;
+    }
+
     if (!this.step1Valid() || !this.step2Valid()) {
       this.messageService.add({
         severity: 'error',
@@ -323,6 +375,52 @@ export class RequestCreationDialogComponent implements OnInit, OnChanges {
     this.hide();
   }
 
+  async updateRequest() {
+    if (!this.step1Valid() || !this.requestData?.id) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Por favor complete todos los campos requeridos'
+      });
+      return;
+    }
+
+    const data = this.stepData();
+    const updateData: RequestUpdateRequestModel = {
+      areaId: data.areaId!,
+      locationId: data.locationId!,
+      neededAt: data.neededAt!.toISOString()
+    };
+
+    this.requestUpdated.emit({ 
+      id: this.requestData.id, 
+      updateData 
+    });
+    this.hide();
+  }
+
+  getSubmitButtonLabel(): string {
+    return this.isEditMode ? 'Actualizar Solicitud' : 'Crear Solicitud';
+  }
+
+  getSubmitButtonIcon(): string {
+    return this.isEditMode ? 'pi pi-check' : 'pi pi-check';
+  }
+
+  shouldShowSubmitButton(): boolean {
+    if (this.isEditMode) {
+      return this.currentStep() === 1;
+    }
+    return this.currentStep() === 3;
+  }
+
+  shouldShowNextButton(): boolean {
+    if (this.isEditMode) {
+      return false;
+    }
+    return this.currentStep() < 3;
+  }
+
   // Utility methods
   getStepStatus(step: number): string {
     if (step < this.currentStep()) return 'completed';
@@ -331,10 +429,12 @@ export class RequestCreationDialogComponent implements OnInit, OnChanges {
   }
 
   canProceedToStep2(): boolean {
+    if (this.isEditMode) return false;
     return !!this.step1Valid();
   }
 
   canProceedToStep3(): boolean {
+    if (this.isEditMode) return false;
     return this.canProceedToStep2() && !!this.step2Valid();
   }
 }

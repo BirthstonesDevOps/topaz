@@ -1,5 +1,5 @@
 <p-dialog 
-  header="Crear Nueva Solicitud" 
+  [header]="dialogTitle()" 
   [(visible)]="visible" 
   [modal]="true" 
   [style]="{ width: '90vw', maxWidth: '1200px' }" 
@@ -18,8 +18,8 @@
   <!-- Main Content -->
   <div *ngIf="!loading() && dataLoaded()">
     
-    <!-- Stepper -->
-    <p-stepper [value]="currentStep()" class="mb-6">
+    <!-- Stepper (only show in create mode) -->
+    <p-stepper *ngIf="shouldShowStepper()" [value]="currentStep()" class="mb-6">
       <p-step-list>
         <p-step [value]="1" (onClick)="goToStep(1)">
           <span [class.text-primary]="currentStep() >= 0">Información Básica</span>
@@ -35,7 +35,7 @@
 
     <!-- Step 1: Basic Information -->
     <div *ngIf="currentStep() === 1" class="step-content">
-      <h3 class="text-xl font-semibold mb-6">Información de la Solicitud</h3>
+      <h3 class="text-xl font-semibold mb-6">{{ isEditMode ? 'Editar Información de la Solicitud' : 'Información de la Solicitud' }}</h3>
       
       <div class="flex flex-col gap-6">
         <!-- Area Selection -->
@@ -109,8 +109,8 @@
       </div>
     </div>
 
-    <!-- Step 2: Items -->
-    <div *ngIf="currentStep() === 2" class="step-content">
+    <!-- Step 2: Items (only show in create mode) -->
+    <div *ngIf="currentStep() === 2 && !isEditMode" class="step-content">
       <h3 class="text-xl font-semibold mb-6">Artículos de la Solicitud</h3>
       
       <app-item-list
@@ -123,8 +123,8 @@
       </app-item-list>
     </div>
 
-    <!-- Step 3: Summary -->
-    <div *ngIf="currentStep() === 3" class="step-content">
+    <!-- Step 3: Summary (only show in create mode) -->
+    <div *ngIf="currentStep() === 3 && !isEditMode" class="step-content">
       <h3 class="text-xl font-semibold mb-6">Resumen de la Solicitud</h3>
       
       <div class="flex flex-col gap-6">
@@ -212,9 +212,9 @@
   <!-- Dialog Footer -->
   <ng-template #footer>
     <div class="flex justify-between w-full">
-      <!-- Previous Button -->
+      <!-- Previous Button (only show in create mode) -->
       <p-button 
-        *ngIf="currentStep() > 1 && dataLoaded()"
+        *ngIf="currentStep() > 1 && dataLoaded() && !isEditMode"
         label="Anterior" 
         icon="pi pi-arrow-left"
         severity="secondary"
@@ -230,20 +230,21 @@
         (onClick)="hide()"
         class="mr-2" />
 
-      <!-- Next/Finish Button -->
+      <!-- Next Button (only show in create mode) -->
       <p-button 
-        *ngIf="currentStep() < 3 && dataLoaded()"
+        *ngIf="shouldShowNextButton() && dataLoaded()"
         [label]="currentStep() === 1 ? 'Siguiente' : 'Continuar'"
         icon="pi pi-arrow-right"
         iconPos="right"
         [disabled]="(currentStep() === 1 && !step1Valid()) || (currentStep() === 2 && !step2Valid())"
         (onClick)="nextStep()" />
 
+      <!-- Submit Button (create or update) -->
       <p-button 
-        *ngIf="currentStep() === 3 && dataLoaded()"
-        label="Crear Solicitud"
-        icon="pi pi-check"
-        [disabled]="!step1Valid() || !step2Valid()"
+        *ngIf="shouldShowSubmitButton() && dataLoaded()"
+        [label]="getSubmitButtonLabel()"
+        [icon]="getSubmitButtonIcon()"
+        [disabled]="!step1Valid() || (!isEditMode && !step2Valid())"
         (onClick)="createRequest()" />
     </div>
   </ng-template>
