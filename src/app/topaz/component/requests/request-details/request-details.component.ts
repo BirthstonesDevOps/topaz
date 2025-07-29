@@ -7,6 +7,10 @@ import { ToastModule } from 'primeng/toast';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
+import { ToolbarModule } from 'primeng/toolbar';
+import { DialogModule } from 'primeng/dialog';
+import { TextareaModule } from 'primeng/textarea';
+import { FormsModule } from '@angular/forms';
 
 import { 
   RequestDetailsResponseModel, 
@@ -18,7 +22,8 @@ import {
   RequestItemService,
   AddItemRequestModel,
   RequestStatusHistoryNoteService,
-  RequestStatusHistoryNoteRequestModel
+  RequestStatusHistoryNoteRequestModel,
+  ChangeStatusRequestModel
 } from '@birthstonesdevops/topaz.backend.ordersservice';
 import { 
   LocationService, 
@@ -41,7 +46,20 @@ interface EnrichedRequestDetails extends RequestDetailsResponseModel {
 @Component({
   selector: 'app-request-details',
   standalone: true,
-  imports: [CommonModule, ButtonModule, ToastModule, ProgressSpinnerModule, TabsModule, TagModule, StatusNoteTreeComponent, ItemListComponent],
+  imports: [
+    CommonModule, 
+    FormsModule,
+    ButtonModule, 
+    ToastModule, 
+    ProgressSpinnerModule, 
+    TabsModule, 
+    TagModule, 
+    ToolbarModule,
+    DialogModule,
+    TextareaModule,
+    StatusNoteTreeComponent, 
+    ItemListComponent
+  ],
   templateUrl: './request-details.component.html',
   styleUrl: './request-details.component.css',
   providers: [MessageService]
@@ -183,6 +201,159 @@ export class RequestDetailsComponent implements OnInit {
   canEditItems(): boolean {
     // For now, we'll allow editing if we can add or delete items
     return this.canAddItems() || this.canDeleteItems();
+  }
+
+  // Check if orders tab should be shown
+  canShowOrdersTab(): boolean {
+    const operations = this.requestDetails()?.currentOperations || [];
+    const hasPurchaseOrders = !!(this.requestDetails()?.purchaseOrders && this.requestDetails()!.purchaseOrders!.length > 0);
+    
+    return (
+      operations.includes(RequestOperations.CreatePurchaseOrder) ||
+      operations.includes(RequestOperations.DeletePurchaseOrder) ||
+      hasPurchaseOrders
+    );
+  }
+
+  // Check if approve/reject operations are available
+  canReviseRequest(): boolean {
+    const operations = this.requestDetails()?.currentOperations || [];
+    return operations.includes(RequestOperations.ReviseRequest);
+  }
+
+  canApproveRequest(): boolean {
+    const operations = this.requestDetails()?.currentOperations || [];
+    return operations.includes(RequestOperations.ApproveRequest);
+  }
+
+  canRejectRequest(): boolean {
+    const operations = this.requestDetails()?.currentOperations || [];
+    return operations.includes(RequestOperations.RejectRequest);
+  }
+
+  canShowApprovalToolbar(): boolean {
+    return this.canApproveRequest() || this.canRejectRequest() || this.canReviseRequest();
+  }
+
+  // Status change dialog state
+  showStatusDialog: boolean = false;
+  statusAction: 'approve' | 'reject' | 'revise' | null = null;
+  statusNote: string = '';
+  processingStatus = signal<boolean>(false);
+
+  // Approval/Rejection handlers
+  approveRequest(): void {
+    this.statusAction = 'approve';
+    this.statusNote = '';
+    this.showStatusDialog = true;
+  }
+
+  rejectRequest(): void {
+    this.statusAction = 'reject';
+    this.statusNote = '';
+    this.showStatusDialog = true;
+  }
+
+  reviseRequest(): void {
+    this.statusAction = 'revise';
+    this.statusNote = '';
+    this.showStatusDialog = true;
+  }
+
+  cancelStatusChange(): void {
+    this.showStatusDialog = false;
+    this.statusAction = null;
+    this.statusNote = '';
+  }
+
+  async executeStatusChange(): Promise<void> {
+    if (!this.requestId || !this.statusAction) return;
+
+    this.processingStatus.set(true);
+
+    try {
+      const changeStatusRequest: ChangeStatusRequestModel = {
+        id: this.requestId,
+        notes: this.statusNote.trim() ? [{ note: this.statusNote.trim() }] : undefined
+      };
+
+      switch (this.statusAction) {
+        case 'approve':
+          await this.requestService.requestApproveRequest(changeStatusRequest).toPromise();
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Éxito',
+            detail: 'Pedido aprobado correctamente'
+          });
+          break;
+        case 'revise':
+          await this.requestService.requestReviseRequest(changeStatusRequest).toPromise();
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Éxito',
+            detail: 'Pedido revisado correctamente'
+          });
+          break;
+        case 'reject':
+          await this.requestService.requestRejectRequest(changeStatusRequest).toPromise();
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Éxito',
+            detail: 'Pedido rechazado correctamente'
+          });
+          break;
+      }
+
+      // Reload request details to show updated status
+      await this.loadRequestDetails();
+      this.cancelStatusChange();
+
+    } catch (error) {
+      console.error(`Error ${this.statusAction === 'approve' ? 'aprobando' : this.statusAction === 'reject' ? 'rechazando' : 'revisando'} pedido:`, error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: `Error al ${this.statusAction === 'approve' ? 'aprobar' : this.statusAction === 'reject' ? 'rechazar' : 'revisar'} el pedido`
+      });
+    } finally {
+      this.processingStatus.set(false);
+    }
+  }
+
+  getStatusActionText(): string {
+    switch (this.statusAction) {
+      case 'approve': return 'aprobar';
+      case 'reject': return 'rechazar';
+      case 'revise': return 'revisar';
+      default: return '';
+    }
+  }
+
+  getStatusActionTitle(): string {
+    switch (this.statusAction) {
+      case 'approve': return 'Aprobar Pedido';
+      case 'reject': return 'Rechazar Pedido';
+      case 'revise': return 'Revisar Pedido';
+      default: return '';
+    }
+  }
+
+  getStatusActionIcon(): string {
+    switch (this.statusAction) {
+      case 'approve': return 'pi pi-check-circle';
+      case 'reject': return 'pi pi-times-circle';
+      case 'revise': return 'pi pi-pencil';
+      default: return '';
+    }
+  }
+
+  getStatusActionButtonClass(): string {
+    switch (this.statusAction) {
+      case 'approve': return 'p-button-success';
+      case 'reject': return 'p-button-danger';
+      case 'revise': return 'p-button-info';
+      default: return '';
+    }
   }
 
   // Note addition handler
