@@ -14,7 +14,9 @@ import {
   RequestStatusService,
   StatusDetailsResponseModel,
   GetRequest,
-  ItemRequestModel
+  ItemRequestModel,
+  RequestItemService,
+  AddItemRequestModel
 } from '@birthstonesdevops/topaz.backend.ordersservice';
 import { 
   LocationService, 
@@ -54,6 +56,7 @@ export class RequestDetailsComponent implements OnInit {
     private messageService: MessageService,
     private requestService: RequestService,
     private requestStatusService: RequestStatusService,
+    private requestItemService: RequestItemService,
     private areaService: AreaService,
     private locationService: LocationService
   ) {}
@@ -143,7 +146,7 @@ export class RequestDetailsComponent implements OnInit {
         this.messageService.add({
           severity: 'error',
           summary: 'Error',
-          detail: 'Pedido no encontrado'
+          detail: 'No se encontró el pedido solicitado'
         });
       }
     } catch (error) {
@@ -180,34 +183,99 @@ export class RequestDetailsComponent implements OnInit {
   }
 
   // Item operation handlers
-  addItemHandler = (item: ItemRequestModel) => {
-    console.log('Adding item:', item);
-    // TODO: Implement add item logic
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Información',
-      detail: 'Funcionalidad de agregar artículo en desarrollo'
-    });
+  addItemHandler = async (item: ItemRequestModel) => {
+    if (!this.requestId) return;
+    
+    try {
+      console.log('Agregando artículo:', item);
+      
+      const addItemRequest: AddItemRequestModel = {
+        id: this.requestId,
+        items: [item]
+      };
+      
+      await this.requestItemService.requestItemAddRequestItem(addItemRequest).toPromise();
+      
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Éxito',
+        detail: 'Artículo agregado correctamente'
+      });
+      
+      // Reload request details to show updated items
+      await this.loadRequestDetails();
+      
+    } catch (error) {
+      console.error('Error agregando artículo:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Error al agregar el artículo'
+      });
+    }
   };
 
-  editItemHandler = (data: { id: number; quantity: number }) => {
-    console.log('Editing item:', data);
-    // TODO: Implement edit item logic
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Información',
-      detail: 'Funcionalidad de editar artículo en desarrollo'
-    });
+  editItemHandler = async (data: { id: number; quantity: number }) => {
+    if (!this.requestId) return;
+    
+    try {
+      console.log('Editando artículo:', data);
+      
+      // For editing, we use the same add method with updated quantity
+      const editItemRequest: AddItemRequestModel = {
+        id: this.requestId,
+        items: [{
+          itemId: data.id,
+          quantity: data.quantity
+        }]
+      };
+      
+      await this.requestItemService.requestItemAddRequestItem(editItemRequest).toPromise();
+      
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Éxito',
+        detail: 'Cantidad del artículo actualizada correctamente'
+      });
+      
+      // Reload request details to show updated items
+      await this.loadRequestDetails();
+      
+    } catch (error) {
+      console.error('Error editando artículo:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Error al actualizar la cantidad del artículo'
+      });
+    }
   };
 
-  deleteItemHandler = (itemId: number) => {
-    console.log('Deleting item:', itemId);
-    // TODO: Implement delete item logic
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Información',
-      detail: 'Funcionalidad de eliminar artículo en desarrollo'
-    });
+  deleteItemHandler = async (itemId: number) => {
+    if (!this.requestId) return;
+    
+    try {
+      console.log('Eliminando artículo:', itemId);
+      
+      await this.requestItemService.requestItemDeleteRequestItems(itemId).toPromise();
+      
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Éxito',
+        detail: 'Artículo eliminado correctamente'
+      });
+      
+      // Reload request details to show updated items
+      await this.loadRequestDetails();
+      
+    } catch (error) {
+      console.error('Error eliminando artículo:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Error al eliminar el artículo'
+      });
+    }
   };
 
   // Utility methods

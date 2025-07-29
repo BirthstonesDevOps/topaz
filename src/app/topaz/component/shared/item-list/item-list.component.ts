@@ -310,7 +310,7 @@ export class ItemListComponent implements OnInit, OnChanges {
       rejectLabel: 'No',
       accept: () => {
         if (this.onItemDelete && item.orderItem.itemId) {
-          this.onItemDelete(item.orderItem.itemId);
+          this.onItemDelete(item.orderItem.correspondentEntityId!);
         }
       }
     });
