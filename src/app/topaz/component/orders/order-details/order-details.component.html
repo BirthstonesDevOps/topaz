@@ -1,0 +1,130 @@
+<div class="order-details-container">
+    <div class="header">
+        <p-button icon="pi pi-arrow-left" label="Volver" severity="secondary" text (click)="goBack()" class="back-button"> </p-button>
+    </div>
+
+    <div *ngIf="loading()" class="card">
+        <div class="text-center">
+            <p-progressSpinner [style]="{ width: '50px', height: '50px' }" strokeWidth="6" styleClass="custom-spinner"> </p-progressSpinner>
+            <div class="mt-3 text-primary font-bold text-lg">Cargando...</div>
+        </div>
+    </div>
+
+    <div *ngIf="!loading() && orderDetails() === null" class="card">
+        <div class="text-center">
+            <i class="pi pi-exclamation-triangle text-4xl mb-4" style="color: var(--text-color-secondary)"></i>
+            <div class="font-bold text-xl mb-2" style="color: var(--text-color)">No se encontró la orden solicitada</div>
+            <div style="color: var(--text-color-secondary)">La orden que estás buscando no existe o no tienes permisos para verla.</div>
+        </div>
+    </div>
+
+    <div *ngIf="!loading() && orderDetails() !== null" class="card">
+        <!-- Header with Order ID -->
+        <div class="content-header mb-4">
+            <h1 class="text-2xl font-bold text-color mb-2">Detalles de la Orden de Compra</h1>
+            <div class="order-id">
+                <span class="text-color-secondary font-semibold">Número de Orden:</span>
+                <span class="text-primary font-bold text-lg ml-2">{{ orderDetails()?.orderNumber }}</span>
+            </div>
+        </div>
+        
+        <!-- Tabs Component -->
+        <p-tabs [value]="0">
+            <p-tablist>
+                <p-tab [value]="0">Detalles</p-tab>
+                <p-tab [value]="1">Estado</p-tab>
+                <p-tab [value]="2" *ngIf="canShowDeliveriesTab()">Entregas</p-tab>
+            </p-tablist>
+            
+            <p-tabpanels>
+                <!-- Details Tab -->
+                <p-tabpanel [value]="0">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
+                        <div class="flex flex-col">
+                            <label class="font-semibold text-sm text-color-secondary mb-2">PROVEEDOR</label>
+                            <span class="text-lg font-medium text-color">{{ orderDetails()?.providerDetails?.name || 'N/A' }}</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="font-semibold text-sm text-color-secondary mb-2">DIRECCIÓN</label>
+                            <span class="text-lg font-medium text-color">{{ orderDetails()?.providerDetails?.address || 'N/A' }}</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="font-semibold text-sm text-color-secondary mb-2">EMAIL</label>
+                            <span class="text-lg font-medium text-color">{{ orderDetails()?.providerDetails?.email || 'N/A' }}</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="font-semibold text-sm text-color-secondary mb-2">TELÉFONOS</label>
+                            <span class="text-lg font-medium text-color">{{ formatPhoneNumbers() }}</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="font-semibold text-sm text-color-secondary mb-2">FECHA DE CREACIÓN</label>
+                            <span class="text-lg font-medium text-color">{{ formatDate(orderDetails()?.createdAt) }}</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="font-semibold text-sm text-color-secondary mb-2">FECHA DE ACTUALIZACIÓN</label>
+                            <span class="text-lg font-medium text-color">{{ formatDate(orderDetails()?.updatedAt || undefined) }}</span>
+                        </div>
+                        <div class="flex flex-col" *ngIf="orderDetails()?.currentStatus">
+                            <label class="font-semibold text-sm text-color-secondary mb-2">ESTADO ACTUAL</label>
+                            <span class="inline-flex">
+                                <p-tag 
+                                    [value]="orderDetails()?.currentStatus?.status || 'N/A'" 
+                                    [severity]="orderDetails()?.currentStatus?.tag" 
+                                    [icon]="'pi ' + (orderDetails()?.currentStatus?.icon || 'pi-circle')">
+                                </p-tag>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Items Section -->
+                    <div>
+                        <app-item-list 
+                            [items]="orderDetails()?.items || []"
+                            [showMeasurement]="true"
+                            [onItemSave]="canAddItems() ? addItemHandler : undefined"
+                            [onItemEdit]="canEditItems() ? editItemHandler : undefined"
+                            [onItemDelete]="canDeleteItems() ? deleteItemHandler : undefined">
+                        </app-item-list>
+                    </div>
+                </p-tabpanel>
+
+                <!-- Status Tab -->
+                <p-tabpanel [value]="1">
+                    <div class="p-4">
+                        <app-status-note-tree 
+                            [statusHistory]="orderDetails()?.statusHistory || []"
+                            [onNoteAdd]="addNoteHandler">
+                        </app-status-note-tree>
+                    </div>
+                </p-tabpanel>
+
+                <!-- Deliveries Tab -->
+                <p-tabpanel [value]="2">
+                    <div class="tab-content">
+                        <!-- Deliveries Section -->
+                        <div class="info-section" *ngIf="orderDetails()?.deliveries && orderDetails()!.deliveries!.length > 0; else noDeliveries">
+                            <h3 class="text-lg font-semibold text-color mb-3">Entregas ({{ orderDetails()!.deliveries!.length }})</h3>
+                            <div class="grid grid-cols-1 gap-4">
+                                <app-order-delivery-details 
+                                    *ngFor="let delivery of orderDetails()?.deliveries" 
+                                    [deliveryDetails]="delivery">
+                                </app-order-delivery-details>
+                            </div>
+                        </div>
+
+                        <ng-template #noDeliveries>
+                            <div class="text-center py-8">
+                                <i class="pi pi-truck text-4xl mb-4" style="color: var(--text-color-secondary)"></i>
+                                <div class="font-semibold text-lg mb-2" style="color: var(--text-color-secondary)">No hay Entregas</div>
+                                <div style="color: var(--text-color-secondary)">No se han registrado entregas para esta orden aún.</div>
+                            </div>
+                        </ng-template>
+                    </div>
+                </p-tabpanel>
+            </p-tabpanels>
+        </p-tabs>
+    </div>
+</div>
+
+<!-- Toast for notifications -->
+<p-toast></p-toast>

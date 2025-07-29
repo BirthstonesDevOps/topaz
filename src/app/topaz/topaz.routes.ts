@@ -6,6 +6,7 @@ import { ItemsComponent } from './component/items/items.component';
 import { RequestsComponent } from './component/requests/requests.component';
 import { RequestDetailsComponent } from './component/requests/request-details/request-details.component';
 import { OrdersComponent } from './component/orders/orders.component';
+import { OrderDetailsComponent } from './component/orders/order-details/order-details.component';
 
 export const topazRoutes: Routes = [
     { path: 'locations', component: LocationsComponent },
@@ -14,5 +15,6 @@ export const topazRoutes: Routes = [
     { path: 'items', component: ItemsComponent },
     { path: 'requests', component: RequestsComponent },
     { path: 'requests/:id', component: RequestDetailsComponent },
-    { path: 'orders', component: OrdersComponent }
+    { path: 'orders', component: OrdersComponent },
+    { path: 'orders/:id', component: OrderDetailsComponent }
 ];
