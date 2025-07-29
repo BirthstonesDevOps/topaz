@@ -148,9 +148,9 @@ export class ItemListComponent implements OnInit, OnChanges {
   maxQuantityForEdit = computed(() => {
     if (!this.editingItem?.orderItem.itemId) return 999999;
     
-    // Find the filter item for this specific item
-    const filterItem = this.itemFilter?.find(item => item.itemId === this.editingItem?.orderItem.itemId);
-    return filterItem?.quantity || 999999;
+    // Find the filter item for this specific item in availableItems
+    const filterItem = this.availableItems().find(item => item.id === this.editingItem?.orderItem.itemId);
+    return filterItem?.maxQuantity || 999999;
   });
 
   constructor(
@@ -305,10 +305,22 @@ export class ItemListComponent implements OnInit, OnChanges {
     this.editingItem = null;
   }
 
+  onItemSelectionChange() {
+    // Reset quantity if it exceeds the newly selected item's maximum
+    if (this.selectedItemForAdd && this.quantityForAdd > this.selectedItemForAdd.maxQuantity) {
+      this.quantityForAdd = Math.min(this.quantityForAdd, this.selectedItemForAdd.maxQuantity);
+    }
+  }
+
   saveItem() {
     this.submitted.set(true);
     
-    if (!this.selectedItemForAdd || this.quantityForAdd <= 0 || this.quantityForAdd > this.maxQuantityForAdd()) {
+    if (!this.selectedItemForAdd || this.quantityForAdd <= 0) {
+      return;
+    }
+    
+    // Check against the selected item's specific maxQuantity
+    if (this.quantityForAdd > this.selectedItemForAdd.maxQuantity) {
       return;
     }
     
@@ -324,13 +336,16 @@ export class ItemListComponent implements OnInit, OnChanges {
     this.hideDialog();
   }
 
-  editItem(item: EnhancedItemDetails) {
+  async editItem(item: EnhancedItemDetails) {
     if (!this.onItemEdit || !item.itemDetails) return;
     
     this.editingItem = item;
     this.quantityForEdit = item.orderItem.quantity || 1;
     this.submitted.set(false);
     this.editItemDialog.set(true);
+    
+    // Load available items to get quantity limits
+    await this.loadAvailableItems();
   }
 
   saveEditItem() {

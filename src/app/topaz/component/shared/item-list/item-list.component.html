@@ -161,7 +161,8 @@
                     [filter]="true"
                     filterBy="name,code"
                     [showClear]="true"
-                    [appendTo]="'body'">
+                    [appendTo]="'body'"
+                    (onChange)="onItemSelectionChange()">
                     <ng-template #selectedItem let-item>
                         <div *ngIf="item">
                             <span class="font-medium">{{ item.name }}</span>
@@ -185,8 +186,8 @@
             <div>
                 <label for="quantity-add" class="block font-bold mb-3">
                     Cantidad
-                    <span *ngIf="selectedItemForAdd && maxQuantityForAdd() < 999999" class="text-sm font-normal text-gray-500">
-                        (máximo: {{ maxQuantityForAdd() }})
+                    <span *ngIf="selectedItemForAdd && selectedItemForAdd.maxQuantity < 999999" class="text-sm font-normal text-gray-500">
+                        (máximo: {{ selectedItemForAdd.maxQuantity }})
                     </span>
                 </label>
                 <p-inputnumber
@@ -194,7 +195,7 @@
                     [(ngModel)]="quantityForAdd"
                     mode="decimal"
                     [min]="1"
-                    [max]="maxQuantityForAdd()"
+                    [max]="selectedItemForAdd?.maxQuantity || 999999"
                     [showButtons]="true"
                     buttonLayout="horizontal"
                     decrementButtonClass="p-button-secondary"
@@ -204,8 +205,8 @@
                 <small class="text-red-500" *ngIf="submitted() && quantityForAdd <= 0">
                     La cantidad debe ser mayor a 0.
                 </small>
-                <small class="text-red-500" *ngIf="submitted() && quantityForAdd > maxQuantityForAdd()">
-                    La cantidad no puede ser mayor a {{ maxQuantityForAdd() }}.
+                <small class="text-red-500" *ngIf="submitted() && selectedItemForAdd && selectedItemForAdd.maxQuantity < 999999 && quantityForAdd > selectedItemForAdd.maxQuantity">
+                    La cantidad no puede ser mayor a {{ selectedItemForAdd.maxQuantity }}.
                 </small>
             </div>
         </div>
@@ -263,7 +264,7 @@
                 <small class="text-red-500" *ngIf="submitted() && quantityForEdit <= 0">
                     La cantidad debe ser mayor a 0.
                 </small>
-                <small class="text-red-500" *ngIf="submitted() && quantityForEdit > maxQuantityForEdit()">
+                <small class="text-red-500" *ngIf="submitted() && maxQuantityForEdit() < 999999 && quantityForEdit > maxQuantityForEdit()">
                     La cantidad no puede ser mayor a {{ maxQuantityForEdit() }}.
                 </small>
             </div>
