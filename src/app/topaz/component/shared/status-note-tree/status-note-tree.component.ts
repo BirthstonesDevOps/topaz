@@ -1,9 +1,11 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { TimelineModule } from 'primeng/timeline';
 import { CardModule } from 'primeng/card';
 import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
 import { StatusDetailsResponseModel, StatusHistoryDetailsResponseModel, StatusHistoryNoteDetailsResponseModel } from '@birthstonesdevops/topaz.backend.ordersservice';
 
 
@@ -15,6 +17,7 @@ interface TimelineEvent {
   statusSeverity?: string;
   statusIcon?: string;
   statusColor?: string;
+  newNoteText?: string; // For tracking note input per event
 }
 
 @Component({
@@ -22,16 +25,19 @@ interface TimelineEvent {
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     TimelineModule,
     CardModule,
     TagModule,
-    ButtonModule
+    ButtonModule,
+    InputTextModule
   ],
   templateUrl: './status-note-tree.component.html',
   styleUrls: ['./status-note-tree.component.css']
 })
 export class StatusNoteTreeComponent {
   @Input() statusHistory: StatusHistoryDetailsResponseModel[] = [];
+  @Input() onNoteAdd: (newNote: {id: number, note: string}) => void = () => {};
   
   timelineEvents: TimelineEvent[] = [];
   
@@ -56,7 +62,8 @@ export class StatusNoteTreeComponent {
       createdAt: history.createdAt,
       statusSeverity: history.status?.tag || 'secondary',
       statusIcon: 'pi ' + (history.status?.icon || 'pi-circle'),
-      statusColor: this.getSeverityColor(history.status?.tag || 'secondary')
+      statusColor: this.getSeverityColor(history.status?.tag || 'secondary'),
+      newNoteText: '' // Initialize note input text
     }));
     
     // Sort by creation date (oldest first)
@@ -108,5 +115,28 @@ export class StatusNoteTreeComponent {
 
   trackByEventId(index: number, event: TimelineEvent): any {
     return event.id || index;
+  }
+
+  // Method to add a note to a specific status history
+  addNoteToStatus(event: TimelineEvent) {
+    if (!event.newNoteText?.trim() || !event.id) {
+      return;
+    }
+
+    // Call the parent component's callback
+    this.onNoteAdd({
+      id: event.id,
+      note: event.newNoteText.trim()
+    });
+
+    // Clear the input field
+    event.newNoteText = '';
+  }
+
+  // Method to handle Enter key press in note input
+  onNoteInputKeydown(event: KeyboardEvent, timelineEvent: TimelineEvent) {
+    if (event.key === 'Enter') {
+      this.addNoteToStatus(timelineEvent);
+    }
   }
 }

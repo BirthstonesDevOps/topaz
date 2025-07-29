@@ -32,6 +32,27 @@
                     <div *ngIf="!event.notes || event.notes.length === 0" class="no-notes">
                         <p class="italic" style="color: var(--text-color-secondary)">No hay notas disponibles para este estado</p>
                     </div>
+                    
+                    <!-- Add Note Section -->
+                    <div class="add-note-section mt-4 pt-4" style="border-top: 1px solid var(--surface-border)">
+                        <div class="flex gap-2">
+                            <input 
+                                pInputText 
+                                [(ngModel)]="event.newNoteText"
+                                placeholder="Agregar una nota..."
+                                class="flex-1"
+                                (keydown)="onNoteInputKeydown($event, event)"
+                                style="font-size: 0.875rem;" />
+                            <p-button 
+                                icon="pi pi-plus" 
+                                (onClick)="addNoteToStatus(event)"
+                                [disabled]="!event.newNoteText?.trim()"
+                                severity="secondary"
+                                size="small"
+                                pTooltip="Agregar nota" />
+                        </div>
+                    </div>
+                    
                 </p-card>
             </ng-template>
         </p-timeline>
@@ -81,6 +102,27 @@
                         <div *ngIf="!event.notes || event.notes.length === 0" class="no-notes">
                             <p class="italic" style="color: var(--text-color-secondary)">No hay notas disponibles para este estado</p>
                         </div>
+                        
+                        <!-- Add Note Section -->
+                        <div class="add-note-section mt-4 pt-4" style="border-top: 1px solid var(--surface-border)">
+                            <div class="flex gap-2">
+                                <input 
+                                    pInputText 
+                                    [(ngModel)]="event.newNoteText"
+                                    placeholder="Agregar una nota..."
+                                    class="flex-1"
+                                    (keydown)="onNoteInputKeydown($event, event)"
+                                    style="font-size: 0.875rem;" />
+                                <p-button 
+                                    icon="pi pi-plus" 
+                                    (onClick)="addNoteToStatus(event)"
+                                    [disabled]="!event.newNoteText?.trim()"
+                                    severity="secondary"
+                                    size="small"
+                                    pTooltip="Agregar nota" />
+                            </div>
+                        </div>
+                        
                     </p-card>
                 </div>
             </div>

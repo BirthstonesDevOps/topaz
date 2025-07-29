@@ -16,7 +16,9 @@ import {
   GetRequest,
   ItemRequestModel,
   RequestItemService,
-  AddItemRequestModel
+  AddItemRequestModel,
+  RequestStatusHistoryNoteService,
+  RequestStatusHistoryNoteRequestModel
 } from '@birthstonesdevops/topaz.backend.ordersservice';
 import { 
   LocationService, 
@@ -57,6 +59,7 @@ export class RequestDetailsComponent implements OnInit {
     private requestService: RequestService,
     private requestStatusService: RequestStatusService,
     private requestItemService: RequestItemService,
+    private requestStatusHistoryNoteService: RequestStatusHistoryNoteService,
     private areaService: AreaService,
     private locationService: LocationService
   ) {}
@@ -181,6 +184,58 @@ export class RequestDetailsComponent implements OnInit {
     // For now, we'll allow editing if we can add or delete items
     return this.canAddItems() || this.canDeleteItems();
   }
+
+  // Note addition handler
+  addNoteHandler = async (newNote: { id: number; note: string }) => {
+    try {
+      console.log('Agregando nota:', newNote);
+      
+      const noteRequest: RequestStatusHistoryNoteRequestModel = {
+        requestStatusHistoryId: newNote.id,
+        note: newNote.note
+      };
+      
+      const createdNote = await this.requestStatusHistoryNoteService
+        .requestStatusHistoryNoteCreate(noteRequest)
+        .toPromise();
+      
+      if (createdNote) {
+        // Update the status history with the new note
+        this.requestDetails.update(currentDetails => {
+          if (!currentDetails?.statusHistory) return currentDetails;
+          
+          const updatedStatusHistory = currentDetails.statusHistory.map(statusHistory => {
+            if (statusHistory.id === newNote.id) {
+              return {
+                ...statusHistory,
+                notes: [...(statusHistory.notes || []), createdNote]
+              };
+            }
+            return statusHistory;
+          });
+          
+          return {
+            ...currentDetails,
+            statusHistory: updatedStatusHistory
+          };
+        });
+        
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Nota agregada correctamente'
+        });
+      }
+      
+    } catch (error) {
+      console.error('Error agregando nota:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Error al agregar la nota'
+      });
+    }
+  };
 
   // Item operation handlers
   addItemHandler = async (item: ItemRequestModel) => {

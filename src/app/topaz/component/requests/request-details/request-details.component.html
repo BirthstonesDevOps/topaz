@@ -87,7 +87,10 @@
                 <!-- Status Tab -->
                 <p-tabpanel [value]="1">
                     <div class="p-4">
-                        <app-status-note-tree [statusHistory]="requestDetails()?.statusHistory || []"></app-status-note-tree>
+                        <app-status-note-tree 
+                            [statusHistory]="requestDetails()?.statusHistory || []"
+                            [onNoteAdd]="addNoteHandler">
+                        </app-status-note-tree>
                     </div>
                 </p-tabpanel>
 
