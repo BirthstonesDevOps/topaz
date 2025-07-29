@@ -13,7 +13,8 @@ import {
   RequestService,
   RequestStatusService,
   StatusDetailsResponseModel,
-  GetRequest
+  GetRequest,
+  ItemRequestModel
 } from '@birthstonesdevops/topaz.backend.ordersservice';
 import { 
   LocationService, 
@@ -23,6 +24,7 @@ import {
 } from '@birthstonesdevops/topaz.backend.organizationservice';
 import { StatusNoteTreeComponent } from '../../shared/status-note-tree/status-note-tree.component';
 import { ItemListComponent } from '../../shared/item-list/item-list.component';
+import { RequestOperations } from '../models/request-operations.enum';
 
 // Extended request interface for detailed display
 interface EnrichedRequestDetails extends RequestDetailsResponseModel {
@@ -160,6 +162,53 @@ export class RequestDetailsComponent implements OnInit {
   goBack() {
     this.router.navigate(['/requests']);
   }
+
+  // Check if specific operations are available
+  canAddItems(): boolean {
+    const operations = this.requestDetails()?.currentOperations || [];
+    return operations.includes(RequestOperations.AddRequestItem);
+  }
+
+  canDeleteItems(): boolean {
+    const operations = this.requestDetails()?.currentOperations || [];
+    return operations.includes(RequestOperations.DeleteRequestItem);
+  }
+
+  canEditItems(): boolean {
+    // For now, we'll allow editing if we can add or delete items
+    return this.canAddItems() || this.canDeleteItems();
+  }
+
+  // Item operation handlers
+  addItemHandler = (item: ItemRequestModel) => {
+    console.log('Adding item:', item);
+    // TODO: Implement add item logic
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Información',
+      detail: 'Funcionalidad de agregar artículo en desarrollo'
+    });
+  };
+
+  editItemHandler = (data: { id: number; quantity: number }) => {
+    console.log('Editing item:', data);
+    // TODO: Implement edit item logic
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Información',
+      detail: 'Funcionalidad de editar artículo en desarrollo'
+    });
+  };
+
+  deleteItemHandler = (itemId: number) => {
+    console.log('Deleting item:', itemId);
+    // TODO: Implement delete item logic
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Información',
+      detail: 'Funcionalidad de eliminar artículo en desarrollo'
+    });
+  };
 
   // Utility methods
   formatDate(dateString: string | undefined): string {
