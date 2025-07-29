@@ -215,7 +215,7 @@ export class RequestDetailsComponent implements OnInit {
     }
   };
 
-  editItemHandler = async (data: { id: number; quantity: number }) => {
+  editItemHandler = async (data: { itemId: number; correspondentEntityId?: number; quantity: number }) => {
     if (!this.requestId) return;
     
     try {
@@ -225,7 +225,7 @@ export class RequestDetailsComponent implements OnInit {
       const editItemRequest: AddItemRequestModel = {
         id: this.requestId,
         items: [{
-          itemId: data.id,
+          itemId: data.itemId,
           quantity: data.quantity
         }]
       };
@@ -251,13 +251,12 @@ export class RequestDetailsComponent implements OnInit {
     }
   };
 
-  deleteItemHandler = async (itemId: number) => {
+  deleteItemHandler = async (data: { itemId: number; correspondentEntityId?: number }) => {
     if (!this.requestId) return;
     
-    try {
-      console.log('Eliminando artículo:', itemId);
-      
-      await this.requestItemService.requestItemDeleteRequestItems(itemId).toPromise();
+    try {      
+      const entityIdToDelete = data.correspondentEntityId!;
+      await this.requestItemService.requestItemDeleteRequestItems(entityIdToDelete).toPromise();
       
       this.messageService.add({
         severity: 'success',
