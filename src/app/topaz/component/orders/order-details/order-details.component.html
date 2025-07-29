@@ -80,6 +80,7 @@
                     <div>
                         <app-item-list 
                             [items]="orderDetails()?.items || []"
+                            [itemFilter]="requestDetails()?.itemsPending || undefined"
                             [showMeasurement]="true"
                             [onItemSave]="canAddItems() ? addItemHandler : undefined"
                             [onItemEdit]="canEditItems() ? editItemHandler : undefined"

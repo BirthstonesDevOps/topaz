@@ -60,6 +60,10 @@ interface Column {
   header: string;
 }
 
+interface FilterItemData extends ItemServiceItemDetailsResponseModel {
+  maxQuantity: number;
+}
+
 @Component({
   selector: 'app-item-list',
   standalone: true,
@@ -89,6 +93,7 @@ interface Column {
 })
 export class ItemListComponent implements OnInit, OnChanges {
   @Input() items: OrderItemDetailsResponseModel[] = [];
+  @Input() itemFilter?: OrderItemDetailsResponseModel[];
   @Input() showMeasurement: boolean = false;
   @Input() showDescription: boolean = false;
   @Input() onItemSave?: (item: ItemRequestModel) => void;
@@ -107,8 +112,8 @@ export class ItemListComponent implements OnInit, OnChanges {
   submitted = signal<boolean>(false);
   
   // Form data
-  availableItems = signal<ItemServiceItemDetailsResponseModel[]>([]);
-  selectedItemForAdd: ItemServiceItemDetailsResponseModel | null = null;
+  availableItems = signal<FilterItemData[]>([]);
+  selectedItemForAdd: FilterItemData | null = null;
   quantityForAdd: number = 1;
   editingItem: EnhancedItemDetails | null = null;
   quantityForEdit: number = 1;
@@ -134,6 +139,20 @@ export class ItemListComponent implements OnInit, OnChanges {
     });
   });
 
+  // Computed maximum quantities
+  maxQuantityForAdd = computed(() => {
+    if (!this.selectedItemForAdd) return 999999;
+    return this.selectedItemForAdd.maxQuantity;
+  });
+
+  maxQuantityForEdit = computed(() => {
+    if (!this.editingItem?.orderItem.itemId) return 999999;
+    
+    // Find the filter item for this specific item
+    const filterItem = this.itemFilter?.find(item => item.itemId === this.editingItem?.orderItem.itemId);
+    return filterItem?.quantity || 999999;
+  });
+
   constructor(
     private itemService: ItemService,
     private messageService: MessageService,
@@ -148,6 +167,10 @@ export class ItemListComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     if (changes['items'] && !changes['items'].firstChange) {
       this.loadItemDetails();
+    }
+    if (changes['itemFilter'] && !changes['itemFilter'].firstChange) {
+      // Clear available items when filter changes, they'll be reloaded when dialog opens
+      this.availableItems.set([]);
     }
   }
 
@@ -229,8 +252,36 @@ export class ItemListComponent implements OnInit, OnChanges {
   async loadAvailableItems() {
     this.loadingAvailableItems.set(true);
     try {
-      const items = await this.itemService.itemGetAllItemsDetails().toPromise();
-      this.availableItems.set(items || []);
+      let filteredItems: FilterItemData[] = [];
+      
+      if (this.itemFilter && this.itemFilter.length > 0) {
+        // If filter is provided, only load those specific items
+        for (const filterItem of this.itemFilter) {
+          if (filterItem.itemId) {
+            try {
+              const getRequest: GetRequest = { ids: [filterItem.itemId] };
+              const itemDetails = await this.itemService.itemGetById(getRequest).toPromise();
+              if (itemDetails) {
+                filteredItems.push({
+                  ...itemDetails,
+                  maxQuantity: filterItem.quantity || 1
+                });
+              }
+            } catch (error) {
+              console.error(`Error loading filtered item ${filterItem.itemId}:`, error);
+            }
+          }
+        }
+      } else {
+        // If no filter, load all items with unlimited quantity
+        const allItems = await this.itemService.itemGetAllItemsDetails().toPromise();
+        filteredItems = (allItems || []).map(item => ({
+          ...item,
+          maxQuantity: 999999 // No limit when no filter is applied
+        }));
+      }
+      
+      this.availableItems.set(filteredItems);
     } catch (error) {
       console.error('Error loading available items:', error);
       this.messageService.add({
@@ -257,7 +308,7 @@ export class ItemListComponent implements OnInit, OnChanges {
   saveItem() {
     this.submitted.set(true);
     
-    if (!this.selectedItemForAdd || this.quantityForAdd <= 0) {
+    if (!this.selectedItemForAdd || this.quantityForAdd <= 0 || this.quantityForAdd > this.maxQuantityForAdd()) {
       return;
     }
     
@@ -285,7 +336,7 @@ export class ItemListComponent implements OnInit, OnChanges {
   saveEditItem() {
     this.submitted.set(true);
     
-    if (!this.editingItem || this.quantityForEdit <= 0) {
+    if (!this.editingItem || this.quantityForEdit <= 0 || this.quantityForEdit > this.maxQuantityForEdit()) {
       return;
     }
     

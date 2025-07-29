@@ -17,6 +17,8 @@ import {
   PurchaseOrderStatusHistoryNoteService,
   PurchaseOrderStatusHistoryNoteRequestModel,
   ItemRequestModel,
+  RequestService,
+  RequestDetailsResponseModel,
   GetRequest
 } from '@birthstonesdevops/topaz.backend.ordersservice';
 import { 
@@ -57,6 +59,7 @@ interface EnrichedPurchaseOrderDetails extends PurchaseOrderDetailsResponseModel
 export class OrderDetailsComponent implements OnInit {
   orderId: number | null = null;
   orderDetails = signal<EnrichedPurchaseOrderDetails | null>(null);
+  requestDetails = signal<RequestDetailsResponseModel | null>(null);
   loading = signal<boolean>(false);
   error: string | null = null;
 
@@ -67,6 +70,7 @@ export class OrderDetailsComponent implements OnInit {
     private purchaseOrderService: PurchaseOrderService,
     private purchaseOrderItemService: PurchaseOrderItemService,
     private purchaseOrderStatusHistoryNoteService: PurchaseOrderStatusHistoryNoteService,
+    private requestService: RequestService,
     private providerService: ProviderService
   ) {}
 
@@ -122,6 +126,11 @@ export class OrderDetailsComponent implements OnInit {
         }
         
         this.orderDetails.set(enrichedOrder);
+        
+        // Load request details to get items pending
+        if (orderDetails.requestId) {
+          await this.loadRequestDetails(orderDetails.requestId);
+        }
       } else {
         this.error = 'Orden no encontrada';
         this.messageService.add({
@@ -143,6 +152,22 @@ export class OrderDetailsComponent implements OnInit {
     }
   }
 
+  async loadRequestDetails(requestId: number) {
+    try {
+      console.log('Cargando detalles del pedido para ID:', requestId);
+      
+      const getRequest: GetRequest = { ids: [requestId] };
+      const requestDetails = await this.requestService.requestGetRequestDetailsById(getRequest).toPromise();
+      
+      if (requestDetails) {
+        this.requestDetails.set(requestDetails);
+      }
+    } catch (error) {
+      console.error('Error cargando detalles del pedido:', error);
+      // Don't show error message to user as this is supplementary data
+    }
+  }
+
   goBack() {
     this.router.navigate(['/orders']);
   }
@@ -150,7 +175,13 @@ export class OrderDetailsComponent implements OnInit {
   // Check if specific operations are available
   canAddItems(): boolean {
     const operations = this.orderDetails()?.currentOperations || [];
-    return operations.includes(Operations.AddPurchaseOrderItem);
+    const hasAddOperation = operations.includes(Operations.AddPurchaseOrderItem);
+    
+    // Only allow adding items if we have the operation AND there are pending items
+    if (!hasAddOperation) return false;
+    
+    const pendingItems = this.requestDetails()?.itemsPending || [];
+    return pendingItems.length > 0;
   }
 
   canDeleteItems(): boolean {

@@ -183,13 +183,18 @@
                 </small>
             </div>
             <div>
-                <label for="quantity-add" class="block font-bold mb-3">Cantidad</label>
+                <label for="quantity-add" class="block font-bold mb-3">
+                    Cantidad
+                    <span *ngIf="selectedItemForAdd && maxQuantityForAdd() < 999999" class="text-sm font-normal text-gray-500">
+                        (máximo: {{ maxQuantityForAdd() }})
+                    </span>
+                </label>
                 <p-inputnumber
                     id="quantity-add"
                     [(ngModel)]="quantityForAdd"
                     mode="decimal"
                     [min]="1"
-                    [max]="999999"
+                    [max]="maxQuantityForAdd()"
                     [showButtons]="true"
                     buttonLayout="horizontal"
                     decrementButtonClass="p-button-secondary"
@@ -198,6 +203,9 @@
                     fluid />
                 <small class="text-red-500" *ngIf="submitted() && quantityForAdd <= 0">
                     La cantidad debe ser mayor a 0.
+                </small>
+                <small class="text-red-500" *ngIf="submitted() && quantityForAdd > maxQuantityForAdd()">
+                    La cantidad no puede ser mayor a {{ maxQuantityForAdd() }}.
                 </small>
             </div>
         </div>
@@ -234,13 +242,18 @@
                 </div>
             </div>
             <div>
-                <label for="quantity-edit" class="block font-bold mb-3">Nueva Cantidad</label>
+                <label for="quantity-edit" class="block font-bold mb-3">
+                    Nueva Cantidad
+                    <span *ngIf="editingItem && maxQuantityForEdit() < 999999" class="text-sm font-normal text-gray-500">
+                        (máximo: {{ maxQuantityForEdit() }})
+                    </span>
+                </label>
                 <p-inputnumber
                     id="quantity-edit"
                     [(ngModel)]="quantityForEdit"
                     mode="decimal"
                     [min]="1"
-                    [max]="999999"
+                    [max]="maxQuantityForEdit()"
                     [showButtons]="true"
                     buttonLayout="horizontal"
                     decrementButtonClass="p-button-secondary"
@@ -249,6 +262,9 @@
                     fluid />
                 <small class="text-red-500" *ngIf="submitted() && quantityForEdit <= 0">
                     La cantidad debe ser mayor a 0.
+                </small>
+                <small class="text-red-500" *ngIf="submitted() && quantityForEdit > maxQuantityForEdit()">
+                    La cantidad no puede ser mayor a {{ maxQuantityForEdit() }}.
                 </small>
             </div>
         </div>
