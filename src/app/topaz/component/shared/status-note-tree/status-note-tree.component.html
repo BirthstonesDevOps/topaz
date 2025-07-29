@@ -1,61 +1,95 @@
 <div class="status-note-timeline">
-    <p-timeline 
-      [value]="timelineEvents" 
-      align="alternate" 
-      styleClass="customized-timeline">
-      
-      <ng-template #marker let-event>
-        <span 
-          class="flex w-8 h-8 items-center justify-center text-white rounded-full z-10 shadow-sm" 
-          [style]="{ 'background-color': event.statusColor }">
-          <i [class]="event.statusIcon"></i>
-        </span>
-      </ng-template>
-      
-      <ng-template #content let-event>
-        <p-card 
-          [header]="getStatusDisplayName(event.status)"
-          [subheader]="formatDate(event.createdAt)"
-          styleClass="shadow-lg!">
-          
-          <!-- Status Tag -->
-          <div class="mb-4" *ngIf="event.status">
-            <p-tag 
-              [value]="event.status.status || 'Desconocido'"
-              [severity]="event.statusSeverity"
-              class="text-sm">
-            </p-tag>
-          </div>
-          
-          <!-- Notes Section -->
-          <div *ngIf="event.notes && event.notes.length > 0" class="notes-section">
-            <h4 class="text-lg font-semibold mb-3" style="color: var(--text-color)">Notas</h4>
-            <div class="flex flex-col gap-3">
-              <div 
-                *ngFor="let note of event.notes; trackBy: trackByNoteId"
-                class="note-item p-3 rounded-lg border-l-4"
-                [style]="{ 'background': 'var(--surface-ground)', 'border-left-color': event.statusColor }">
-                <p class="mb-2" style="color: var(--text-color)">{{ note.note || 'Sin contenido de nota' }}</p>
-                <small style="color: var(--text-color-secondary)">
-                  {{ formatDate(note.createdAt) }}
-                </small>
-              </div>
+    <!-- Desktop Timeline (MD and up) -->
+    <div class="hidden md:block">
+        <p-timeline [value]="timelineEvents" align="alternate" styleClass="customized-timeline">
+            <ng-template #marker let-event>
+                <span class="flex w-8 h-8 items-center justify-center text-white rounded-full z-10 shadow-sm" [style]="{ 'background-color': event.statusColor }">
+                    <i [class]="event.statusIcon"></i>
+                </span>
+            </ng-template>
+
+            <ng-template #content let-event>
+                <p-card [header]="getStatusDisplayName(event.status)" [subheader]="formatDate(event.createdAt)" styleClass="shadow-lg!">
+                    <!-- Status Tag -->
+                    <div class="mb-4" *ngIf="event.status">
+                        <p-tag [value]="event.status.status || 'Desconocido'" [severity]="event.statusSeverity" class="text-sm"> </p-tag>
+                    </div>
+
+                    <!-- Notes Section -->
+                    <div *ngIf="event.notes && event.notes.length > 0" class="notes-section">
+                        <h4 class="text-lg font-semibold mb-3" style="color: var(--text-color)">Notas</h4>
+                        <div class="flex flex-col gap-3">
+                            <div *ngFor="let note of event.notes; trackBy: trackByNoteId" class="note-item p-3 rounded-lg border-l-4" [style]="{ background: 'var(--surface-ground)', 'border-left-color': event.statusColor }">
+                                <p class="mb-2" style="color: var(--text-color)">{{ note.note || 'Sin contenido de nota' }}</p>
+                                <small style="color: var(--text-color-secondary)">
+                                    {{ formatDate(note.createdAt) }}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- No Notes Message -->
+                    <div *ngIf="!event.notes || event.notes.length === 0" class="no-notes">
+                        <p class="italic" style="color: var(--text-color-secondary)">No hay notas disponibles para este estado</p>
+                    </div>
+                </p-card>
+            </ng-template>
+        </p-timeline>
+    </div>
+
+    <!-- Mobile Timeline (SM and below) -->
+    <div class="block md:hidden horizontal-scroll-container">
+        <div class="horizontal-timeline">
+            <div *ngFor="let event of timelineEvents; let i = index" class="timeline-item">
+                <!-- Timeline marker and line -->
+                <div class="timeline-marker-container">
+                    <div class="timeline-marker" [style]="{ 'background-color': event.statusColor }">
+                        <i [class]="event.statusIcon"></i>
+                    </div>
+                    <div class="timeline-line"></div>
+                    <div 
+                        class="timeline-marker"
+                        *ngIf="i == timelineEvents.length - 1"
+                        [style]="{ 'background-color': 'var(--surface-border)' }"
+                    >
+                        <i class="pi pi-flag" style="font-size: 1.5rem; color: var(--text-color-secondary);"></i>
+                    </div>
+                </div>
+
+                <!-- Event card -->
+                <div class="timeline-card px-6">
+                    <p-card [header]="getStatusDisplayName(event.status)" [subheader]="formatDate(event.createdAt)" styleClass="timeline-card-content">
+                        <!-- Status Tag -->
+                        <div class="mb-4" *ngIf="event.status">
+                            <p-tag [value]="event.status.status || 'Desconocido'" [severity]="event.statusSeverity" class="text-sm"> </p-tag>
+                        </div>
+
+                        <!-- Notes Section -->
+                        <div *ngIf="event.notes && event.notes.length > 0" class="notes-section">
+                            <h4 class="text-lg font-semibold mb-3" style="color: var(--text-color)">Notas</h4>
+                            <div class="flex flex-col gap-3">
+                                <div *ngFor="let note of event.notes; trackBy: trackByNoteId" class="note-item p-3 rounded-lg border-l-4" [style]="{ background: 'var(--surface-ground)', 'border-left-color': event.statusColor }">
+                                    <p class="mb-2" style="color: var(--text-color)">{{ note.note || 'Sin contenido de nota' }}</p>
+                                    <small style="color: var(--text-color-secondary)">
+                                        {{ formatDate(note.createdAt) }}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- No Notes Message -->
+                        <div *ngIf="!event.notes || event.notes.length === 0" class="no-notes">
+                            <p class="italic" style="color: var(--text-color-secondary)">No hay notas disponibles para este estado</p>
+                        </div>
+                    </p-card>
+                </div>
             </div>
-          </div>
-          
-          <!-- No Notes Message -->
-          <div *ngIf="!event.notes || event.notes.length === 0" class="no-notes">
-            <p class="italic" style="color: var(--text-color-secondary)">No hay notas disponibles para este estado</p>
-          </div>
-          
-        </p-card>
-      </ng-template>
-      
-    </p-timeline>
-    
+        </div>
+    </div>
+
     <!-- Empty State -->
     <div *ngIf="!timelineEvents || timelineEvents.length === 0" class="empty-state text-center py-8">
-      <i class="pi pi-clock text-4xl mb-4" style="color: var(--text-color-secondary)"></i>
-      <p class="text-lg" style="color: var(--text-color-secondary)">No hay historial de estado disponible</p>
+        <i class="pi pi-clock text-4xl mb-4" style="color: var(--text-color-secondary)"></i>
+        <p class="text-lg" style="color: var(--text-color-secondary)">No hay historial de estado disponible</p>
     </div>
 </div>

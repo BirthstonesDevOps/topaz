@@ -105,4 +105,8 @@ export class StatusNoteTreeComponent {
   trackByNoteId(index: number, note: StatusHistoryNoteDetailsResponseModel): any {
     return note.id || index;
   }
+
+  trackByEventId(index: number, event: TimelineEvent): any {
+    return event.id || index;
+  }
 }
