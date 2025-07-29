@@ -19,7 +19,8 @@ import {
   ItemRequestModel,
   RequestService,
   RequestDetailsResponseModel,
-  GetRequest
+  GetRequest,
+  ItemDetailsResponseModel
 } from '@birthstonesdevops/topaz.backend.ordersservice';
 import { 
   ProviderService,
@@ -60,6 +61,7 @@ export class OrderDetailsComponent implements OnInit {
   orderId: number | null = null;
   orderDetails = signal<EnrichedPurchaseOrderDetails | null>(null);
   requestDetails = signal<RequestDetailsResponseModel | null>(null);
+  pendingItems = signal<ItemDetailsResponseModel[]>([]);
   loading = signal<boolean>(false);
   error: string | null = null;
 
@@ -161,7 +163,17 @@ export class OrderDetailsComponent implements OnInit {
       
       if (requestDetails) {
         this.requestDetails.set(requestDetails);
+        //The requestDetails.itemsPending but with the requestDetails.items quantity 
+        this.pendingItems.set(requestDetails.itemsPending?.map(item => {
+          const itemQuantity = requestDetails.items?.find(i => i.itemId === item.itemId)?.quantity || 0;
+          return {
+            ...item,
+            quantity: itemQuantity
+          };
+        }) || []);
       }
+
+
     } catch (error) {
       console.error('Error cargando detalles del pedido:', error);
       // Don't show error message to user as this is supplementary data
