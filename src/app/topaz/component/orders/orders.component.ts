@@ -24,7 +24,8 @@ import {
   CreatePurchaseOrderRequestModel,
   PurchaseOrderUpdateRequestModel,
   UpdateRequestOfPurchaseOrderUpdateRequestModel,
-  StatusDetailsResponseModel
+  StatusDetailsResponseModel,
+  ItemDetailsResponseModel
 } from '@birthstonesdevops/topaz.backend.ordersservice';
 import { 
   ProviderService,
@@ -66,6 +67,8 @@ interface OrderTableData extends PurchaseOrderDetailsResponseModel {
 export class OrdersComponent implements OnInit, OnChanges {
   @Input() ordersInput?: PurchaseOrderDetailsResponseModel[];
   @Input() requestId: number | undefined;
+  @Input() itemFilter?: ItemDetailsResponseModel[];
+
   
   showCreateDialog: boolean = false;
   showEditDialog: boolean = false;

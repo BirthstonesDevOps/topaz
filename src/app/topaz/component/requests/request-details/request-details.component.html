@@ -95,30 +95,13 @@
 
                 <!-- Orders Tab -->
                 <p-tabpanel [value]="2">
-                    <div class="tab-content">
-                        <!-- Purchase Orders Section -->
-                        <div class="info-section" *ngIf="requestDetails()?.purchaseOrders && requestDetails()!.purchaseOrders!.length > 0; else noPurchaseOrders">
-                            <h3 class="text-lg font-semibold text-color mb-3">Órdenes de Compra ({{ requestDetails()!.purchaseOrders!.length }})</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div *ngFor="let po of requestDetails()?.purchaseOrders" class="po-card">
-                                    <div class="po-id">ID de Orden: {{ po.id }}</div>
-                                    <div class="po-details">
-                                        <div *ngIf="po.orderNumber"><strong>Número de Orden:</strong> {{ po.orderNumber }}</div>
-                                        <div *ngIf="po.providerId"><strong>ID del Proveedor:</strong> {{ po.providerId }}</div>
-                                        <div *ngIf="po.createdAt"><strong>Creado:</strong> {{ formatDate(po.createdAt) }}</div>
-                                        <div *ngIf="po.updatedAt"><strong>Actualizado:</strong> {{ formatDate(po.updatedAt || undefined) }}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <ng-template #noPurchaseOrders>
-                            <div class="text-center py-8">
-                                <i class="pi pi-shopping-cart text-4xl mb-4" style="color: var(--text-color-secondary)"></i>
-                                <div class="font-semibold text-lg mb-2" style="color: var(--text-color-secondary)">No hay Órdenes de Compra</div>
-                                <div style="color: var(--text-color-secondary)">No se han creado órdenes de compra para este pedido aún.</div>
-                            </div>
-                        </ng-template>
+                    <div class="p-4">
+                        <app-orders 
+                            [ordersInput]="requestDetails()?.purchaseOrders || []"
+                            [requestId]="requestDetails()?.id"
+                            [itemFilter]="requestDetails()?.itemsPending || []"
+                            >
+                        </app-orders>
                     </div>
                 </p-tabpanel>
             </p-tabpanels>

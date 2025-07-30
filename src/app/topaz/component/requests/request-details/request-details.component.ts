@@ -33,6 +33,7 @@ import {
 } from '@birthstonesdevops/topaz.backend.organizationservice';
 import { StatusNoteTreeComponent } from '../../shared/status-note-tree/status-note-tree.component';
 import { ItemListComponent } from '../../shared/item-list/item-list.component';
+import { OrdersComponent } from '../../orders/orders.component';
 import { Operations } from '../../models/operations.enum';
 
 // Extended request interface for detailed display
@@ -58,7 +59,8 @@ interface EnrichedRequestDetails extends RequestDetailsResponseModel {
     DialogModule,
     TextareaModule,
     StatusNoteTreeComponent, 
-    ItemListComponent
+    ItemListComponent,
+    OrdersComponent
   ],
   templateUrl: './request-details.component.html',
   styleUrl: './request-details.component.css',
