@@ -59,7 +59,7 @@ export class OrderDeliveryCreationDialogComponent {
   
   // Step 2 data
   createdDelivery: PurchaseOrderDeliveryDetailsResponseModel | null = null;
-  selectedFile: File | null = null;
+  selectedFile = signal<File | null>(null);
   imagePreview: string | null = null;
   uploadingImage = signal<boolean>(false);
 
@@ -68,10 +68,9 @@ export class OrderDeliveryCreationDialogComponent {
     return this.items().length > 0;
   });
 
-
   
   canCompleteStep2 = computed(() => {
-    return !!this.selectedFile;
+    return !!this.selectedFile();
   });
 
   constructor(
@@ -80,7 +79,13 @@ export class OrderDeliveryCreationDialogComponent {
   ) {}
 
   // Dialog management
+  show() {
+    this.visible = true;
+    this.visibleChange.emit(true);
+  }
+
   hide() {
+    this.visible = false;
     this.visibleChange.emit(false);
     this.resetDialog();
   }
@@ -90,7 +95,7 @@ export class OrderDeliveryCreationDialogComponent {
     this.note = '';
     this.items.set([]);
     this.createdDelivery = null;
-    this.selectedFile = null;
+    this.selectedFile.set(null);
     this.imagePreview = null;
     this.creatingDelivery.set(false);
     this.uploadingImage.set(false);
@@ -214,7 +219,7 @@ export class OrderDeliveryCreationDialogComponent {
         return;
       }
 
-      this.selectedFile = file;
+      this.selectedFile.set(file);
       
       // Create preview
       const reader = new FileReader();
@@ -226,22 +231,23 @@ export class OrderDeliveryCreationDialogComponent {
   }
 
   clearSelectedFile() {
-    this.selectedFile = null;
+    this.selectedFile.set(null);
     this.imagePreview = null;
   }
 
   async uploadImage() {
-    if (!this.selectedFile || !this.createdDelivery?.id) {
+    if (!this.selectedFile() || !this.createdDelivery?.id) {
       return;
     }
 
+    const fileToUpload = this.selectedFile()!; // We know it's not null due to the check above
     this.uploadingImage.set(true);
 
     try {
       const updatedPurchaseOrder = await this.deliveryService
         .purchaseOrderDeliveryUploadPurchaseOrderDeliveryImage(
           this.createdDelivery.id,
-          this.selectedFile
+          fileToUpload
         )
         .toPromise();
 
