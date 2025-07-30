@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, signal, OnChanges, SimpleChanges, computed } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, signal, OnChanges, SimpleChanges, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -69,7 +69,9 @@ export class OrdersComponent implements OnInit, OnChanges {
   @Input() ordersInput?: PurchaseOrderDetailsResponseModel[];
   @Input() requestId: number | undefined;
   @Input() itemFilter?: ItemDetailsResponseModel[];
-
+  
+  @Output() orderUpdated = new EventEmitter<RequestDetailsResponseModel>();
+  @Output() orderChanged = new EventEmitter<number>(); // Emits request ID for reload
   
   showCreateDialog: boolean = false;
   showEditDialog: boolean = false;
@@ -223,6 +225,9 @@ export class OrdersComponent implements OnInit, OnChanges {
         // Update item filter with the itemsPending from the response
         this.itemFilter = createdRequestDetails.itemsPending;
         
+        // Emit the updated request details to parent component
+        this.orderUpdated.emit(createdRequestDetails);
+        
         this.messageService.add({
           severity: 'success',
           summary: 'Éxito',
@@ -269,6 +274,11 @@ export class OrdersComponent implements OnInit, OnChanges {
       
       // Reload orders to get updated list
       await this.loadOrders();
+      
+      // Emit request ID to trigger parent reload since delete doesn't return full request details
+      if (this.requestId) {
+        this.orderChanged.emit(this.requestId);
+      }
       
       this.messageService.add({
         severity: 'success',
@@ -320,6 +330,11 @@ export class OrdersComponent implements OnInit, OnChanges {
       if (updatedOrder) {
         // Reload all orders to get the updated list
         await this.loadOrders();
+        
+        // Emit request ID to trigger parent reload since update doesn't return full request details
+        if (this.requestId) {
+          this.orderChanged.emit(this.requestId);
+        }
         
         this.messageService.add({
           severity: 'success',

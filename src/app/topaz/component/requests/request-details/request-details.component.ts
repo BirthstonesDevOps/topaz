@@ -529,4 +529,88 @@ export class RequestDetailsComponent implements OnInit {
       default: return 'secondary';
     }
   }
+
+  // Handle order updates from the orders component
+  handleOrderUpdated = async (updatedRequestDetails: RequestDetailsResponseModel) => {
+    try {
+      console.log('Order updated, refreshing request details:', updatedRequestDetails);
+      
+      // Update the current request details with the new data
+      const currentDetails = this.requestDetails();
+      if (currentDetails && updatedRequestDetails) {
+        // Merge the updated data with existing enriched data
+        const enrichedRequest: EnrichedRequestDetails = {
+          ...currentDetails, // Keep existing enriched data (area name, location name, etc.)
+          ...updatedRequestDetails, // Update with new data from the response
+          // Preserve the enriched fields that aren't in the response
+          areaName: currentDetails.areaName,
+          locationName: currentDetails.locationName,
+          currentStatus: currentDetails.currentStatus,
+          currentOperations: currentDetails.currentOperations
+        };
+        
+        // If the status history was updated, we might need to refresh current status and operations
+        if (updatedRequestDetails.statusHistory && updatedRequestDetails.statusHistory.length > 0) {
+          const latestStatusHistory = updatedRequestDetails.statusHistory.sort((a, b) => 
+            new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
+          )[0];
+          enrichedRequest.currentStatus = latestStatusHistory.status || undefined;
+          
+          // Get status details and operations if we have a current status
+          if (enrichedRequest.currentStatus?.id) {
+            try {
+              const statusDetails = await this.requestStatusService
+                .requestStatusGetRequestStatusDetailsById({ ids: [enrichedRequest.currentStatus.id] })
+                .toPromise();
+              
+              if (statusDetails?.operations) {
+                // Extract distinct operation IDs
+                const operationIds = statusDetails.operations
+                  .map(op => op.operationId)
+                  .filter((id): id is number => id !== undefined && id !== null)
+                  .filter((id, index, arr) => arr.indexOf(id) === index); // Remove duplicates
+                
+                enrichedRequest.currentOperations = operationIds;
+              }
+            } catch (error) {
+              console.error('Error loading status details after order update:', error);
+            }
+          }
+        }
+        
+        this.requestDetails.set(enrichedRequest);
+        
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Detalles del pedido actualizados'
+        });
+      }
+    } catch (error) {
+      console.error('Error handling order update:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Error actualizando detalles del pedido'
+      });
+         }
+   };
+
+  // Handle order changes (update/delete) from the orders component
+  handleOrderChanged = async (requestId: number) => {
+    try {
+      console.log('Order changed, reloading request details for ID:', requestId);
+      
+      // Reload the entire request details using the existing method
+      await this.loadRequestDetails();
+      
+    } catch (error) {
+      console.error('Error handling order change:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Error recargando detalles del pedido'
+      });
+    }
+  };
 }

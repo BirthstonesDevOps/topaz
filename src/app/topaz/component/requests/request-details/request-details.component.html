@@ -95,14 +95,16 @@
 
                 <!-- Orders Tab -->
                 <p-tabpanel [value]="2">
-                    <div class="p-4">
-                        <app-orders 
-                            [ordersInput]="requestDetails()?.purchaseOrders || []"
-                            [requestId]="requestDetails()?.id"
-                            [itemFilter]="requestDetails()?.itemsPending || []"
-                            >
-                        </app-orders>
-                    </div>
+                                <div class="p-4">
+                <app-orders 
+                    [ordersInput]="requestDetails()?.purchaseOrders || []"
+                    [requestId]="requestDetails()?.id"
+                    [itemFilter]="requestDetails()?.itemsPending || []"
+                    (orderUpdated)="handleOrderUpdated($event)"
+                    (orderChanged)="handleOrderChanged($event)"
+                    >
+                </app-orders>
+            </div>
                 </p-tabpanel>
             </p-tabpanels>
         </p-tabs>
