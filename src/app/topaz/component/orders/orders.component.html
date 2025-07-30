@@ -80,7 +80,7 @@
         <td>
           <p-tag 
             *ngIf="order.currentStatus" 
-            [severity]="getStatusSeverity(order.currentStatus.tag)"
+            [severity]="order.currentStatus.tag"
             [value]="order.currentStatus.status || 'Sin estado'"
             [icon]="'pi ' + (order.currentStatus.icon || 'pi-circle')">
           </p-tag>

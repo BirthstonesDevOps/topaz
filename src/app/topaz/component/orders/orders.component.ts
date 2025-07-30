@@ -343,18 +343,7 @@ export class OrdersComponent implements OnInit, OnChanges {
     });
   }
 
-  getStatusSeverity(tag: string | null | undefined): "success" | "secondary" | "info" | "warn" | "danger" | "contrast" {
-    if (!tag) return 'secondary';
-    
-    switch (tag.toLowerCase()) {
-      case 'success': return 'success';
-      case 'danger': return 'danger';
-      case 'warning': case 'warn': return 'warn';
-      case 'info': return 'info';
-      case 'contrast': return 'contrast';
-      default: return 'secondary';
-    }
-  }
+
 
   // Operation availability checks (for future implementation)
   canDeleteOrder(order: OrderTableData): boolean {
