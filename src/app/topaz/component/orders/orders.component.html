@@ -7,7 +7,7 @@
     </div>
 </div>
 
-<div *ngIf="!loading() && orders().length === 0" class="card">
+<div *ngIf="!loading() && allOrders().length === 0" class="card">
     <div class="text-center">
         <i class="pi pi-shopping-cart big-icon text-gray-400 mb-4"></i>
         <div class="text-gray-600 font-bold text-xl mb-2">No hay órdenes de compra</div>
@@ -25,29 +25,14 @@
     </div>
 </div>
 
-<p-toolbar styleClass="mb-6" *ngIf="!loading() && orders().length > 0">
-    <ng-template *ngIf="requestId" #start>
+<p-toolbar styleClass="mb-6" *ngIf="!loading() && allOrders().length > 0 && requestId">
+    <ng-template pTemplate="start">
         <p-button label="Nueva orden de compra" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openCreateDialog()" />
-    </ng-template>
-
-    <ng-template #end>
-        <div class="flex items-center gap-2">
-            <p-iconfield>
-                <p-inputicon class="pi pi-search" />
-                <input type="text" 
-                pInputText 
-                placeholder="Buscar órdenes de compra..." 
-                [ngModel]="searchTerm()" 
-                (ngModelChange)="searchTerm.set($event)"
-                class="w-80"
-                fluid  />
-            </p-iconfield>
-        </div>
     </ng-template>
 </p-toolbar>
 
 <!-- Orders Data Table -->
-<div class="card" *ngIf="!loading() && orders().length > 0">
+<div class="card" *ngIf="!loading() && allOrders().length > 0">
   <p-table 
     [value]="orders()" 
     [paginator]="true" 
@@ -55,7 +40,27 @@
     [rowsPerPageOptions]="[5, 10, 25, 50]"
     [globalFilterFields]="['providerName', 'orderNumber', 'currentStatus.status', 'id']"
     responsiveLayout="scroll"
-    styleClass="p-datatable-gridlines">
+    styleClass="p-datatable-gridlines"
+    #dt>
+    
+    <ng-template pTemplate="caption">
+      <div class="flex justify-between items-center">
+        <h5 class="m-0">Órdenes de Compra</h5>
+        <div class="flex items-center gap-2">
+          <p-iconfield>
+            <p-inputicon class="pi pi-search" />
+            <input 
+              type="text" 
+              pInputText 
+              placeholder="Buscar órdenes..." 
+              [ngModel]="searchTerm()" 
+              (ngModelChange)="searchTerm.set($event)"
+              (input)="dt.filterGlobal($any($event.target).value, 'contains')"
+              class="w-64" />
+          </p-iconfield>
+        </div>
+      </div>
+    </ng-template>
     
     <ng-template pTemplate="header">
       <tr>
@@ -127,7 +132,15 @@
     
     <ng-template pTemplate="emptymessage">
       <tr>
-        <td colspan="7" class="text-center">No se encontraron órdenes de compra</td>
+        <td colspan="7" class="text-center">
+          <div *ngIf="searchTerm().trim(); else noSearchMessage" class="text-gray-500">
+            <i class="pi pi-search mr-2"></i>
+            No se encontraron órdenes que coincidan con "{{ searchTerm() }}"
+          </div>
+          <ng-template #noSearchMessage>
+            <span class="text-gray-500">No se encontraron órdenes de compra</span>
+          </ng-template>
+        </td>
       </tr>
     </ng-template>
   </p-table>
