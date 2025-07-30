@@ -6,6 +6,7 @@ import { TagModule } from 'primeng/tag';
 import { DividerModule } from 'primeng/divider';
 import { PurchaseOrderDeliveryDetailsResponseModel } from '@birthstonesdevops/topaz.backend.ordersservice';
 import { ItemListComponent } from '../../shared/item-list/item-list.component';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-order-delivery-details',
@@ -34,6 +35,11 @@ export class OrderDeliveryDetailsComponent {
 
   get hasItems(): boolean {
     return !!(this.deliveryDetails?.items && this.deliveryDetails.items.length > 0);
+  }
+
+  get fullImageUrl(): string | null {
+    if (!this.deliveryDetails?.imageURL) return null;
+    return `${environment.uploadUrl}/${this.deliveryDetails.imageURL}`;
   }
 
   get formattedCreatedDate(): string {
