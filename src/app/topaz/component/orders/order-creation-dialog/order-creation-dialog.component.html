@@ -1,5 +1,5 @@
 <p-dialog 
-  header="Crear Nueva Orden de Compra" 
+  [header]="dialogTitle()" 
   [(visible)]="visible" 
   [modal]="true" 
   [style]="{ width: '90vw', maxWidth: '1200px' }" 
@@ -19,7 +19,7 @@
   <div *ngIf="!loading() && dataLoaded()">
     
     <!-- Stepper -->
-    <p-stepper [value]="currentStep()" class="mb-6">
+    <p-stepper *ngIf="shouldShowStepper()" [value]="currentStep()" class="mb-6">
       <p-step-list>
         <p-step [value]="1" (onClick)="goToStep(1)">
           <span [class.text-primary]="currentStep() >= 1">Información de la Orden</span>
@@ -35,7 +35,7 @@
 
     <!-- Step 1: Order Information -->
     <div *ngIf="currentStep() === 1" class="step-content">
-      <h3 class="text-xl font-semibold mb-6">Información de la Orden de Compra</h3>
+      <h3 class="text-xl font-semibold mb-6">{{ isEditMode ? 'Editar Información de la Orden' : 'Información de la Orden de Compra' }}</h3>
       
       <div class="flex flex-col gap-6">
         <!-- Provider Selection -->
@@ -81,7 +81,7 @@
     </div>
 
     <!-- Step 2: Items -->
-    <div *ngIf="currentStep() === 2" class="step-content">
+    <div *ngIf="currentStep() === 2 && !isEditMode" class="step-content">
       <h3 class="text-xl font-semibold mb-6">Artículos de la Orden</h3>
       
       <app-item-list
@@ -96,7 +96,7 @@
     </div>
 
     <!-- Step 3: Summary -->
-    <div *ngIf="currentStep() === 3" class="step-content">
+    <div *ngIf="currentStep() === 3 && !isEditMode" class="step-content">
       <h3 class="text-xl font-semibold mb-6">Resumen de la Orden de Compra</h3>
       
       <div class="flex flex-col gap-6">
@@ -215,9 +215,9 @@
       <!-- Submit Button -->
       <p-button 
         *ngIf="shouldShowSubmitButton() && dataLoaded()"
-        label="Crear Orden de Compra"
-        icon="pi pi-check"
-        [disabled]="!step1Valid() || !step2Valid()"
+        [label]="getSubmitButtonLabel()"
+        [icon]="getSubmitButtonIcon()"
+        [disabled]="isEditMode ? !step1Valid() : (!step1Valid() || !step2Valid())"
         (onClick)="createOrder()" />
     </div>
   </ng-template>

@@ -18,6 +18,7 @@ import { ProviderService, ProviderResponseModel } from '@birthstonesdevops/topaz
 import { 
   CreatePurchaseOrderRequestModel,
   PurchaseOrderRequestModel,
+  PurchaseOrderUpdateRequestModel,
   ItemRequestModel, 
   NoteRequestModel,
   ItemDetailsResponseModel
@@ -59,8 +60,11 @@ export class OrderCreationDialogComponent implements OnInit, OnChanges {
   @Input() visible: boolean = false;
   @Input() requestId!: number;
   @Input() itemFilter?: ItemDetailsResponseModel[];
+  @Input() isEditMode: boolean = false;
+  @Input() orderData: any = null;
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() orderCreated = new EventEmitter<CreatePurchaseOrderRequestModel>();
+  @Output() orderUpdated = new EventEmitter<{ id: number; updateData: PurchaseOrderUpdateRequestModel }>();
 
   // Loading states
   loading = signal<boolean>(false);
@@ -100,6 +104,19 @@ export class OrderCreationDialogComponent implements OnInit, OnChanges {
     return data.items.length > 0;
   });
 
+  // Computed properties for edit mode
+  dialogTitle = computed(() => {
+    return this.isEditMode ? 'Editar Orden de Compra' : 'Crear Nueva Orden de Compra';
+  });
+
+  shouldShowStepper = computed(() => {
+    return !this.isEditMode;
+  });
+
+  maxStepForMode = computed(() => {
+    return this.isEditMode ? 1 : 3;
+  });
+
   constructor(
     private providerService: ProviderService,
     private messageService: MessageService
@@ -124,6 +141,11 @@ export class OrderCreationDialogComponent implements OnInit, OnChanges {
         changes['visible'].currentValue === true && 
         changes['visible'].previousValue === false) {
       this.resetForm();
+      
+      // Load order data if in edit mode
+      if (this.isEditMode && this.orderData) {
+        this.loadOrderDataForEdit();
+      }
     }
   }
 
@@ -170,9 +192,23 @@ export class OrderCreationDialogComponent implements OnInit, OnChanges {
     this.newNote = '';
   }
 
+  loadOrderDataForEdit() {
+    if (!this.orderData) return;
+    
+    this.stepData.set({
+      providerId: this.orderData.providerId || null,
+      orderNumber: this.orderData.orderNumber || '',
+      items: this.orderData.items || [],
+      notes: []
+    });
+    
+    // In edit mode, start and stay on step 1
+    this.currentStep.set(1);
+  }
+
   // Step navigation
   nextStep() {
-    if (this.currentStep() < 3) {
+    if (this.currentStep() < this.maxStepForMode()) {
       this.currentStep.set(this.currentStep() + 1);
     }
   }
@@ -184,7 +220,7 @@ export class OrderCreationDialogComponent implements OnInit, OnChanges {
   }
 
   goToStep(step: number) {
-    if (step <= 3) {
+    if (step <= this.maxStepForMode()) {
       this.currentStep.set(step);
     }
   }
@@ -276,6 +312,11 @@ export class OrderCreationDialogComponent implements OnInit, OnChanges {
 
   // Final submission
   createOrder() {
+    if (this.isEditMode) {
+      this.updateOrder();
+      return;
+    }
+
     if (!this.step1Valid() || !this.step2Valid()) {
       this.messageService.add({
         severity: 'error',
@@ -301,20 +342,59 @@ export class OrderCreationDialogComponent implements OnInit, OnChanges {
     this.hide();
   }
 
+  async updateOrder() {
+    if (!this.step1Valid() || !this.orderData?.id) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Por favor complete todos los campos requeridos'
+      });
+      return;
+    }
+
+    const data = this.stepData();
+    const updateData: PurchaseOrderUpdateRequestModel = {
+      orderNumber: data.orderNumber.trim(),
+      providerId: data.providerId!
+    };
+
+    this.orderUpdated.emit({ 
+      id: this.orderData.id, 
+      updateData 
+    });
+    this.hide();
+  }
+
   // Utility methods
   canProceedToStep2(): boolean {
+    if (this.isEditMode) return false;
     return this.step1Valid();
   }
 
   canProceedToStep3(): boolean {
+    if (this.isEditMode) return false;
     return this.canProceedToStep2() && this.step2Valid();
   }
 
   shouldShowSubmitButton(): boolean {
+    if (this.isEditMode) {
+      return this.currentStep() === 1;
+    }
     return this.currentStep() === 3;
   }
 
   shouldShowNextButton(): boolean {
+    if (this.isEditMode) {
+      return false;
+    }
     return this.currentStep() < 3;
+  }
+
+  getSubmitButtonLabel(): string {
+    return this.isEditMode ? 'Actualizar Orden' : 'Crear Orden';
+  }
+
+  getSubmitButtonIcon(): string {
+    return this.isEditMode ? 'pi pi-check' : 'pi pi-check';
   }
 }

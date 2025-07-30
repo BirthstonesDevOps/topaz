@@ -21,7 +21,9 @@ import {
   PurchaseOrderService,
   PurchaseOrderRequestModel,
   ChangeStatusRequestModel,
-  CreatePurchaseOrderRequestModel
+  CreatePurchaseOrderRequestModel,
+  PurchaseOrderUpdateRequestModel,
+  UpdateRequestOfPurchaseOrderUpdateRequestModel
 } from '@birthstonesdevops/topaz.backend.ordersservice';
 import { 
   ProviderService,
@@ -269,7 +271,7 @@ export class OrdersComponent implements OnInit, OnChanges {
     }
   }
 
-  // Edit functionality (placeholder for future implementation)
+  // Edit functionality
   editOrder(orderId: number) {
     console.log('Edit order:', orderId);
     // Find the order data
@@ -284,6 +286,40 @@ export class OrdersComponent implements OnInit, OnChanges {
         detail: 'No se encontró la orden de compra a editar'
       });
     }
+  }
+
+  async handleOrderUpdated(updateData: { id: number; updateData: PurchaseOrderUpdateRequestModel }) {
+    try {
+      console.log('Updating order:', updateData);
+      
+      const updateRequest: UpdateRequestOfPurchaseOrderUpdateRequestModel = {
+        ids: [new Number(updateData.id)],
+        model: updateData.updateData
+      };
+      
+      const updatedOrder = await this.purchaseOrderService.purchaseOrderUpdate(updateRequest).toPromise();
+      
+      if (updatedOrder) {
+        // Reload all orders to get the updated list
+        await this.loadOrders();
+        
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Orden de compra actualizada correctamente'
+        });
+      }
+    } catch (error) {
+      console.error('Error updating order:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Error actualizando la orden de compra'
+      });
+    }
+
+    this.showEditDialog = false;
+    this.editOrderData = null;
   }
 
   // Utility methods

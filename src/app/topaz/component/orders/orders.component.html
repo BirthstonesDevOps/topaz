@@ -180,5 +180,14 @@
   (orderCreated)="handleOrderCreated($event)">
 </app-order-creation-dialog>
 
+<!-- Order Edit Dialog -->
+<app-order-creation-dialog
+  [(visible)]="showEditDialog"
+  [isEditMode]="true"
+  [orderData]="editOrderData"
+  [requestId]="editOrderData?.requestId || 0"
+  (orderUpdated)="handleOrderUpdated($event)">
+</app-order-creation-dialog>
+
 <!-- Toast and Confirm Dialog -->
 <p-confirmDialog></p-confirmDialog>
