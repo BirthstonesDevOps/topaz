@@ -68,13 +68,13 @@
 
         <!-- Order Number Input -->
         <div class="flex flex-col gap-2">
-          <label for="orderNumber" class="font-medium">Número de Orden *</label>
+          <label for="orderNumber" class="font-medium">Código TANGO *</label>
           <input 
             id="orderNumber"
             pInputText 
             [ngModel]="stepData().orderNumber"
             (ngModelChange)="updateOrderNumber($event)"
-            placeholder="Ingrese el número de orden"
+            placeholder="Ingrese el código TANGO"
             class="w-full" />
         </div>
       </div>

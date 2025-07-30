@@ -1,1 +1,32 @@
-<p>orders works!</p>
+<p-toast></p-toast>
+
+<div *ngIf="loading()" class="card">
+    <div class="text-center">
+        <p-progressSpinner [style]="{ width: '50px', height: '50px' }" strokeWidth="6" styleClass="custom-spinner"> </p-progressSpinner>
+        <div class="mt-3 text-primary font-bold text-lg">Cargando...</div>
+    </div>
+</div>
+
+<div *ngIf="!loading() && orders().length === 0" class="card">
+    <div class="text-center">
+        <i class="pi pi-shopping-cart big-icon text-gray-400 mb-4"></i>
+        <div class="text-gray-600 font-bold text-xl mb-2">No hay ordenes de compra</div>
+        <div class="text-gray-500 mb-4">No se han registrado ordenes de compra aún. Comienza creando la primera orden de compra.</div>
+        <p-button label="Crear orden de compra" icon="pi pi-plus" severity="primary" (onClick)="openCreateDialog()"></p-button>
+    </div>
+</div>
+
+<p-toolbar styleClass="mb-6" *ngIf="!loading() && orders().length > 0">
+    <ng-template *ngIf="requestId" #start>
+        <p-button label="Nueva orden de compra" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openCreateDialog()" />
+    </ng-template>
+
+    <ng-template #center>
+        <div class="flex items-center gap-2">
+            <p-iconfield>
+                <p-inputicon class="pi pi-search" />
+                <input type="text" pInputText placeholder="Buscar ordenes de compra..." [(ngModel)]="searchTerm" (input)="filterRequests()" class="w-80" fluid />
+            </p-iconfield>
+        </div>
+    </ng-template>
+</p-toolbar>
