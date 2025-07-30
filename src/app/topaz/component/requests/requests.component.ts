@@ -13,6 +13,9 @@ import { TagModule } from 'primeng/tag';
 import { DialogModule } from 'primeng/dialog';
 import { TextareaModule } from 'primeng/textarea';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { CalendarModule } from 'primeng/calendar';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { SelectModule } from 'primeng/select';
 
 import { 
   CreateRequestRequestModel, 
@@ -65,7 +68,10 @@ interface RequestTableData extends RequestDetailsResponseModel {
     ConfirmDialogModule,
     RequestCreationDialogComponent,
     ToolbarModule,
-    IconFieldModule
+    IconFieldModule,
+    CalendarModule,
+    MultiSelectModule,
+    SelectModule
 ],
   templateUrl: './requests.component.html',
   styleUrl: './requests.component.css',
@@ -82,27 +88,14 @@ export class RequestsComponent implements OnInit {
   // Requests data
   allRequests = signal<RequestTableData[]>([]);
   
-  // Search functionality
-  searchTerm: string = '';
+  // Available statuses for filters
+  availableStatuses = signal<StatusDetailsResponseModel[]>([]);
   
   // Delete confirmation dialog
   showDeleteDialog: boolean = false;
   deleteRequestId: number | null = null;
   deleteNotes: string = '';
   deletingRequest = signal<boolean>(false);
-  
-  // Computed filtered requests
-  requests = computed(() => {
-    const term = this.searchTerm.toLowerCase().trim();
-    if (!term) return this.allRequests();
-    
-    return this.allRequests().filter(request => 
-      request.areaName?.toLowerCase().includes(term) ||
-      request.locationName?.toLowerCase().includes(term) ||
-      request.currentStatus?.status?.toLowerCase().includes(term) ||
-      request.id?.toString().includes(term)
-    );
-  });
 
   constructor(
     private messageService: MessageService,
@@ -180,11 +173,32 @@ export class RequestsComponent implements OnInit {
               }
             }
             
+            // Convert date strings to Date objects for proper filtering
+            if (enrichedRequest.createdAt) {
+              enrichedRequest.createdAt = new Date(enrichedRequest.createdAt) as any;
+            }
+            if (enrichedRequest.updatedAt) {
+              enrichedRequest.updatedAt = new Date(enrichedRequest.updatedAt) as any;
+            }
+            if (enrichedRequest.neededAt) {
+              enrichedRequest.neededAt = new Date(enrichedRequest.neededAt) as any;
+            }
+            
             return enrichedRequest;
           })
         );
         
         this.allRequests.set(enrichedRequests);
+        
+        // Extract unique statuses for column filter
+        const uniqueStatuses = enrichedRequests
+          .map(request => request.currentStatus)
+          .filter((status): status is StatusDetailsResponseModel => !!status)
+          .filter((status, index, arr) => 
+            arr.findIndex(s => s.id === status.id) === index
+          );
+        
+        this.availableStatuses.set(uniqueStatuses);
       }
     } catch (error) {
       console.error('Error loading requests:', error);
@@ -196,11 +210,6 @@ export class RequestsComponent implements OnInit {
     } finally {
       this.loading.set(false);
     }
-  }
-
-  filterRequests() {
-    // The filtering is handled by the computed property
-    // This method exists for the template binding
   }
 
   openCreateDialog() {

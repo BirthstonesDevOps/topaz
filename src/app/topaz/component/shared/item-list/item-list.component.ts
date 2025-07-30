@@ -152,6 +152,12 @@ export class ItemListComponent implements OnInit, OnChanges {
     return this.availableItems().some(item => !item.isAlreadyAdded);
   });
 
+  // Check if paginator should be shown (only if items count >= minimum page size)
+  shouldShowPaginator = computed(() => {
+    const minPageSize = 10; // Minimum from rowsPerPageOptions
+    return this.enhancedItems().length >= minPageSize;
+  });
+
   // Computed maximum quantities
   maxQuantityForAdd = computed(() => {
     if (!this.selectedItemForAdd) return 999999;

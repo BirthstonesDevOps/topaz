@@ -7,7 +7,7 @@
     </div>
 </div>
 
-<div *ngIf="!loading() && requests().length === 0" class="card">
+<div *ngIf="!loading() && allRequests().length === 0" class="card">
     <div class="text-center">
         <i class="pi pi-shopping-cart big-icon text-gray-400 mb-4"></i>
         <div class="text-gray-600 font-bold text-xl mb-2">No hay pedidos</div>
@@ -16,49 +16,133 @@
     </div>
 </div>
 
-<p-toolbar styleClass="mb-6" *ngIf="!loading() && requests().length > 0">
+<p-toolbar styleClass="mb-6" *ngIf="!loading() && allRequests().length > 0">
     <ng-template #start>
         <p-button label="Nuevo pedido" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openCreateDialog()" />
-    </ng-template>
-
-    <ng-template #center>
-        <div class="flex items-center gap-2">
-            <p-iconfield>
-                <p-inputicon class="pi pi-search" />
-                <input type="text" 
-                pInputText 
-                placeholder="Buscar pedidos..." 
-                [(ngModel)]="searchTerm" 
-                (input)="filterRequests()"
-                class="w-80"
-                fluid  />
-            </p-iconfield>
-
-        </div>
     </ng-template>
 </p-toolbar>
 
 <!-- Requests Data Table -->
-<div class="card" *ngIf="!loading() && requests().length > 0">
+<div class="card" *ngIf="!loading() && allRequests().length > 0">
   <p-table 
-    [value]="requests()" 
+    #dt
+    [value]="allRequests()" 
     [paginator]="true" 
     [rows]="10" 
     [rowsPerPageOptions]="[5, 10, 25, 50]"
     [globalFilterFields]="['areaName', 'locationName', 'currentStatus.status', 'id']"
     responsiveLayout="scroll"
-    styleClass="p-datatable-gridlines">
+    styleClass="p-datatable-gridlines"
+    dataKey="id"
+    [loading]="loading()"
+    [rowHover]="true"
+    [showGridlines]="true">
     
+    <ng-template pTemplate="caption">
+      <div class="flex justify-between items-center">
+        <h5 class="m-0">Pedidos</h5>
+        <p-button 
+          label="Limpiar filtros" 
+          icon="pi pi-filter-slash" 
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="dt.clear()">
+        </p-button>
+      </div>
+    </ng-template>
+
     <ng-template pTemplate="header">
       <tr>
-        <th>ID</th>
-        <th>Área</th>
-        <th>Ubicación</th>
-        <th>Fecha Necesaria</th>
-        <th>Fecha Creación</th>
-        <th>Última Actualización</th>
-        <th>Estado</th>
-        <th>Acciones</th>
+        <th style="min-width: 8rem" pSortableColumn="id">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2">
+              <span>ID</span>
+              <p-sortIcon field="id"></p-sortIcon>
+            </div>
+            <p-columnFilter type="numeric" field="id" display="menu"></p-columnFilter>
+          </div>
+        </th>
+        <th style="min-width: 12rem" pSortableColumn="areaName">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2">
+              <span>Departamento</span>
+              <p-sortIcon field="areaName"></p-sortIcon>
+            </div>
+            <p-columnFilter type="text" field="areaName" display="menu" placeholder="Buscar por departamento"></p-columnFilter>
+          </div>
+        </th>
+        <th style="min-width: 12rem" pSortableColumn="locationName">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2">
+              <span>Centro de producción</span>
+              <p-sortIcon field="locationName"></p-sortIcon>
+            </div>
+            <p-columnFilter type="text" field="locationName" display="menu" placeholder="Buscar por centro de producción"></p-columnFilter>
+          </div>
+        </th>
+        <th style="min-width: 12rem" pSortableColumn="neededAt">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2">
+              <span>Fecha Necesaria</span>
+              <p-sortIcon field="neededAt"></p-sortIcon>
+            </div>
+            <p-columnFilter type="date" field="neededAt" display="menu" placeholder="dd/mm/yyyy" dateFormat="dd/mm/yy"></p-columnFilter>
+          </div>
+        </th>
+        <th style="min-width: 12rem" pSortableColumn="createdAt">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2">
+              <span>Fecha Creación</span>
+              <p-sortIcon field="createdAt"></p-sortIcon>
+            </div>
+            <p-columnFilter type="date" field="createdAt" display="menu" placeholder="dd/mm/yyyy" dateFormat="dd/mm/yy"></p-columnFilter>
+          </div>
+        </th>
+        <th style="min-width: 12rem" pSortableColumn="updatedAt">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2">
+              <span>Última Actualización</span>
+              <p-sortIcon field="updatedAt"></p-sortIcon>
+            </div>
+            <p-columnFilter type="date" field="updatedAt" display="menu" placeholder="dd/mm/yyyy" dateFormat="dd/mm/yy"></p-columnFilter>
+          </div>
+        </th>
+        <th style="min-width: 12rem" pSortableColumn="currentStatus.status">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2">
+              <span>Estado</span>
+              <p-sortIcon field="currentStatus.status"></p-sortIcon>
+            </div>
+            <p-columnFilter field="currentStatus.status" matchMode="in" display="menu" [showMatchModes]="false" [showOperator]="false" [showAddButton]="false">
+              <ng-template pTemplate="header">
+                <div class="px-3 pt-3 pb-0">
+                  <span class="font-bold">Filtrar por Estado</span>
+                </div>
+              </ng-template>
+              <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                <p-multiSelect 
+                  [ngModel]="value" 
+                  [options]="availableStatuses()" 
+                  (onChange)="filter($event.value)" 
+                  placeholder="Cualquier estado"
+                  optionLabel="status"
+                  optionValue="status"
+                  styleClass="w-full">
+                  <ng-template pTemplate="item" let-option>
+                    <div class="flex items-center gap-2">
+                      <p-tag 
+                        [severity]="getStatusSeverity(option.tag)"
+                        [value]="option.status"
+                        [icon]="'pi ' + (option.icon || 'pi-circle')">
+                      </p-tag>
+                    </div>
+                  </ng-template>
+                </p-multiSelect>
+              </ng-template>
+            </p-columnFilter>
+          </div>
+        </th>
+        <th style="min-width: 8rem">Acciones</th>
       </tr>
     </ng-template>
     
