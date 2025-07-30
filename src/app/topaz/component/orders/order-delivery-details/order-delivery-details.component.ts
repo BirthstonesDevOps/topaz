@@ -39,7 +39,12 @@ export class OrderDeliveryDetailsComponent {
 
   get fullImageUrl(): string | null {
     if (!this.deliveryDetails?.imageURL) return null;
-    return `${environment.uploadUrl}/${this.deliveryDetails.imageURL}`;
+    
+    // Ensure proper URL concatenation
+    const baseUrl = environment.uploadUrl.endsWith('/') ? environment.uploadUrl.slice(0, -1) : environment.uploadUrl;
+    const imagePath = this.deliveryDetails.imageURL.startsWith('/') ? this.deliveryDetails.imageURL : `/${this.deliveryDetails.imageURL}`;
+    
+    return `${baseUrl}${imagePath}`;
   }
 
   get formattedCreatedDate(): string {

@@ -3,14 +3,14 @@
   <div class="card">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div class="flex flex-col gap-2">
-        <h3 class="text-2xl font-semibold text-surface-900 m-0">Detalles de Entrega</h3>
-        <div class="flex flex-col sm:flex-row gap-3 text-sm text-surface-600">
+        <h3 class="text-2xl font-semibold m-0" style="color: var(--text-color)">Detalles de Entrega</h3>
+        <div class="flex flex-col sm:flex-row gap-3 text-sm" style="color: var(--text-color-secondary)">
           <div *ngIf="deliveryDetails.createdAt" class="flex items-center gap-2">
-            <i class="pi pi-calendar text-primary-500"></i>
+            <i class="pi pi-calendar" style="color: var(--primary-color)"></i>
             <span>Creado: {{ formattedCreatedDate }}</span>
           </div>
           <div *ngIf="deliveryDetails.updatedAt" class="flex items-center gap-2">
-            <i class="pi pi-clock text-surface-500"></i>
+            <i class="pi pi-clock" style="color: var(--text-color-secondary)"></i>
             <span>Actualizado: {{ formattedUpdatedDate }}</span>
           </div>
         </div>
@@ -38,7 +38,7 @@
       <div *ngIf="hasImage" class="card">
         <div class="flex flex-col gap-4">
           <div class="flex items-center gap-3">
-            <i class="pi pi-image text-xl text-primary-500"></i>
+            <i class="pi pi-image text-xl" style="color: var(--primary-color)"></i>
             <h4 class="font-semibold text-lg m-0">Imagen de Entrega</h4>
           </div>
           <div class="flex justify-center bg-surface-50 p-6 border-2 border-dashed border-surface-200 rounded-lg">
@@ -71,7 +71,7 @@
       <div class="card">
         <div class="flex flex-col gap-4">
           <div class="flex items-center gap-3">
-            <i class="pi pi-file-edit text-xl text-primary-500"></i>
+            <i class="pi pi-file-edit text-xl" style="color: var(--primary-color)"></i>
             <h4 class="font-semibold text-lg m-0">Notas</h4>
           </div>
           
@@ -99,7 +99,7 @@
         <div class="flex flex-col gap-4 h-full">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
-              <i class="pi pi-list text-xl text-primary-500"></i>
+              <i class="pi pi-list text-xl" style="color: var(--primary-color)"></i>
               <h4 class="font-semibold text-lg m-0">Artículos</h4>
             </div>
             <p-tag *ngIf="hasItems" 

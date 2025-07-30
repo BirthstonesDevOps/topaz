@@ -1,21 +1,21 @@
 /* Card styling */
 .card {
   background: var(--p-surface-0);
-  border: 1px solid var(--p-surface-border);
-  border-radius: 12px;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  transition: all 0.3s ease;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--content-border-radius);
+  box-shadow: var(--p-shadow-sm);
+  transition: all var(--element-transition-duration) ease;
 }
 
 .card:hover {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--p-shadow-md);
 }
 
 /* Enhanced image container */
 .image-container {
   position: relative;
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: var(--content-border-radius);
 }
 
 .image-container::before {
@@ -25,15 +25,16 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, transparent 0%, rgba(59, 130, 246, 0.05) 100%);
+  background: linear-gradient(135deg, transparent 0%, var(--primary-color) 5%);
+  opacity: 0.02;
   pointer-events: none;
   z-index: 1;
 }
 
 /* Custom image styling */
 ::ng-deep .p-image img {
-  border-radius: 8px;
-  transition: transform 0.3s ease;
+  border-radius: var(--content-border-radius);
+  transition: transform var(--element-transition-duration) ease;
 }
 
 ::ng-deep .p-image:hover img {
@@ -42,7 +43,7 @@
 
 /* Icon styling */
 .icon-accent {
-  color: var(--p-primary-color);
+  color: var(--primary-color);
   font-size: 1.25rem;
 }
 
@@ -59,15 +60,15 @@
   top: 0;
   bottom: 0;
   width: 4px;
-  background: linear-gradient(to bottom, var(--p-primary-color), var(--p-primary-600));
+  background: linear-gradient(to bottom, var(--primary-color), var(--p-primary-600));
 }
 
 /* Empty state styling */
 .empty-state {
   background: linear-gradient(135deg, var(--p-surface-50) 0%, var(--p-surface-100) 100%);
-  border: 2px dashed var(--p-surface-border);
-  border-radius: 12px;
-  transition: all 0.3s ease;
+  border: 2px dashed var(--surface-border);
+  border-radius: var(--content-border-radius);
+  transition: all var(--element-transition-duration) ease;
 }
 
 .empty-state:hover {
@@ -115,13 +116,13 @@
 }
 
 ::ng-deep .p-divider.p-divider-horizontal::before {
-  border-top-color: var(--p-surface-border);
+  border-top-color: var(--surface-border);
 }
 
 /* Header improvements */
 .header-card {
   background: linear-gradient(135deg, var(--p-surface-0) 0%, var(--p-surface-50) 100%);
-  border: 1px solid var(--p-surface-border);
+  border: 1px solid var(--surface-border);
 }
 
 /* Section cards */
@@ -150,7 +151,7 @@
 }
 
 .card {
-  animation: fadeInUp 0.3s ease-out;
+  animation: fadeInUp var(--layout-section-transition-duration) ease-out;
 }
 
 /* Status indicators */
@@ -178,8 +179,8 @@
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .card {
-    border-radius: 8px;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    border-radius: var(--content-border-radius);
+    box-shadow: var(--p-shadow-xs);
   }
   
   .grid.grid-cols-12 {
@@ -195,7 +196,7 @@
 /* Item list container styling */
 .items-container {
   background: var(--p-surface-0);
-  border-radius: 8px;
+  border-radius: var(--content-border-radius);
   overflow: hidden;
 }
 
