@@ -183,10 +183,10 @@ export class OrderDetailsComponent implements OnInit {
         this.requestDetails.set(requestDetails);
         //The requestDetails.itemsPending but with the requestDetails.items quantity 
         this.pendingItems.set(requestDetails.itemsPending?.map(item => {
-          const itemQuantity = requestDetails.items?.find(i => i.itemId === item.itemId)?.quantity || 0;
+          const itemQuantity = this.orderDetails()?.items?.find(i => i.itemId === item.itemId)?.quantity || 0;
           return {
             ...item,
-            quantity: itemQuantity
+            quantity: (item.quantity || 0) + itemQuantity
           };
         }) || []);
       }

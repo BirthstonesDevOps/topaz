@@ -244,16 +244,16 @@
     [appendTo]="'body'">
     <ng-template #content>
         <div class="flex flex-col gap-6">
-            <div *ngIf="editingItem">
+            <div *ngIf="editingItem()">
                 <div class="p-4 bg-gray-50 rounded-lg mb-4">
-                    <div class="font-medium">{{ editingItem.itemDetails?.name }}</div>
-                    <div class="text-sm text-gray-500">{{ editingItem.itemDetails?.code }}</div>
+                    <div class="font-medium">{{ editingItem()?.itemDetails?.name }}</div>
+                    <div class="text-sm text-gray-500">{{ editingItem()?.itemDetails?.code }}</div>
                 </div>
             </div>
             <div>
                 <label for="quantity-edit" class="block font-bold mb-3">
                     Nueva Cantidad
-                    <span *ngIf="editingItem && maxQuantityForEdit() < 999999" class="text-sm font-normal text-gray-500">
+                    <span *ngIf="editingItem() && maxQuantityForEdit() < 999999" class="text-sm font-normal text-gray-500">
                         (máximo: {{ maxQuantityForEdit() }})
                     </span>
                 </label>

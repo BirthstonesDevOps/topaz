@@ -4,6 +4,7 @@
  * Usage Example:
  * <app-item-list
  *   [items]="orderItems"
+ *   [itemFilter]="pendingItems"
  *   [showMeasurement]="true"
  *   [showDescription]="false"
  *   [onItemSave]="addItemHandler"
@@ -17,6 +18,11 @@
  * deleteItemHandler = (data: { itemId: number; correspondentEntityId?: number }) => { console.log('Delete:', data); };
  * 
  * Where orderItems is of type: ItemDetailsResponseModel[] (from orders service)
+ * 
+ * ItemFilter behavior:
+ * - If itemFilter is provided: Only those items are available for adding, with quantity limits from the filter
+ * - If itemFilter is empty/undefined: All items are available for adding with unlimited quantities
+ * - Editing: If itemFilter is provided, quantities are limited by filter values; otherwise unlimited
  */
 
 import { Component, Input, OnInit, OnChanges, SimpleChanges, ViewChild, signal, computed } from '@angular/core';
@@ -95,7 +101,6 @@ interface FilterItemData extends ItemServiceItemDetailsResponseModel {
 export class ItemListComponent implements OnInit, OnChanges {
   @Input() items: OrderItemDetailsResponseModel[] = [];
   @Input() itemFilter?: OrderItemDetailsResponseModel[];
-  @Input() forcedFilter: boolean = false;
   @Input() showMeasurement: boolean = false;
   @Input() showDescription: boolean = false;
   @Input() onItemSave?: (item: ItemRequestModel) => void;
@@ -117,7 +122,7 @@ export class ItemListComponent implements OnInit, OnChanges {
   availableItems = signal<FilterItemData[]>([]);
   selectedItemForAdd: FilterItemData | null = null;
   quantityForAdd: number = 1;
-  editingItem: EnhancedItemDetails | null = null;
+  editingItem = signal<EnhancedItemDetails | null>(null);
   quantityForEdit: number = 1;
   
   // Loading states
@@ -143,26 +148,34 @@ export class ItemListComponent implements OnInit, OnChanges {
 
   // Computed maximum quantities
   maxQuantityForAdd = computed(() => {
-    // If forcedFilter is true and filter is empty, no items are available
-    if (this.forcedFilter && (!this.itemFilter || this.itemFilter.length === 0)) {
-      return 0;
-    }
     if (!this.selectedItemForAdd) return 999999;
+    
     // If item is already added, quantity should be 0
     if (this.selectedItemForAdd.isAlreadyAdded) return 0;
+    
     return this.selectedItemForAdd.maxQuantity;
   });
 
   maxQuantityForEdit = computed(() => {
-    // If forcedFilter is true and filter is empty, maximum quantity is 0
-    if (this.forcedFilter && (!this.itemFilter || this.itemFilter.length === 0)) {
-      return 0;
+    if (!this.editingItem()?.orderItem.itemId) {
+      return 999999;
     }
-    if (!this.editingItem?.orderItem.itemId) return 999999;
     
-    // Find the filter item for this specific item in availableItems
-    const filterItem = this.availableItems().find(item => item.id === this.editingItem?.orderItem.itemId);
-    return filterItem?.maxQuantity || 999999;
+    // If filter is provided, check if item exists in filter
+    if (this.itemFilter && this.itemFilter.length > 0) {
+      const editingItemId = this.editingItem()?.orderItem.itemId;
+      
+      const filterItem = this.itemFilter.find(item => item.itemId === editingItemId);
+      
+      if (!filterItem) {
+        return 0; // Item not in filter, so max quantity is 0
+      }
+      // Use the quantity from the filter as the maximum
+      return filterItem.quantity || 1;
+    }
+    
+    // No filter or empty filter: unlimited editing
+    return 999999;
   });
 
   constructor(
@@ -180,9 +193,8 @@ export class ItemListComponent implements OnInit, OnChanges {
     if (changes['items'] && !changes['items'].firstChange) {
       this.loadItemDetails();
     }
-    if ((changes['itemFilter'] && !changes['itemFilter'].firstChange) || 
-        (changes['forcedFilter'] && !changes['forcedFilter'].firstChange)) {
-      // Clear available items when filter or forcedFilter changes, they'll be reloaded when dialog opens
+    if ((changes['itemFilter'] && !changes['itemFilter'].firstChange)) {
+      // Clear available items when filter changes, they'll be reloaded when dialog opens
       this.availableItems.set([]);
     }
   }
@@ -253,16 +265,6 @@ export class ItemListComponent implements OnInit, OnChanges {
   async openNew() {
     if (!this.onItemSave) return;
     
-    // Check if forcedFilter is true and no filter is provided
-    if (this.forcedFilter && (!this.itemFilter || this.itemFilter.length === 0)) {
-      this.messageService.add({
-        severity: 'warn',
-        summary: 'Advertencia',
-        detail: 'No hay artículos disponibles para agregar'
-      });
-      return;
-    }
-    
     this.selectedItemForAdd = null;
     this.quantityForAdd = 1;
     this.submitted.set(false);
@@ -277,8 +279,8 @@ export class ItemListComponent implements OnInit, OnChanges {
     try {
       let filteredItems: FilterItemData[] = [];
       
+      // Filter provided: load only filtered items
       if (this.itemFilter && this.itemFilter.length > 0) {
-        // If filter is provided, only load those specific items
         for (const filterItem of this.itemFilter) {
           if (filterItem.itemId) {
             try {
@@ -299,11 +301,9 @@ export class ItemListComponent implements OnInit, OnChanges {
             }
           }
         }
-      } else if (this.forcedFilter) {
-        // If forcedFilter is true and no filter is provided, no items should be available
-        filteredItems = [];
-      } else {
-        // If no filter and forcedFilter is false, load all items with unlimited quantity
+      }
+      // Soft filter or no filter: load all items
+      else {
         const allItems = await this.itemService.itemGetAllItemsDetails().toPromise();
         filteredItems = (allItems || []).map(item => {
           // Check if this item is already in the current items list
@@ -338,7 +338,7 @@ export class ItemListComponent implements OnInit, OnChanges {
   hideEditDialog() {
     this.editItemDialog.set(false);
     this.submitted.set(false);
-    this.editingItem = null;
+    this.editingItem.set(null);
   }
 
   onItemSelectionChange() {
@@ -385,26 +385,25 @@ export class ItemListComponent implements OnInit, OnChanges {
   async editItem(item: EnhancedItemDetails) {
     if (!this.onItemEdit || !item.itemDetails) return;
     
-    this.editingItem = item;
+    this.editingItem.set(item);
     this.quantityForEdit = item.orderItem.quantity || 1;
     this.submitted.set(false);
     this.editItemDialog.set(true);
     
-    // Load available items to get quantity limits
-    await this.loadAvailableItems();
+    // Note: No need to load available items since we use itemFilter directly for validation
   }
 
   saveEditItem() {
     this.submitted.set(true);
     
-    if (!this.editingItem || this.quantityForEdit <= 0 || this.quantityForEdit > this.maxQuantityForEdit()) {
+    if (!this.editingItem() || this.quantityForEdit <= 0 || this.quantityForEdit > this.maxQuantityForEdit()) {
       return;
     }
     
-    if (this.onItemEdit && this.editingItem.orderItem.itemId) {
+    if (this.onItemEdit && this.editingItem()?.orderItem.itemId) {
       this.onItemEdit({
-        itemId: this.editingItem.orderItem.itemId,
-        correspondentEntityId: this.editingItem.orderItem.correspondentEntityId,
+        itemId: this.editingItem()!.orderItem.itemId!,
+        correspondentEntityId: this.editingItem()!.orderItem.correspondentEntityId,
         quantity: this.quantityForEdit
       });
     }
@@ -439,10 +438,6 @@ export class ItemListComponent implements OnInit, OnChanges {
 
   get canAdd(): boolean {
     if (!this.onItemSave) return false;
-    // If forcedFilter is true and no filter is provided, can't add items
-    if (this.forcedFilter && (!this.itemFilter || this.itemFilter.length === 0)) {
-      return false;
-    }
     return true;
   }
 
