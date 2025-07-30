@@ -20,7 +20,9 @@ import {
   RequestService,
   RequestDetailsResponseModel,
   GetRequest,
-  ItemDetailsResponseModel
+  ItemDetailsResponseModel,
+  PurchaseOrderStatusService,
+  StatusFullDetailsResponseModel
 } from '@birthstonesdevops/topaz.backend.ordersservice';
 import { 
   ProviderService,
@@ -73,7 +75,8 @@ export class OrderDetailsComponent implements OnInit {
     private purchaseOrderItemService: PurchaseOrderItemService,
     private purchaseOrderStatusHistoryNoteService: PurchaseOrderStatusHistoryNoteService,
     private requestService: RequestService,
-    private providerService: ProviderService
+    private providerService: ProviderService,
+    private purchaseOrderStatusService: PurchaseOrderStatusService
   ) {}
 
   ngOnInit() {
@@ -120,11 +123,24 @@ export class OrderDetailsComponent implements OnInit {
           )[0];
           enrichedOrder.currentStatus = latestStatusHistory.status || undefined;
           
-          // Mock operations for demonstration - in real implementation, get from status details
-          enrichedOrder.currentOperations = [
-            Operations.AddPurchaseOrderItem,
-            Operations.DeletePurchaseOrderItem
-          ];
+          // Get real operations from status details
+          if (latestStatusHistory.status?.id) {
+            try {
+              const statusDetails = await this.purchaseOrderStatusService
+                .purchaseOrderStatusGetPurchaseOrderStatusDetailsById({ ids: [latestStatusHistory.status.id] })
+                .toPromise();
+              
+              if (statusDetails?.operations) {
+                enrichedOrder.currentOperations = statusDetails.operations
+                  .map(op => op.operationId)
+                  .filter(id => id !== undefined) as number[];
+              }
+            } catch (error) {
+              console.error('Error cargando detalles del estado:', error);
+              // Fallback to empty operations if status details fetch fails
+              enrichedOrder.currentOperations = [];
+            }
+          }
         }
         
         this.orderDetails.set(enrichedOrder);
@@ -208,8 +224,13 @@ export class OrderDetailsComponent implements OnInit {
 
   // Check if deliveries tab should be shown
   canShowDeliveriesTab(): boolean {
+    const operations = this.orderDetails()?.currentOperations || [];
+    const hasCreateDeliveryOperation = operations.includes(Operations.CreatePurchaseOrderDelivery);
+    const hasDeleteDeliveryOperation = operations.includes(Operations.DeletePurchaseOrderDelivery);
     const hasDeliveries = !!(this.orderDetails()?.deliveries && this.orderDetails()!.deliveries!.length > 0);
-    return hasDeliveries;
+    
+    // Show tab if user has delivery operations OR if there are already deliveries to view
+    return hasCreateDeliveryOperation || hasDeleteDeliveryOperation || hasDeliveries;
   }
 
   // Note addition handler
