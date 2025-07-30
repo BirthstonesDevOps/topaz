@@ -23,7 +23,8 @@ import {
   ChangeStatusRequestModel,
   CreatePurchaseOrderRequestModel,
   PurchaseOrderUpdateRequestModel,
-  UpdateRequestOfPurchaseOrderUpdateRequestModel
+  UpdateRequestOfPurchaseOrderUpdateRequestModel,
+  StatusDetailsResponseModel
 } from '@birthstonesdevops/topaz.backend.ordersservice';
 import { 
   ProviderService,
@@ -35,6 +36,7 @@ import { OrderCreationDialogComponent } from './order-creation-dialog/order-crea
 // Extended order interface for table display
 interface OrderTableData extends PurchaseOrderDetailsResponseModel {
   providerName?: string;
+  currentStatus?: StatusDetailsResponseModel;
 }
 
 @Component({
@@ -92,6 +94,7 @@ export class OrdersComponent implements OnInit, OnChanges {
     return this.allOrders().filter(order => 
       order.providerName?.toLowerCase().includes(term) ||
       order.orderNumber?.toLowerCase().includes(term) ||
+      order.currentStatus?.status?.toLowerCase().includes(term) ||
       order.id?.toString().includes(term)
     );
   });
@@ -147,7 +150,7 @@ export class OrdersComponent implements OnInit, OnChanges {
   async enrichOrders(orders: PurchaseOrderDetailsResponseModel[]) {
     this.loading.set(true);
     try {
-      // Enrich orders with provider names
+      // Enrich orders with provider names and current status
       const enrichedOrders = await Promise.all(
         orders.map(async (order) => {
           const enrichedOrder: OrderTableData = { ...order };
@@ -160,6 +163,14 @@ export class OrdersComponent implements OnInit, OnChanges {
             } catch (error) {
               enrichedOrder.providerName = 'Error';
             }
+          }
+          
+          // Get current status (latest status from status history)
+          if (order.statusHistory && order.statusHistory.length > 0) {
+            const latestStatusHistory = order.statusHistory.sort((a, b) => 
+              new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
+            )[0];
+            enrichedOrder.currentStatus = latestStatusHistory.status || undefined;
           }
           
           return enrichedOrder;
@@ -330,6 +341,19 @@ export class OrdersComponent implements OnInit, OnChanges {
       month: '2-digit',
       day: '2-digit'
     });
+  }
+
+  getStatusSeverity(tag: string | null | undefined): "success" | "secondary" | "info" | "warn" | "danger" | "contrast" {
+    if (!tag) return 'secondary';
+    
+    switch (tag.toLowerCase()) {
+      case 'success': return 'success';
+      case 'danger': return 'danger';
+      case 'warning': case 'warn': return 'warn';
+      case 'info': return 'info';
+      case 'contrast': return 'contrast';
+      default: return 'secondary';
+    }
   }
 
   // Operation availability checks (for future implementation)

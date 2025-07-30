@@ -53,7 +53,7 @@
     [paginator]="true" 
     [rows]="10" 
     [rowsPerPageOptions]="[5, 10, 25, 50]"
-    [globalFilterFields]="['providerName', 'orderNumber', 'id']"
+    [globalFilterFields]="['providerName', 'orderNumber', 'currentStatus.status', 'id']"
     responsiveLayout="scroll"
     styleClass="p-datatable-gridlines">
     
@@ -62,6 +62,7 @@
         <th>ID</th>
         <th>Código TANGO</th>
         <th>Proveedor</th>
+        <th>Estado</th>
         <th>Fecha Creación</th>
         <th>Última Actualización</th>
         <th>Acciones</th>
@@ -76,6 +77,15 @@
         <td>{{ order.id || 'N/A' }}</td>
         <td>{{ order.orderNumber || 'N/A' }}</td>
         <td>{{ order.providerName || 'N/A' }}</td>
+        <td>
+          <p-tag 
+            *ngIf="order.currentStatus" 
+            [severity]="getStatusSeverity(order.currentStatus.tag)"
+            [value]="order.currentStatus.status || 'Sin estado'"
+            [icon]="'pi ' + (order.currentStatus.icon || 'pi-circle')">
+          </p-tag>
+          <span *ngIf="!order.currentStatus" class="text-gray-500">Sin estado</span>
+        </td>
         <td>{{ formatDate(order.createdAt) }}</td>
         <td>{{ formatDate(order.updatedAt) }}</td>
         <td>
@@ -117,7 +127,7 @@
     
     <ng-template pTemplate="emptymessage">
       <tr>
-        <td colspan="6" class="text-center">No se encontraron órdenes de compra</td>
+        <td colspan="7" class="text-center">No se encontraron órdenes de compra</td>
       </tr>
     </ng-template>
   </p-table>
