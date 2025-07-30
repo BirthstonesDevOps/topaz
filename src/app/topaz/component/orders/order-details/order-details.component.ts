@@ -1,6 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Location } from '@angular/common';
 import { ButtonModule } from 'primeng/button';
 import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
@@ -70,6 +71,7 @@ export class OrderDetailsComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+    private location: Location,
     private messageService: MessageService,
     private purchaseOrderService: PurchaseOrderService,
     private purchaseOrderItemService: PurchaseOrderItemService,
@@ -197,7 +199,7 @@ export class OrderDetailsComponent implements OnInit {
   }
 
   goBack() {
-    this.router.navigate(['/orders']);
+    this.location.back();
   }
 
   // Check if specific operations are available
