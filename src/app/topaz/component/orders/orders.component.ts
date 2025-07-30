@@ -15,6 +15,9 @@ import { TextareaModule } from 'primeng/textarea';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToolbarModule } from 'primeng/toolbar';
 import { IconFieldModule } from 'primeng/iconfield';
+import { CalendarModule } from 'primeng/calendar';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { SelectModule } from 'primeng/select';
 
 import { 
   PurchaseOrderDetailsResponseModel, 
@@ -59,7 +62,10 @@ interface OrderTableData extends PurchaseOrderDetailsResponseModel {
     ConfirmDialogModule,
     OrderCreationDialogComponent,
     ToolbarModule,
-    IconFieldModule
+    IconFieldModule,
+    CalendarModule,
+    MultiSelectModule,
+    SelectModule
   ],
   templateUrl: './orders.component.html',
   styleUrl: './orders.component.css',
@@ -85,6 +91,9 @@ export class OrdersComponent implements OnInit, OnChanges {
   
   // Search functionality
   searchTerm = signal<string>('');
+  
+  // Available statuses for filters
+  availableStatuses = signal<StatusDetailsResponseModel[]>([]);
   
   // Delete confirmation dialog
   showDeleteDialog: boolean = false;
@@ -179,11 +188,29 @@ export class OrdersComponent implements OnInit, OnChanges {
             enrichedOrder.currentStatus = latestStatusHistory.status || undefined;
           }
           
+          // Convert date strings to Date objects for proper filtering
+          if (enrichedOrder.createdAt) {
+            enrichedOrder.createdAt = new Date(enrichedOrder.createdAt) as any;
+          }
+          if (enrichedOrder.updatedAt) {
+            enrichedOrder.updatedAt = new Date(enrichedOrder.updatedAt) as any;
+          }
+          
           return enrichedOrder;
         })
       );
       
       this.allOrders.set(enrichedOrders);
+      
+      // Extract unique statuses for column filter
+      const uniqueStatuses = enrichedOrders
+        .map(order => order.currentStatus)
+        .filter((status): status is StatusDetailsResponseModel => !!status)
+        .filter((status, index, arr) => 
+          arr.findIndex(s => s.id === status.id) === index
+        );
+      
+      this.availableStatuses.set(uniqueStatuses);
     } catch (error) {
       console.error('Error enriching orders:', error);
       this.messageService.add({
@@ -360,6 +387,18 @@ export class OrdersComponent implements OnInit, OnChanges {
     });
   }
 
+  getStatusSeverity(tag: string | null | undefined): "success" | "secondary" | "info" | "warn" | "danger" | "contrast" {
+    if (!tag) return 'secondary';
+    
+    switch (tag.toLowerCase()) {
+      case 'success': return 'success';
+      case 'danger': return 'danger';
+      case 'warning': case 'warn': return 'warn';
+      case 'info': return 'info';
+      case 'contrast': return 'contrast';
+      default: return 'secondary';
+    }
+  }
 
 
   // Operation availability checks (for future implementation)

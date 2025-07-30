@@ -34,14 +34,18 @@
 <!-- Orders Data Table -->
 <div class="card" *ngIf="!loading() && allOrders().length > 0">
   <p-table 
-    [value]="orders()" 
+    #dt
+    [value]="allOrders()" 
     [paginator]="true" 
     [rows]="10" 
     [rowsPerPageOptions]="[5, 10, 25, 50]"
     [globalFilterFields]="['providerName', 'orderNumber', 'currentStatus.status', 'id']"
     responsiveLayout="scroll"
     styleClass="p-datatable-gridlines"
-    #dt>
+    dataKey="id"
+    [loading]="loading()"
+    [rowHover]="true"
+    [showGridlines]="true">
     
     <ng-template pTemplate="caption">
       <div class="flex justify-between items-center">
@@ -58,19 +62,100 @@
               (input)="dt.filterGlobal($any($event.target).value, 'contains')"
               class="w-64" />
           </p-iconfield>
+          <p-button 
+            label="Limpiar filtros" 
+            icon="pi pi-filter-slash" 
+            severity="secondary"
+            [outlined]="true"
+            (onClick)="dt.clear(); searchTerm.set('')">
+          </p-button>
         </div>
       </div>
     </ng-template>
     
     <ng-template pTemplate="header">
       <tr>
-        <th>ID</th>
-        <th>Código TANGO</th>
-        <th>Proveedor</th>
-        <th>Estado</th>
-        <th>Fecha Creación</th>
-        <th>Última Actualización</th>
-        <th>Acciones</th>
+        <th style="min-width: 8rem" pSortableColumn="id">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2">
+              <span>ID</span>
+              <p-sortIcon field="id"></p-sortIcon>
+            </div>
+            <p-columnFilter type="numeric" field="id" display="menu"></p-columnFilter>
+          </div>
+        </th>
+        <th style="min-width: 12rem" pSortableColumn="orderNumber">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2">
+              <span>Código TANGO</span>
+              <p-sortIcon field="orderNumber"></p-sortIcon>
+            </div>
+            <p-columnFilter type="text" field="orderNumber" display="menu" placeholder="Buscar por código"></p-columnFilter>
+          </div>
+        </th>
+        <th style="min-width: 12rem" pSortableColumn="providerName">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2">
+              <span>Proveedor</span>
+              <p-sortIcon field="providerName"></p-sortIcon>
+            </div>
+            <p-columnFilter type="text" field="providerName" display="menu" placeholder="Buscar por proveedor"></p-columnFilter>
+          </div>
+        </th>
+        <th style="min-width: 12rem" pSortableColumn="createdAt">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2">
+              <span>Fecha Creación</span>
+              <p-sortIcon field="createdAt"></p-sortIcon>
+            </div>
+            <p-columnFilter type="date" field="createdAt" display="menu" placeholder="dd/mm/yyyy" dateFormat="dd/mm/yy"></p-columnFilter>
+          </div>
+        </th>
+        <th style="min-width: 12rem" pSortableColumn="updatedAt">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2">
+              <span>Última Actualización</span>
+              <p-sortIcon field="updatedAt"></p-sortIcon>
+            </div>
+            <p-columnFilter type="date" field="updatedAt" display="menu" placeholder="dd/mm/yyyy" dateFormat="dd/mm/yy"></p-columnFilter>
+          </div>
+        </th>
+        <th style="min-width: 12rem" pSortableColumn="currentStatus.status">
+          <div class="flex justify-between items-center">
+            <div class="flex items-center gap-2">
+              <span>Estado</span>
+              <p-sortIcon field="currentStatus.status"></p-sortIcon>
+            </div>
+            <p-columnFilter field="currentStatus.status" matchMode="in" display="menu" [showMatchModes]="false" [showOperator]="false" [showAddButton]="false">
+              <ng-template pTemplate="header">
+                <div class="px-3 pt-3 pb-0">
+                  <span class="font-bold">Filtrar por Estado</span>
+                </div>
+              </ng-template>
+              <ng-template pTemplate="filter" let-value let-filter="filterCallback">
+                <p-multiSelect 
+                  [ngModel]="value" 
+                  [options]="availableStatuses()" 
+                  (onChange)="filter($event.value)" 
+                  placeholder="Cualquier estado"
+                  optionLabel="status"
+                  optionValue="status"
+                  styleClass="w-full">
+                  <ng-template pTemplate="item" let-option>
+                    <div class="flex items-center gap-2">
+                      <p-tag 
+                        [severity]="getStatusSeverity(option.tag)"
+                        [value]="option.status"
+                        [icon]="'pi ' + (option.icon || 'pi-circle')">
+                      </p-tag>
+                    </div>
+                  </ng-template>
+                </p-multiSelect>
+              </ng-template>
+            </p-columnFilter>
+          </div>
+        </th>
+        <th style="min-width: 8rem">Acciones</th>
       </tr>
     </ng-template>
     
@@ -82,6 +167,8 @@
         <td>{{ order.id || 'N/A' }}</td>
         <td>{{ order.orderNumber || 'N/A' }}</td>
         <td>{{ order.providerName || 'N/A' }}</td>
+        <td>{{ formatDate(order.createdAt) }}</td>
+        <td>{{ formatDate(order.updatedAt) }}</td>
         <td>
           <p-tag 
             *ngIf="order.currentStatus" 
@@ -91,8 +178,6 @@
           </p-tag>
           <span *ngIf="!order.currentStatus" class="text-gray-500">Sin estado</span>
         </td>
-        <td>{{ formatDate(order.createdAt) }}</td>
-        <td>{{ formatDate(order.updatedAt) }}</td>
         <td>
           <div class="flex gap-1" (click)="$event.stopPropagation()">
             <!-- Edit Button -->
@@ -133,9 +218,17 @@
     <ng-template pTemplate="emptymessage">
       <tr>
         <td colspan="7" class="text-center">
-          <div *ngIf="searchTerm().trim(); else noSearchMessage" class="text-gray-500">
+          <div *ngIf="searchTerm().trim(); else noSearchMessage" class="text-gray-500 py-4">
             <i class="pi pi-search mr-2"></i>
-            No se encontraron órdenes que coincidan con "{{ searchTerm() }}"
+            <div class="mb-2">No se encontraron órdenes que coincidan con "{{ searchTerm() }}"</div>
+            <p-button 
+              label="Limpiar búsqueda" 
+              icon="pi pi-times" 
+              severity="secondary" 
+              [text]="true"
+              size="small"
+              (onClick)="searchTerm.set(''); dt.filterGlobal('', 'contains')">
+            </p-button>
           </div>
           <ng-template #noSearchMessage>
             <span class="text-gray-500">No se encontraron órdenes de compra</span>
