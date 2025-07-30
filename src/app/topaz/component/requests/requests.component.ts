@@ -23,7 +23,9 @@ import {
   NoteRequestModel,
   StatusHistoryDetailsResponseModel,
   StatusDetailsResponseModel,
-  StatusFullDetailsResponseModel
+  StatusFullDetailsResponseModel,
+  RequestUpdateRequestModel,
+  UpdateRequestOfRequestUpdateRequestModel
 } from '@birthstonesdevops/topaz.backend.ordersservice';
 import { 
   LocationService, 
@@ -33,7 +35,7 @@ import {
   GetRequest
 } from '@birthstonesdevops/topaz.backend.organizationservice';
 import { RequestCreationDialogComponent } from './request-creation-dialog/request-creation-dialog.component';
-import { RequestOperations } from './models/request-operations.enum';
+import { Operations } from '../models/operations.enum';
 import { ToolbarModule } from "primeng/toolbar";
 import { IconFieldModule } from "primeng/iconfield";
 
@@ -71,6 +73,8 @@ interface RequestTableData extends RequestDetailsResponseModel {
 })
 export class RequestsComponent implements OnInit {
   showCreateDialog: boolean = false;
+  showEditDialog: boolean = false;
+  editRequestData: RequestTableData | null = null;
   
   // Loading state
   loading = signal<boolean>(false);
@@ -303,23 +307,63 @@ export class RequestsComponent implements OnInit {
 
   // Operation availability checks
   canDeleteRequest(request: RequestTableData): boolean {
-    return request.currentOperations?.includes(RequestOperations.DeleteRequest) ?? false;
+    return request.currentOperations?.includes(Operations.DeleteRequest) ?? false;
   }
 
   canEditRequest(request: RequestTableData): boolean {
-    return (request.currentOperations?.includes(RequestOperations.AddRequestItem) ?? false) ||
-           (request.currentOperations?.includes(RequestOperations.DeleteRequestItem) ?? false);
+    return (request.currentOperations?.includes(Operations.AddRequestItem) ?? false) ||
+           (request.currentOperations?.includes(Operations.DeleteRequestItem) ?? false);
   }
 
   // Edit functionality (placeholder for now)
   editRequest(requestId: number) {
     console.log('Edit request:', requestId);
-    // TODO: Implement edit functionality
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Info',
-      detail: 'Funcionalidad de edición próximamente disponible'
-    });
+    // Find the request data
+    const requestToEdit = this.allRequests().find(req => req.id === requestId);
+    if (requestToEdit) {
+      this.editRequestData = requestToEdit;
+      this.showEditDialog = true;
+    } else {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'No se encontró la solicitud a editar'
+      });
+    }
+  }
+
+  async handleRequestUpdated(updateData: { id: number; updateData: RequestUpdateRequestModel }) {
+    try {
+      console.log('Updating request:', updateData);
+      
+      const updateRequest: UpdateRequestOfRequestUpdateRequestModel = {
+        ids: [new Number(updateData.id)],
+        model: updateData.updateData
+      };
+      
+      const updatedRequest = await this.requestService.requestUpdate(updateRequest).toPromise();
+      
+      if (updatedRequest) {
+        // Reload all requests to get the updated list
+        await this.loadRequests();
+        
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Solicitud actualizada correctamente'
+        });
+      }
+    } catch (error) {
+      console.error('Error updating request:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Error actualizando la solicitud'
+      });
+    }
+
+    this.showEditDialog = false;
+    this.editRequestData = null;
   }
 
   // Navigation to request details

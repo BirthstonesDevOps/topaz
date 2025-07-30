@@ -35,12 +35,92 @@
     box-shadow: none;
   }
 
-  /* Enhanced shadow for p-card */
-  ::ng-deep .customized-timeline .p-card {
-    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  /* Use CSS variables for shadow to support both light and dark themes */
+  ::ng-deep .customized-timeline .p-card, ::ng-deep .horizontal-timeline .p-card {
+    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border: 1px solid color-mix(in srgb, var(--p-tag-contrast-background) 10%, transparent);
   }
 
-  /* Enhanced shadow for dark theme */
-  ::ng-deep .customized-timeline .p-card {
-    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.25), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+
+
+  /* Mobile Horizontal Timeline Styles */
+.horizontal-scroll-container {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 1rem 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.horizontal-timeline {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  min-width: max-content;
+}
+
+.timeline-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 280px;
+  max-width: 320px;
+}
+
+.timeline-marker-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.timeline-line {
+  flex: 1;
+  height: 2px;
+  background-color: var(--surface-border);
+  margin: 0 0.5rem;
+}
+
+.timeline-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: bold;
+  z-index: 10;
+  flex-shrink: 0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.timeline-card {
+  width: 100%;
+  min-height: 200px;
+}
+
+/* Enhance mobile card styling */
+@media (max-width: 768px) {
+  ::ng-deep .timeline-card .p-card {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 0.75rem;
   }
+  
+  ::ng-deep .timeline-card .p-card .p-card-header {
+    padding: 1rem 1rem 0.5rem 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  
+  ::ng-deep .timeline-card .p-card .p-card-subtitle {
+    font-size: 0.75rem;
+    opacity: 0.8;
+  }
+  
+  ::ng-deep .timeline-card .p-card .p-card-content {
+    padding: 1rem;
+  }
+}

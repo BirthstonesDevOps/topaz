@@ -180,7 +180,16 @@
 <!-- Request Creation Dialog -->
 <app-request-creation-dialog
   [(visible)]="showCreateDialog"
+  [isEditMode]="false"
   (requestCreated)="handleRequestCreated($event)">
+</app-request-creation-dialog>
+
+<!-- Request Edit Dialog -->
+<app-request-creation-dialog
+  [(visible)]="showEditDialog"
+  [isEditMode]="true"
+  [requestData]="editRequestData"
+  (requestUpdated)="handleRequestUpdated($event)">
 </app-request-creation-dialog>
 
 <!-- Toast and Confirm Dialog -->

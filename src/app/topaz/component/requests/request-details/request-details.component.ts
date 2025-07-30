@@ -7,6 +7,10 @@ import { ToastModule } from 'primeng/toast';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
+import { ToolbarModule } from 'primeng/toolbar';
+import { DialogModule } from 'primeng/dialog';
+import { TextareaModule } from 'primeng/textarea';
+import { FormsModule } from '@angular/forms';
 
 import { 
   RequestDetailsResponseModel, 
@@ -16,7 +20,10 @@ import {
   GetRequest,
   ItemRequestModel,
   RequestItemService,
-  AddItemRequestModel
+  AddItemRequestModel,
+  RequestStatusHistoryNoteService,
+  RequestStatusHistoryNoteRequestModel,
+  ChangeStatusRequestModel
 } from '@birthstonesdevops/topaz.backend.ordersservice';
 import { 
   LocationService, 
@@ -26,7 +33,8 @@ import {
 } from '@birthstonesdevops/topaz.backend.organizationservice';
 import { StatusNoteTreeComponent } from '../../shared/status-note-tree/status-note-tree.component';
 import { ItemListComponent } from '../../shared/item-list/item-list.component';
-import { RequestOperations } from '../models/request-operations.enum';
+import { OrdersComponent } from '../../orders/orders.component';
+import { Operations } from '../../models/operations.enum';
 
 // Extended request interface for detailed display
 interface EnrichedRequestDetails extends RequestDetailsResponseModel {
@@ -39,7 +47,21 @@ interface EnrichedRequestDetails extends RequestDetailsResponseModel {
 @Component({
   selector: 'app-request-details',
   standalone: true,
-  imports: [CommonModule, ButtonModule, ToastModule, ProgressSpinnerModule, TabsModule, TagModule, StatusNoteTreeComponent, ItemListComponent],
+  imports: [
+    CommonModule, 
+    FormsModule,
+    ButtonModule, 
+    ToastModule, 
+    ProgressSpinnerModule, 
+    TabsModule, 
+    TagModule, 
+    ToolbarModule,
+    DialogModule,
+    TextareaModule,
+    StatusNoteTreeComponent, 
+    ItemListComponent,
+    OrdersComponent
+  ],
   templateUrl: './request-details.component.html',
   styleUrl: './request-details.component.css',
   providers: [MessageService]
@@ -57,6 +79,7 @@ export class RequestDetailsComponent implements OnInit {
     private requestService: RequestService,
     private requestStatusService: RequestStatusService,
     private requestItemService: RequestItemService,
+    private requestStatusHistoryNoteService: RequestStatusHistoryNoteService,
     private areaService: AreaService,
     private locationService: LocationService
   ) {}
@@ -169,18 +192,223 @@ export class RequestDetailsComponent implements OnInit {
   // Check if specific operations are available
   canAddItems(): boolean {
     const operations = this.requestDetails()?.currentOperations || [];
-    return operations.includes(RequestOperations.AddRequestItem);
+    return operations.includes(Operations.AddRequestItem);
   }
 
   canDeleteItems(): boolean {
     const operations = this.requestDetails()?.currentOperations || [];
-    return operations.includes(RequestOperations.DeleteRequestItem);
+    return operations.includes(Operations.DeleteRequestItem);
   }
 
   canEditItems(): boolean {
     // For now, we'll allow editing if we can add or delete items
     return this.canAddItems() || this.canDeleteItems();
   }
+
+  // Check if orders tab should be shown
+  canShowOrdersTab(): boolean {
+    const operations = this.requestDetails()?.currentOperations || [];
+    const hasPurchaseOrders = !!(this.requestDetails()?.purchaseOrders && this.requestDetails()!.purchaseOrders!.length > 0);
+    
+    return (
+      operations.includes(Operations.CreatePurchaseOrder) ||
+      operations.includes(Operations.DeletePurchaseOrder) ||
+      hasPurchaseOrders
+    );
+  }
+
+  // Check if approve/reject operations are available
+  canReviseRequest(): boolean {
+    const operations = this.requestDetails()?.currentOperations || [];
+    return operations.includes(Operations.ReviseRequest);
+  }
+
+  canApproveRequest(): boolean {
+    const operations = this.requestDetails()?.currentOperations || [];
+    return operations.includes(Operations.ApproveRequest);
+  }
+
+  canRejectRequest(): boolean {
+    const operations = this.requestDetails()?.currentOperations || [];
+    return operations.includes(Operations.RejectRequest);
+  }
+
+  canShowApprovalToolbar(): boolean {
+    return this.canApproveRequest() || this.canRejectRequest() || this.canReviseRequest();
+  }
+
+  // Status change dialog state
+  showStatusDialog: boolean = false;
+  statusAction: 'approve' | 'reject' | 'revise' | null = null;
+  statusNote: string = '';
+  processingStatus = signal<boolean>(false);
+
+  // Approval/Rejection handlers
+  approveRequest(): void {
+    this.statusAction = 'approve';
+    this.statusNote = '';
+    this.showStatusDialog = true;
+  }
+
+  rejectRequest(): void {
+    this.statusAction = 'reject';
+    this.statusNote = '';
+    this.showStatusDialog = true;
+  }
+
+  reviseRequest(): void {
+    this.statusAction = 'revise';
+    this.statusNote = '';
+    this.showStatusDialog = true;
+  }
+
+  cancelStatusChange(): void {
+    this.showStatusDialog = false;
+    this.statusAction = null;
+    this.statusNote = '';
+  }
+
+  async executeStatusChange(): Promise<void> {
+    if (!this.requestId || !this.statusAction) return;
+
+    this.processingStatus.set(true);
+
+    try {
+      const changeStatusRequest: ChangeStatusRequestModel = {
+        id: this.requestId,
+        notes: this.statusNote.trim() ? [{ note: this.statusNote.trim() }] : undefined
+      };
+
+      switch (this.statusAction) {
+        case 'approve':
+          await this.requestService.requestApproveRequest(changeStatusRequest).toPromise();
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Éxito',
+            detail: 'Pedido aprobado correctamente'
+          });
+          break;
+        case 'revise':
+          await this.requestService.requestReviseRequest(changeStatusRequest).toPromise();
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Éxito',
+            detail: 'Pedido revisado correctamente'
+          });
+          break;
+        case 'reject':
+          await this.requestService.requestRejectRequest(changeStatusRequest).toPromise();
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Éxito',
+            detail: 'Pedido rechazado correctamente'
+          });
+          break;
+      }
+
+      // Reload request details to show updated status
+      await this.loadRequestDetails();
+      this.cancelStatusChange();
+
+    } catch (error) {
+      console.error(`Error ${this.statusAction === 'approve' ? 'aprobando' : this.statusAction === 'reject' ? 'rechazando' : 'revisando'} pedido:`, error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: `Error al ${this.statusAction === 'approve' ? 'aprobar' : this.statusAction === 'reject' ? 'rechazar' : 'revisar'} el pedido`
+      });
+    } finally {
+      this.processingStatus.set(false);
+    }
+  }
+
+  getStatusActionText(): string {
+    switch (this.statusAction) {
+      case 'approve': return 'aprobar';
+      case 'reject': return 'rechazar';
+      case 'revise': return 'revisar';
+      default: return '';
+    }
+  }
+
+  getStatusActionTitle(): string {
+    switch (this.statusAction) {
+      case 'approve': return 'Aprobar Pedido';
+      case 'reject': return 'Rechazar Pedido';
+      case 'revise': return 'Revisar Pedido';
+      default: return '';
+    }
+  }
+
+  getStatusActionIcon(): string {
+    switch (this.statusAction) {
+      case 'approve': return 'pi pi-check-circle';
+      case 'reject': return 'pi pi-times-circle';
+      case 'revise': return 'pi pi-pencil';
+      default: return '';
+    }
+  }
+
+  getStatusActionButtonClass(): string {
+    switch (this.statusAction) {
+      case 'approve': return 'p-button-success';
+      case 'reject': return 'p-button-danger';
+      case 'revise': return 'p-button-info';
+      default: return '';
+    }
+  }
+
+  // Note addition handler
+  addNoteHandler = async (newNote: { id: number; note: string }) => {
+    try {
+      console.log('Agregando nota:', newNote);
+      
+      const noteRequest: RequestStatusHistoryNoteRequestModel = {
+        requestStatusHistoryId: newNote.id,
+        note: newNote.note
+      };
+      
+      const createdNote = await this.requestStatusHistoryNoteService
+        .requestStatusHistoryNoteCreate(noteRequest)
+        .toPromise();
+      
+      if (createdNote) {
+        // Update the status history with the new note
+        this.requestDetails.update(currentDetails => {
+          if (!currentDetails?.statusHistory) return currentDetails;
+          
+          const updatedStatusHistory = currentDetails.statusHistory.map(statusHistory => {
+            if (statusHistory.id === newNote.id) {
+              return {
+                ...statusHistory,
+                notes: [...(statusHistory.notes || []), createdNote]
+              };
+            }
+            return statusHistory;
+          });
+          
+          return {
+            ...currentDetails,
+            statusHistory: updatedStatusHistory
+          };
+        });
+        
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Nota agregada correctamente'
+        });
+      }
+      
+    } catch (error) {
+      console.error('Error agregando nota:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Error al agregar la nota'
+      });
+    }
+  };
 
   // Item operation handlers
   addItemHandler = async (item: ItemRequestModel) => {
@@ -301,4 +529,88 @@ export class RequestDetailsComponent implements OnInit {
       default: return 'secondary';
     }
   }
+
+  // Handle order updates from the orders component
+  handleOrderUpdated = async (updatedRequestDetails: RequestDetailsResponseModel) => {
+    try {
+      console.log('Order updated, refreshing request details:', updatedRequestDetails);
+      
+      // Update the current request details with the new data
+      const currentDetails = this.requestDetails();
+      if (currentDetails && updatedRequestDetails) {
+        // Merge the updated data with existing enriched data
+        const enrichedRequest: EnrichedRequestDetails = {
+          ...currentDetails, // Keep existing enriched data (area name, location name, etc.)
+          ...updatedRequestDetails, // Update with new data from the response
+          // Preserve the enriched fields that aren't in the response
+          areaName: currentDetails.areaName,
+          locationName: currentDetails.locationName,
+          currentStatus: currentDetails.currentStatus,
+          currentOperations: currentDetails.currentOperations
+        };
+        
+        // If the status history was updated, we might need to refresh current status and operations
+        if (updatedRequestDetails.statusHistory && updatedRequestDetails.statusHistory.length > 0) {
+          const latestStatusHistory = updatedRequestDetails.statusHistory.sort((a, b) => 
+            new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime()
+          )[0];
+          enrichedRequest.currentStatus = latestStatusHistory.status || undefined;
+          
+          // Get status details and operations if we have a current status
+          if (enrichedRequest.currentStatus?.id) {
+            try {
+              const statusDetails = await this.requestStatusService
+                .requestStatusGetRequestStatusDetailsById({ ids: [enrichedRequest.currentStatus.id] })
+                .toPromise();
+              
+              if (statusDetails?.operations) {
+                // Extract distinct operation IDs
+                const operationIds = statusDetails.operations
+                  .map(op => op.operationId)
+                  .filter((id): id is number => id !== undefined && id !== null)
+                  .filter((id, index, arr) => arr.indexOf(id) === index); // Remove duplicates
+                
+                enrichedRequest.currentOperations = operationIds;
+              }
+            } catch (error) {
+              console.error('Error loading status details after order update:', error);
+            }
+          }
+        }
+        
+        this.requestDetails.set(enrichedRequest);
+        
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Detalles del pedido actualizados'
+        });
+      }
+    } catch (error) {
+      console.error('Error handling order update:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Error actualizando detalles del pedido'
+      });
+         }
+   };
+
+  // Handle order changes (update/delete) from the orders component
+  handleOrderChanged = async (requestId: number) => {
+    try {
+      console.log('Order changed, reloading request details for ID:', requestId);
+      
+      // Reload the entire request details using the existing method
+      await this.loadRequestDetails();
+      
+    } catch (error) {
+      console.error('Error handling order change:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Error recargando detalles del pedido'
+      });
+    }
+  };
 }

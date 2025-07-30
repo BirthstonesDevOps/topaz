@@ -27,13 +27,12 @@
                 <span class="text-primary font-bold text-lg ml-2">{{ requestDetails()?.id }}</span>
             </div>
         </div>
-
         <!-- Tabs Component -->
         <p-tabs [value]="0">
             <p-tablist>
                 <p-tab [value]="0">Detalles</p-tab>
                 <p-tab [value]="1">Estado</p-tab>
-                <p-tab [value]="2">Órdenes</p-tab>
+                <p-tab [value]="2" *ngIf="canShowOrdersTab()">Órdenes</p-tab>
             </p-tablist>
             
             <p-tabpanels>
@@ -87,42 +86,109 @@
                 <!-- Status Tab -->
                 <p-tabpanel [value]="1">
                     <div class="p-4">
-                        <app-status-note-tree [statusHistory]="requestDetails()?.statusHistory || []"></app-status-note-tree>
+                        <app-status-note-tree 
+                            [statusHistory]="requestDetails()?.statusHistory || []"
+                            [onNoteAdd]="addNoteHandler">
+                        </app-status-note-tree>
                     </div>
                 </p-tabpanel>
 
                 <!-- Orders Tab -->
                 <p-tabpanel [value]="2">
-                    <div class="tab-content">
-                        <!-- Purchase Orders Section -->
-                        <div class="info-section" *ngIf="requestDetails()?.purchaseOrders && requestDetails()!.purchaseOrders!.length > 0; else noPurchaseOrders">
-                            <h3 class="text-lg font-semibold text-color mb-3">Órdenes de Compra ({{ requestDetails()!.purchaseOrders!.length }})</h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div *ngFor="let po of requestDetails()?.purchaseOrders" class="po-card">
-                                    <div class="po-id">ID de Orden: {{ po.id }}</div>
-                                    <div class="po-details">
-                                        <div *ngIf="po.orderNumber"><strong>Número de Orden:</strong> {{ po.orderNumber }}</div>
-                                        <div *ngIf="po.providerId"><strong>ID del Proveedor:</strong> {{ po.providerId }}</div>
-                                        <div *ngIf="po.createdAt"><strong>Creado:</strong> {{ formatDate(po.createdAt) }}</div>
-                                        <div *ngIf="po.updatedAt"><strong>Actualizado:</strong> {{ formatDate(po.updatedAt || undefined) }}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <ng-template #noPurchaseOrders>
-                            <div class="text-center py-8">
-                                <i class="pi pi-shopping-cart text-4xl mb-4" style="color: var(--text-color-secondary)"></i>
-                                <div class="font-semibold text-lg mb-2" style="color: var(--text-color-secondary)">No hay Órdenes de Compra</div>
-                                <div style="color: var(--text-color-secondary)">No se han creado órdenes de compra para este pedido aún.</div>
-                            </div>
-                        </ng-template>
-                    </div>
+                                <div class="p-4">
+                <app-orders 
+                    [ordersInput]="requestDetails()?.purchaseOrders || []"
+                    [requestId]="requestDetails()?.id"
+                    [itemFilter]="requestDetails()?.itemsPending || []"
+                    (orderUpdated)="handleOrderUpdated($event)"
+                    (orderChanged)="handleOrderChanged($event)"
+                    >
+                </app-orders>
+            </div>
                 </p-tabpanel>
             </p-tabpanels>
         </p-tabs>
+
+        <!-- Approval/Rejection Toolbar -->
+        <p-toolbar *ngIf="canShowApprovalToolbar()" styleClass="mt-4">
+            <ng-template #center>
+                <div class="flex justify-center align-center gap-4 w-full">
+                    <p-button 
+                        *ngIf="canApproveRequest()"
+                        label="Aprobar Pedido" 
+                        icon="pi pi-check" 
+                        severity="success"
+                        (onClick)="approveRequest()" />
+                    <p-button 
+                        *ngIf="canRejectRequest()"
+                        label="Rechazar Pedido" 
+                        icon="pi pi-times" 
+                        severity="danger"
+                        (onClick)="rejectRequest()" />
+                    <p-button 
+                        *ngIf="canReviseRequest()"
+                        label="Revisar Pedido" 
+                        icon="pi pi-pencil" 
+                        severity="info"
+                        (onClick)="reviseRequest()" />
+                </div>
+            </ng-template>
+        </p-toolbar>
     </div>
 </div>
 
 <!-- Toast for notifications -->
 <p-toast></p-toast>
+
+<!-- Status Change Dialog -->
+<p-dialog 
+  [header]="getStatusActionTitle()" 
+  [(visible)]="showStatusDialog" 
+  [modal]="true" 
+  [closable]="true"
+  [style]="{ width: '450px' }"
+  (onHide)="cancelStatusChange()">
+  
+  <div class="flex flex-col gap-4">
+    <div class="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+      <i [class]="getStatusActionIcon()" class="text-2xl text-blue-600"></i>
+      <p class="text-gray-700 m-0">
+        ¿Está seguro que desea {{ getStatusActionText() }} este pedido?
+      </p>
+    </div>
+    
+    <div class="flex flex-col gap-2">
+      <label for="statusNote" class="font-medium text-gray-700">
+        Notas (opcional):
+      </label>
+      <textarea 
+        id="statusNote"
+        pTextarea 
+        [(ngModel)]="statusNote" 
+        placeholder="Agregue una nota sobre esta acción..."
+        rows="3"
+        class="w-full">
+      </textarea>
+    </div>
+  </div>
+  
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-2">
+      <p-button 
+        label="Cancelar" 
+        icon="pi pi-times" 
+        severity="secondary"
+        [text]="true"
+        (onClick)="cancelStatusChange()"
+        [disabled]="processingStatus()">
+      </p-button>
+      <p-button 
+        [label]="statusAction === 'approve' ? 'Aprobar' : statusAction === 'reject' ? 'Rechazar' : 'Revisar'" 
+        [icon]="getStatusActionIcon()" 
+        [severity]="statusAction === 'approve' ? 'success' : statusAction === 'reject' ? 'danger' : 'info'"
+        (onClick)="executeStatusChange()"
+        [loading]="processingStatus()">
+      </p-button>
+    </div>
+  </ng-template>
+</p-dialog>

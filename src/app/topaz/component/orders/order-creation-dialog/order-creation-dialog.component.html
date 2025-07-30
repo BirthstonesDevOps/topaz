@@ -18,39 +18,39 @@
   <!-- Main Content -->
   <div *ngIf="!loading() && dataLoaded()">
     
-    <!-- Stepper (only show in create mode) -->
+    <!-- Stepper -->
     <p-stepper *ngIf="shouldShowStepper()" [value]="currentStep()" class="mb-6">
       <p-step-list>
         <p-step [value]="1" (onClick)="goToStep(1)">
-          <span [class.text-primary]="currentStep() >= 0">Información Básica</span>
+          <span [class.text-primary]="currentStep() >= 1">Información de la Orden</span>
         </p-step>
         <p-step [value]="2" (onClick)="canProceedToStep2() && goToStep(2)" [disabled]="!canProceedToStep2()">
-          <span [class.text-primary]="currentStep() >= 1">Artículos</span>
+          <span [class.text-primary]="currentStep() >= 2">Artículos</span>
         </p-step>
         <p-step [value]="3" (onClick)="canProceedToStep3() && goToStep(3)" [disabled]="!canProceedToStep3()">
-          <span [class.text-primary]="currentStep() >= 2">Resumen</span>
+          <span [class.text-primary]="currentStep() >= 3">Resumen</span>
         </p-step>
       </p-step-list>
     </p-stepper>
 
-    <!-- Step 1: Basic Information -->
+    <!-- Step 1: Order Information -->
     <div *ngIf="currentStep() === 1" class="step-content">
-      <h3 class="text-xl font-semibold mb-6">{{ isEditMode ? 'Editar Información de la Solicitud' : 'Información de la Solicitud' }}</h3>
+      <h3 class="text-xl font-semibold mb-6">{{ isEditMode ? 'Editar Información de la Orden' : 'Información de la Orden de Compra' }}</h3>
       
       <div class="flex flex-col gap-6">
-        <!-- Area Selection -->
+        <!-- Provider Selection -->
         <div class="flex flex-col gap-2">
-          <label for="area" class="font-medium">Departamento *</label>
+          <label for="provider" class="font-medium">Proveedor *</label>
           <p-select 
-            id="area"
-            [ngModel]="stepData().areaId"
-            (ngModelChange)="updateAreaId($event)"
-            [options]="areas()" 
+            id="provider"
+            [ngModel]="stepData().providerId"
+            (ngModelChange)="updateProviderId($event)"
+            [options]="providers()" 
             optionLabel="name" 
             optionValue="id"
-            placeholder="Seleccione un departamento"
+            placeholder="Seleccione un proveedor"
             [filter]="true"
-            filterBy="name"
+            filterBy="name,email"
             [showClear]="true"
             class="w-full">
             <ng-template #selecteditem let-option>
@@ -59,62 +59,34 @@
             <ng-template #item let-option>
               <div class="flex flex-col">
                 <span class="font-medium">{{ option.name }}</span>
-                <span *ngIf="option.description" class="text-sm text-surface-500">{{ option.description }}</span>
-              </div>
-            </ng-template>
-          </p-select>
-        </div>
-
-        <!-- Location Selection -->
-        <div class="flex flex-col gap-2">
-          <label for="location" class="font-medium">Centro de Producción *</label>
-          <p-select 
-            id="location"
-            [ngModel]="stepData().locationId"
-            (ngModelChange)="updateLocationId($event)"
-            [options]="locations()" 
-            optionLabel="name" 
-            optionValue="id"
-            placeholder="Seleccione un centro de producción"
-            [filter]="true"
-            filterBy="name"
-            [showClear]="true"
-            class="w-full">
-            <ng-template #selecteditem let-option>
-              {{ option?.name }}
-            </ng-template>
-            <ng-template #item let-option>
-              <div class="flex flex-col">
-                <span class="font-medium">{{ option.name }}</span>
+                <span *ngIf="option.email" class="text-sm text-surface-500">{{ option.email }}</span>
                 <span *ngIf="option.address" class="text-sm text-surface-500">{{ option.address }}</span>
-                <span *ngIf="option.description" class="text-sm text-surface-500">{{ option.description }}</span>
               </div>
             </ng-template>
           </p-select>
         </div>
 
-        <!-- Date Selection -->
+        <!-- Order Number Input -->
         <div class="flex flex-col gap-2">
-          <label for="neededAt" class="font-medium">Fecha Requerida *</label>
-          <p-datepicker 
-            id="neededAt"
-            [ngModel]="stepData().neededAt"
-            (ngModelChange)="updateNeededAt($event)"
-            [showIcon]="true"
-            dateFormat="dd/mm/yy"
-            placeholder="Seleccione una fecha"
-            [minDate]="tomorrowDate"
+          <label for="orderNumber" class="font-medium">Código TANGO *</label>
+          <input 
+            id="orderNumber"
+            pInputText 
+            [ngModel]="stepData().orderNumber"
+            (ngModelChange)="updateOrderNumber($event)"
+            placeholder="Ingrese el código TANGO"
             class="w-full" />
         </div>
       </div>
     </div>
 
-    <!-- Step 2: Items (only show in create mode) -->
+    <!-- Step 2: Items -->
     <div *ngIf="currentStep() === 2 && !isEditMode" class="step-content">
-      <h3 class="text-xl font-semibold mb-6">Artículos de la Solicitud</h3>
+      <h3 class="text-xl font-semibold mb-6">Artículos de la Orden</h3>
       
       <app-item-list
         [items]="stepData().items"
+        [itemFilter]="itemFilter"
         [showMeasurement]="true"
         [showDescription]="false"
         [onItemSave]="addItemHandler"
@@ -123,9 +95,9 @@
       </app-item-list>
     </div>
 
-    <!-- Step 3: Summary (only show in create mode) -->
+    <!-- Step 3: Summary -->
     <div *ngIf="currentStep() === 3 && !isEditMode" class="step-content">
-      <h3 class="text-xl font-semibold mb-6">Resumen de la Solicitud</h3>
+      <h3 class="text-xl font-semibold mb-6">Resumen de la Orden de Compra</h3>
       
       <div class="flex flex-col gap-6">
         <!-- Basic Information Summary -->
@@ -133,29 +105,30 @@
           <h4 class="font-semibold mb-3">Información Básica</h4>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="text-sm font-medium text-surface-600">Departamento:</label>
-              <p class="mt-1">{{ selectedArea()?.name || 'No seleccionado' }}</p>
+              <label class="text-sm font-medium text-surface-600">Proveedor:</label>
+              <p class="mt-1">{{ selectedProvider()?.name || 'No seleccionado' }}</p>
+              <p *ngIf="selectedProvider()?.email" class="text-sm text-surface-500">{{ selectedProvider()?.email }}</p>
             </div>
             <div>
-              <label class="text-sm font-medium text-surface-600">Centro de Producción:</label>
-              <p class="mt-1">{{ selectedLocation()?.name || 'No seleccionado' }}</p>
+              <label class="text-sm font-medium text-surface-600">Número de Orden:</label>
+              <p class="mt-1">{{ stepData().orderNumber || 'No especificado' }}</p>
             </div>
-                          <div class="md:col-span-2">
-                <label class="text-sm font-medium text-surface-600">Fecha Requerida:</label>
-                <p class="mt-1">{{ stepData().neededAt | date:'dd/MM/yyyy' }}</p>
-              </div>
+            <div class="md:col-span-2">
+              <label class="text-sm font-medium text-surface-600">Dirección del Proveedor:</label>
+              <p class="mt-1">{{ selectedProvider()?.address || 'No especificada' }}</p>
+            </div>
           </div>
         </div>
 
         <!-- Items Summary -->
-                  <div class="bg-surface-50 p-4 rounded-lg">
-            <h4 class="font-semibold mb-3">Artículos ({{ stepData().items.length }})</h4>
-            <app-item-list
-              [items]="stepData().items"
-              [showMeasurement]="true"
-              [showDescription]="false">
-            </app-item-list>
-          </div>
+        <div class="bg-surface-50 p-4 rounded-lg">
+          <h4 class="font-semibold mb-3">Artículos ({{ stepData().items.length }})</h4>
+          <app-item-list
+            [items]="stepData().items"
+            [showMeasurement]="true"
+            [showDescription]="false">
+          </app-item-list>
+        </div>
 
         <!-- Notes Section -->
         <div class="bg-surface-50 p-4 rounded-lg">
@@ -195,8 +168,8 @@
             No hay notas agregadas
           </div>
         </div>
-              </div>
       </div>
+    </div>
 
   </div>
 
@@ -212,9 +185,9 @@
   <!-- Dialog Footer -->
   <ng-template #footer>
     <div class="flex justify-between w-full">
-      <!-- Previous Button (only show in create mode) -->
+      <!-- Previous Button -->
       <p-button 
-        *ngIf="currentStep() > 1 && dataLoaded() && !isEditMode"
+        *ngIf="currentStep() > 1 && dataLoaded()"
         label="Anterior" 
         icon="pi pi-arrow-left"
         severity="secondary"
@@ -230,7 +203,7 @@
         (onClick)="hide()"
         class="mr-2" />
 
-      <!-- Next Button (only show in create mode) -->
+      <!-- Next Button -->
       <p-button 
         *ngIf="shouldShowNextButton() && dataLoaded()"
         [label]="currentStep() === 1 ? 'Siguiente' : 'Continuar'"
@@ -239,13 +212,13 @@
         [disabled]="(currentStep() === 1 && !step1Valid()) || (currentStep() === 2 && !step2Valid())"
         (onClick)="nextStep()" />
 
-      <!-- Submit Button (create or update) -->
+      <!-- Submit Button -->
       <p-button 
         *ngIf="shouldShowSubmitButton() && dataLoaded()"
         [label]="getSubmitButtonLabel()"
         [icon]="getSubmitButtonIcon()"
-        [disabled]="!step1Valid() || (!isEditMode && !step2Valid())"
-        (onClick)="createRequest()" />
+        [disabled]="isEditMode ? !step1Valid() : (!step1Valid() || !step2Valid())"
+        (onClick)="createOrder()" />
     </div>
   </ng-template>
 

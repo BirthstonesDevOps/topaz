@@ -182,7 +182,7 @@ export class AppMenu {
             }
         ];
 
-        if(environment.environment === 'local') {
+        if(environment.environment === 'beta') {
             this.model = [
                 ...this.topazMenu,
                 ...this.uiMenu

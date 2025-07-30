@@ -13,34 +13,28 @@ import { MessageService } from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 import { TagModule } from 'primeng/tag';
 import { DividerModule } from 'primeng/divider';
-import { DatePickerModule } from 'primeng/datepicker';
 
-
-import { LocationService, AreaService } from '@birthstonesdevops/topaz.backend.organizationservice';
-import { LocationResponseModel, AreaResponseModel } from '@birthstonesdevops/topaz.backend.organizationservice';
+import { ProviderService, ProviderResponseModel } from '@birthstonesdevops/topaz.backend.organizationservice';
 import { 
-  CreateRequestRequestModel, 
+  CreatePurchaseOrderRequestModel,
+  PurchaseOrderRequestModel,
+  PurchaseOrderUpdateRequestModel,
   ItemRequestModel, 
-  NoteRequestModel, 
-  RequestDetailsResponseModel,
-  RequestService,
-  RequestUpdateRequestModel,
-  UpdateRequestOfRequestUpdateRequestModel
+  NoteRequestModel,
+  ItemDetailsResponseModel
 } from '@birthstonesdevops/topaz.backend.ordersservice';
-import { ItemDetailsResponseModel } from '@birthstonesdevops/topaz.backend.ordersservice';
 
 import { ItemListComponent } from '../../shared/item-list/item-list.component';
 
 interface StepData {
-  areaId: number | null;
-  locationId: number | null;
-  neededAt: Date | null;
+  providerId: number | null;
+  orderNumber: string;
   items: ItemDetailsResponseModel[];
   notes: NoteRequestModel[];
 }
 
 @Component({
-  selector: 'app-request-creation-dialog',
+  selector: 'app-order-creation-dialog',
   standalone: true,
   imports: [
     CommonModule,
@@ -56,41 +50,36 @@ interface StepData {
     ToastModule,
     TagModule,
     DividerModule,
-    DatePickerModule,
     ItemListComponent
   ],
-  templateUrl: './request-creation-dialog.component.html',
-  styleUrl: './request-creation-dialog.component.css',
+  templateUrl: './order-creation-dialog.component.html',
+  styleUrl: './order-creation-dialog.component.css',
   providers: [MessageService]
 })
-export class RequestCreationDialogComponent implements OnInit, OnChanges {
+export class OrderCreationDialogComponent implements OnInit, OnChanges {
   @Input() visible: boolean = false;
+  @Input() requestId!: number;
+  @Input() itemFilter?: ItemDetailsResponseModel[];
   @Input() isEditMode: boolean = false;
-  @Input() requestData: RequestDetailsResponseModel | null = null;
+  @Input() orderData: any = null;
   @Output() visibleChange = new EventEmitter<boolean>();
-  @Output() requestCreated = new EventEmitter<CreateRequestRequestModel>();
-  @Output() requestUpdated = new EventEmitter<{ id: number; updateData: RequestUpdateRequestModel }>();
+  @Output() orderCreated = new EventEmitter<CreatePurchaseOrderRequestModel>();
+  @Output() orderUpdated = new EventEmitter<{ id: number; updateData: PurchaseOrderUpdateRequestModel }>();
 
   // Loading states
   loading = signal<boolean>(false);
   dataLoaded = signal<boolean>(false);
 
   // Data arrays
-  areas = signal<AreaResponseModel[]>([]);
-  locations = signal<LocationResponseModel[]>([]);
+  providers = signal<ProviderResponseModel[]>([]);
 
   // Stepper state
   currentStep = signal<number>(1);
 
-  // Date constraints
-  tomorrowDate: Date | null = null;
-  
-
   // Form data
   stepData = signal<StepData>({
-    areaId: null,
-    locationId: null,
-    neededAt: null,
+    providerId: null,
+    orderNumber: '',
     items: [],
     notes: []
   });
@@ -99,21 +88,15 @@ export class RequestCreationDialogComponent implements OnInit, OnChanges {
   newNote: string = '';
 
   // Computed properties
-    selectedArea = computed(() => {
+  selectedProvider = computed(() => {
     const data = this.stepData();
-    if (!data.areaId) return null;
-    return this.areas().find(area => area.id === data.areaId) || null;
-  });
-
-  selectedLocation = computed(() => {
-    const data = this.stepData();
-    if (!data.locationId) return null;
-    return this.locations().find(location => location.id === data.locationId) || null;
+    if (!data.providerId) return null;
+    return this.providers().find(provider => provider.id === data.providerId) || null;
   });
 
   step1Valid = computed(() => {
     const data = this.stepData();
-    return !!(data.areaId && data.locationId && data.neededAt);
+    return !!(data.providerId && data.orderNumber.trim());
   });
 
   step2Valid = computed(() => {
@@ -121,29 +104,9 @@ export class RequestCreationDialogComponent implements OnInit, OnChanges {
     return data.items.length > 0;
   });
 
-  constructor(
-    private locationService: LocationService,
-    private areaService: AreaService,
-    private requestService: RequestService,
-    private messageService: MessageService
-  ) {}
-
-  // Update methods for form binding
-  updateAreaId(areaId: number | null) {
-    this.stepData.update(data => ({ ...data, areaId }));
-  }
-
-  updateLocationId(locationId: number | null) {
-    this.stepData.update(data => ({ ...data, locationId }));
-  }
-
-  updateNeededAt(neededAt: Date | null) {
-    this.stepData.update(data => ({ ...data, neededAt }));
-  }
-
   // Computed properties for edit mode
   dialogTitle = computed(() => {
-    return this.isEditMode ? 'Editar Solicitud' : 'Crear Nueva Solicitud';
+    return this.isEditMode ? 'Editar Orden de Compra' : 'Crear Nueva Orden de Compra';
   });
 
   shouldShowStepper = computed(() => {
@@ -154,22 +117,34 @@ export class RequestCreationDialogComponent implements OnInit, OnChanges {
     return this.isEditMode ? 1 : 3;
   });
 
+  constructor(
+    private providerService: ProviderService,
+    private messageService: MessageService
+  ) {}
+
+  // Update methods for form binding
+  updateProviderId(providerId: number | null) {
+    this.stepData.update(data => ({ ...data, providerId }));
+  }
+
+  updateOrderNumber(orderNumber: string) {
+    this.stepData.update(data => ({ ...data, orderNumber }));
+  }
+
   ngOnInit() {
     this.loadInitialData();
-    this.tomorrowDate = new Date();
-    this.tomorrowDate.setDate(this.tomorrowDate.getDate() + 1);
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    // Reset form when dialog becomes visible (but not on initial component creation)
+    // Reset form when dialog becomes visible
     if (changes['visible'] && 
         changes['visible'].currentValue === true && 
         changes['visible'].previousValue === false) {
       this.resetForm();
       
-      // Load request data if in edit mode
-      if (this.isEditMode && this.requestData) {
-        this.loadRequestDataForEdit();
+      // Load order data if in edit mode
+      if (this.isEditMode && this.orderData) {
+        this.loadOrderDataForEdit();
       }
     }
   }
@@ -179,20 +154,15 @@ export class RequestCreationDialogComponent implements OnInit, OnChanges {
     this.dataLoaded.set(false);
 
     try {
-      const [areasResponse, locationsResponse] = await Promise.all([
-        this.areaService.areaGetAll().toPromise(),
-        this.locationService.locationGetAll().toPromise()
-      ]);
-
-      this.areas.set(areasResponse || []);
-      this.locations.set(locationsResponse || []);
+      const providersResponse = await this.providerService.providerGetAll().toPromise();
+      this.providers.set(providersResponse || []);
       this.dataLoaded.set(true);
     } catch (error) {
       console.error('Error loading initial data:', error);
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Error cargando datos iniciales'
+        detail: 'Error cargando proveedores'
       });
     } finally {
       this.loading.set(false);
@@ -203,7 +173,6 @@ export class RequestCreationDialogComponent implements OnInit, OnChanges {
   show() {
     this.visible = true;
     this.visibleChange.emit(true);
-    // resetForm() is now called in ngOnChanges when visible becomes true
   }
 
   hide() {
@@ -215,23 +184,21 @@ export class RequestCreationDialogComponent implements OnInit, OnChanges {
     this.currentStep.set(1);
     
     this.stepData.set({
-      areaId: null,
-      locationId: null,
-      neededAt: null,
+      providerId: null,
+      orderNumber: '',
       items: [],
       notes: []
     });
     this.newNote = '';
   }
 
-  loadRequestDataForEdit() {
-    if (!this.requestData) return;
+  loadOrderDataForEdit() {
+    if (!this.orderData) return;
     
     this.stepData.set({
-      areaId: this.requestData.areaId || null,
-      locationId: this.requestData.locationId || null,
-      neededAt: this.requestData.neededAt ? new Date(this.requestData.neededAt) : null,
-      items: this.requestData.items || [],
+      providerId: this.orderData.providerId || null,
+      orderNumber: this.orderData.orderNumber || '',
+      items: this.orderData.items || [],
       notes: []
     });
     
@@ -344,9 +311,9 @@ export class RequestCreationDialogComponent implements OnInit, OnChanges {
   }
 
   // Final submission
-  createRequest() {
+  createOrder() {
     if (this.isEditMode) {
-      this.updateRequest();
+      this.updateOrder();
       return;
     }
 
@@ -360,10 +327,10 @@ export class RequestCreationDialogComponent implements OnInit, OnChanges {
     }
 
     const data = this.stepData();
-    const request: CreateRequestRequestModel = {
-      areaId: data.areaId!,
-      locationId: data.locationId!,
-      neededAt: data.neededAt!.toISOString(),
+    const order: CreatePurchaseOrderRequestModel = {
+      orderNumber: data.orderNumber.trim(),
+      requestId: this.requestId,
+      providerId: data.providerId!,
       items: data.items.map((item: any) => ({
         itemId: item.itemId!,
         quantity: item.quantity!
@@ -371,12 +338,12 @@ export class RequestCreationDialogComponent implements OnInit, OnChanges {
       notes: data.notes.length > 0 ? data.notes : undefined
     };
 
-    this.requestCreated.emit(request);
+    this.orderCreated.emit(order);
     this.hide();
   }
 
-  async updateRequest() {
-    if (!this.step1Valid() || !this.requestData?.id) {
+  async updateOrder() {
+    if (!this.step1Valid() || !this.orderData?.id) {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
@@ -386,25 +353,27 @@ export class RequestCreationDialogComponent implements OnInit, OnChanges {
     }
 
     const data = this.stepData();
-    const updateData: RequestUpdateRequestModel = {
-      areaId: data.areaId!,
-      locationId: data.locationId!,
-      neededAt: data.neededAt!.toISOString()
+    const updateData: PurchaseOrderUpdateRequestModel = {
+      orderNumber: data.orderNumber.trim(),
+      providerId: data.providerId!
     };
 
-    this.requestUpdated.emit({ 
-      id: this.requestData.id, 
+    this.orderUpdated.emit({ 
+      id: this.orderData.id, 
       updateData 
     });
     this.hide();
   }
 
-  getSubmitButtonLabel(): string {
-    return this.isEditMode ? 'Actualizar Solicitud' : 'Crear Solicitud';
+  // Utility methods
+  canProceedToStep2(): boolean {
+    if (this.isEditMode) return false;
+    return this.step1Valid();
   }
 
-  getSubmitButtonIcon(): string {
-    return this.isEditMode ? 'pi pi-check' : 'pi pi-check';
+  canProceedToStep3(): boolean {
+    if (this.isEditMode) return false;
+    return this.canProceedToStep2() && this.step2Valid();
   }
 
   shouldShowSubmitButton(): boolean {
@@ -421,20 +390,11 @@ export class RequestCreationDialogComponent implements OnInit, OnChanges {
     return this.currentStep() < 3;
   }
 
-  // Utility methods
-  getStepStatus(step: number): string {
-    if (step < this.currentStep()) return 'completed';
-    if (step === this.currentStep()) return 'active';
-    return 'inactive';
+  getSubmitButtonLabel(): string {
+    return this.isEditMode ? 'Actualizar Orden' : 'Crear Orden';
   }
 
-  canProceedToStep2(): boolean {
-    if (this.isEditMode) return false;
-    return !!this.step1Valid();
-  }
-
-  canProceedToStep3(): boolean {
-    if (this.isEditMode) return false;
-    return this.canProceedToStep2() && !!this.step2Valid();
+  getSubmitButtonIcon(): string {
+    return this.isEditMode ? 'pi pi-check' : 'pi pi-check';
   }
 }
