@@ -9,6 +9,7 @@ import { OrdersComponent } from './component/orders/orders.component';
 import { OrderDetailsComponent } from './component/orders/order-details/order-details.component';
 
 export const topazRoutes: Routes = [
+    { path: '', redirectTo: 'providers', pathMatch: 'full' },
     { path: 'locations', component: LocationsComponent },
     { path: 'areas', component: AreasComponent },
     { path: 'providers', component: ProvidersComponent },
