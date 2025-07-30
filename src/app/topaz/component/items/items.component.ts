@@ -147,6 +147,15 @@ export class ItemsComponent implements OnInit {
     });
   }
 
+  private refreshData() {
+    return forkJoin({
+      providers: this.providerService.providerGetAll(),
+      categories: this.categoryService.categoryGetAll(),
+      currencies: this.currencyService.currencyGetAll(),
+      items: this.itemService.itemGetAllItemsDetails()
+    });
+  }
+
   private buildCategoryTree(categories: CategoryResponseModel[]): CategoryTreeModel[] {
     // Create a map for quick lookup
     const categoryMap = new Map<number, CategoryTreeModel>();
@@ -368,8 +377,36 @@ export class ItemsComponent implements OnInit {
           detail: 'Precio agregado correctamente',
           life: 3000
         });
-        this.loadInitialData(); // Refresh data to show new price
-        this.hideDialog();
+        
+        // Refresh data and then update the dialog with fresh data
+        this.refreshData().subscribe({
+          next: (data) => {
+            this.providers.set(data.providers);
+            this.categories.set(this.buildCategoryTree(data.categories));
+            this.categoryTreeNodes.set(this.convertToTreeNodes(this.categories()));
+            this.currencies.set(data.currencies);
+            this.items.set(data.items);
+            
+            // Close the add price dialog
+            this.addPriceDialog = false;
+            this.newPrice = {};
+            
+            // Find the updated item and refresh the prices dialog
+            const updatedItem = data.items.find(i => i.id === this.selectedItemForPrices.id);
+            if (updatedItem) {
+              this.viewItemPrices(updatedItem);
+            }
+          },
+          error: (error) => {
+            console.error('Error refreshing data:', error);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Error al actualizar los datos',
+              life: 3000
+            });
+          }
+        });
       },
       error: (error) => {
         console.error('Error saving price:', error);
@@ -402,8 +439,32 @@ export class ItemsComponent implements OnInit {
                 detail: 'Precio eliminado correctamente',
                 life: 3000
               });
-              this.loadInitialData(); // Refresh data to show updated prices
-              this.viewItemPrices(item); // Refresh prices in dialog
+              
+              // Refresh data and then update the dialog with fresh data
+              this.refreshData().subscribe({
+                next: (data) => {
+                  this.providers.set(data.providers);
+                  this.categories.set(this.buildCategoryTree(data.categories));
+                  this.categoryTreeNodes.set(this.convertToTreeNodes(this.categories()));
+                  this.currencies.set(data.currencies);
+                  this.items.set(data.items);
+                  
+                  // Find the updated item and refresh the dialog
+                  const updatedItem = data.items.find(i => i.id === item.id);
+                  if (updatedItem) {
+                    this.viewItemPrices(updatedItem);
+                  }
+                },
+                error: (error) => {
+                  console.error('Error refreshing data:', error);
+                  this.messageService.add({
+                    severity: 'error',
+                    summary: 'Error',
+                    detail: 'Error al actualizar los datos',
+                    life: 3000
+                  });
+                }
+              });
             },
             error: (error) => {
               console.error('Error deleting price:', error);
