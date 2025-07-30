@@ -36,7 +36,7 @@
   <p-table 
     #dt
     [value]="allOrders()" 
-    [paginator]="true" 
+    [paginator]="shouldShowPaginator()" 
     [rows]="10" 
     [rowsPerPageOptions]="[5, 10, 25, 50]"
     [globalFilterFields]="['providerName', 'orderNumber', 'currentStatus.status', 'id']"

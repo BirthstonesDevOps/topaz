@@ -114,6 +114,12 @@ export class OrdersComponent implements OnInit, OnChanges {
     );
   });
 
+  // Check if paginator should be shown (only if orders count >= minimum page size)
+  shouldShowPaginator = computed(() => {
+    const minPageSize = 5; // Minimum from rowsPerPageOptions
+    return this.allOrders().length >= minPageSize;
+  });
+
   constructor(
     private messageService: MessageService,
     private confirmationService: ConfirmationService,
