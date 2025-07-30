@@ -30,15 +30,15 @@
         <p-button label="Nueva orden de compra" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openCreateDialog()" />
     </ng-template>
 
-    <ng-template #center>
+    <ng-template #end>
         <div class="flex items-center gap-2">
             <p-iconfield>
                 <p-inputicon class="pi pi-search" />
                 <input type="text" 
                 pInputText 
                 placeholder="Buscar órdenes de compra..." 
-                [(ngModel)]="searchTerm" 
-                (input)="filterOrders()"
+                [ngModel]="searchTerm()" 
+                (ngModelChange)="searchTerm.set($event)"
                 class="w-80"
                 fluid  />
             </p-iconfield>

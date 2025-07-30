@@ -84,7 +84,7 @@ export class OrdersComponent implements OnInit, OnChanges {
   allOrders = signal<OrderTableData[]>([]);
   
   // Search functionality
-  searchTerm: string = '';
+  searchTerm = signal<string>('');
   
   // Delete confirmation dialog
   showDeleteDialog: boolean = false;
@@ -94,7 +94,7 @@ export class OrdersComponent implements OnInit, OnChanges {
   
   // Computed filtered orders
   orders = computed(() => {
-    const term = this.searchTerm.toLowerCase().trim();
+    const term = this.searchTerm().toLowerCase().trim();
     if (!term) return this.allOrders();
     
     return this.allOrders().filter(order => 
@@ -194,11 +194,6 @@ export class OrdersComponent implements OnInit, OnChanges {
     } finally {
       this.loading.set(false);
     }
-  }
-
-  filterOrders() {
-    // The filtering is handled by the computed property
-    // This method exists for the template binding
   }
 
   openCreateDialog() {
