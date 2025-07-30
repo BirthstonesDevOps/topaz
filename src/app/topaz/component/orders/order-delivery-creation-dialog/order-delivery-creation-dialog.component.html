@@ -58,19 +58,6 @@
           <p-step-panel [value]="1">
             <ng-template pTemplate="content" let-activateCallback="activateCallback">
               <div class="flex flex-col gap-6">
-                <!-- Delivery Created Info -->
-                <div *ngIf="createdDelivery" class="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <div class="flex items-center gap-2 mb-2">
-                    <i class="pi pi-check-circle text-green-600"></i>
-                    <span class="font-semibold text-green-900">Entrega Creada Exitosamente</span>
-                  </div>
-                  <div class="text-sm text-green-700">
-                    <div><strong>ID de Entrega:</strong> {{ createdDelivery.id }}</div>
-                    <div><strong>Artículos:</strong> {{ createdDelivery.items?.length || 0 }}</div>
-                    <div *ngIf="createdDelivery.note"><strong>Nota:</strong> {{ createdDelivery.note }}</div>
-                  </div>
-                </div>
-
                 <!-- File Upload Section -->
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <!-- Upload Area -->
