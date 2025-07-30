@@ -8,7 +8,7 @@ env:
   # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
   # Dynamically choose suffix based on the branch
-  BRANCH_SUFFIX: ${{ github.ref_name == 'main' && 'prod' || github.ref_name == 'dev' && 'dev' || github.ref_name == 'qa' && 'qa' || github.ref_name == 'beta' && 'beta' || '' }}
+  BRANCH_SUFFIX: ${{ github.ref_name == 'main' && 'production' || github.ref_name == 'dev' && 'development' || github.ref_name == 'qa' && 'qa' || github.ref_name == 'beta' && 'beta' || '' }}
   # Base image name is your repo name; append branch suffix
   IMAGE_NAME: ${{ github.repository }}
 
@@ -56,6 +56,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            BUILD_CONFIGURATION=${{ env.BRANCH_SUFFIX == 'prod' && 'production' || env.BRANCH_SUFFIX == 'qa' && 'qa' || env.BRANCH_SUFFIX == 'dev' && 'development' || env.BRANCH_SUFFIX == 'beta' && 'beta' || 'production' }}
+            BUILD_CONFIGURATION=${{ env.BRANCH_SUFFIX }}
             NUGET_PASSWORD=${{ secrets.NUGET_PACKAGE_TOKEN }}
             GH_PKG_TOKEN=${{ secrets.GH_PKG_TOKEN }}
