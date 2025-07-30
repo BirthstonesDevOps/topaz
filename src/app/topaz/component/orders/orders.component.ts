@@ -25,7 +25,8 @@ import {
   PurchaseOrderUpdateRequestModel,
   UpdateRequestOfPurchaseOrderUpdateRequestModel,
   StatusDetailsResponseModel,
-  ItemDetailsResponseModel
+  ItemDetailsResponseModel,
+  RequestDetailsResponseModel
 } from '@birthstonesdevops/topaz.backend.ordersservice';
 import { 
   ProviderService,
@@ -213,11 +214,14 @@ export class OrdersComponent implements OnInit, OnChanges {
   async handleOrderCreated(order: CreatePurchaseOrderRequestModel) {
     try {
       // Create the order using the service
-      const createdOrder = await this.purchaseOrderService.purchaseOrderCreatePurchaseOrder(order).toPromise();
+      const createdRequestDetails = await this.purchaseOrderService.purchaseOrderCreatePurchaseOrder(order).toPromise();
       
-      if (createdOrder) {
-        // Reload all orders to get the updated list
-        await this.loadOrders();
+      if (createdRequestDetails && createdRequestDetails.purchaseOrders) {
+        // Update orders with the new list from the response
+        await this.enrichOrders(createdRequestDetails.purchaseOrders);
+        
+        // Update item filter with the itemsPending from the response
+        this.itemFilter = createdRequestDetails.itemsPending;
         
         this.messageService.add({
           severity: 'success',
