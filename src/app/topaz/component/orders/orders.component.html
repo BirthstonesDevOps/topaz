@@ -10,9 +10,18 @@
 <div *ngIf="!loading() && orders().length === 0" class="card">
     <div class="text-center">
         <i class="pi pi-shopping-cart big-icon text-gray-400 mb-4"></i>
-        <div class="text-gray-600 font-bold text-xl mb-2">No hay ordenes de compra</div>
-        <div class="text-gray-500 mb-4">No se han registrado ordenes de compra aún. Comienza creando la primera orden de compra.</div>
-        <p-button label="Crear orden de compra" icon="pi pi-plus" severity="primary" (onClick)="openCreateDialog()"></p-button>
+        <div class="text-gray-600 font-bold text-xl mb-2">No hay órdenes de compra</div>
+        <div class="text-gray-500 mb-4">No se han registrado órdenes de compra aún.</div>
+        <p-button 
+          *ngIf="requestId" 
+          label="Crear orden de compra" 
+          icon="pi pi-plus" 
+          severity="primary" 
+          (onClick)="openCreateDialog()">
+        </p-button>
+        <div *ngIf="!requestId" class="text-gray-400">
+          Las órdenes de compra se crean desde las solicitudes.
+        </div>
     </div>
 </div>
 
@@ -25,8 +34,151 @@
         <div class="flex items-center gap-2">
             <p-iconfield>
                 <p-inputicon class="pi pi-search" />
-                <input type="text" pInputText placeholder="Buscar ordenes de compra..." [(ngModel)]="searchTerm" (input)="filterRequests()" class="w-80" fluid />
+                <input type="text" 
+                pInputText 
+                placeholder="Buscar órdenes de compra..." 
+                [(ngModel)]="searchTerm" 
+                (input)="filterOrders()"
+                class="w-80"
+                fluid  />
             </p-iconfield>
         </div>
     </ng-template>
 </p-toolbar>
+
+<!-- Orders Data Table -->
+<div class="card" *ngIf="!loading() && orders().length > 0">
+  <p-table 
+    [value]="orders()" 
+    [paginator]="true" 
+    [rows]="10" 
+    [rowsPerPageOptions]="[5, 10, 25, 50]"
+    [globalFilterFields]="['providerName', 'orderNumber', 'id']"
+    responsiveLayout="scroll"
+    styleClass="p-datatable-gridlines">
+    
+    <ng-template pTemplate="header">
+      <tr>
+        <th>ID</th>
+        <th>Código TANGO</th>
+        <th>Proveedor</th>
+        <th>Fecha Creación</th>
+        <th>Última Actualización</th>
+        <th>Acciones</th>
+      </tr>
+    </ng-template>
+    
+    <ng-template pTemplate="body" let-order>
+      <tr 
+        class="cursor-pointer hover:bg-blue-50 transition-colors"
+        (click)="navigateToOrderDetails(order.id!)"
+        [class.opacity-50]="!order.id">
+        <td>{{ order.id || 'N/A' }}</td>
+        <td>{{ order.orderNumber || 'N/A' }}</td>
+        <td>{{ order.providerName || 'N/A' }}</td>
+        <td>{{ formatDate(order.createdAt) }}</td>
+        <td>{{ formatDate(order.updatedAt) }}</td>
+        <td>
+          <div class="flex gap-1" (click)="$event.stopPropagation()">
+            <!-- Edit Button -->
+            <p-button 
+              *ngIf="canEditOrder(order)"
+              icon="pi pi-pencil" 
+              severity="secondary" 
+              size="small"
+              [text]="true"
+              (onClick)="editOrder(order.id!)"
+              [disabled]="!order.id"
+              pTooltip="Editar orden">
+            </p-button>
+            
+            <!-- Delete Button -->
+            <p-button 
+              *ngIf="canDeleteOrder(order)"
+              icon="pi pi-trash" 
+              severity="danger" 
+              size="small"
+              [text]="true"
+              (onClick)="confirmDelete(order.id!)"
+              [disabled]="!order.id"
+              pTooltip="Eliminar orden">
+            </p-button>
+            
+            <!-- No Actions Available Message -->
+            <span 
+              *ngIf="!canEditOrder(order) && !canDeleteOrder(order)" 
+              class="text-gray-400 text-sm">
+              Sin acciones
+            </span>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+    
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6" class="text-center">No se encontraron órdenes de compra</td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Delete Confirmation Dialog -->
+<p-dialog 
+  header="Confirmar eliminación" 
+  [(visible)]="showDeleteDialog" 
+  [modal]="true" 
+  [closable]="true"
+  [style]="{ width: '450px' }"
+  (onHide)="cancelDelete()">
+  
+  <div class="flex flex-col gap-4">
+    <p class="text-gray-700">
+      ¿Está seguro que desea eliminar esta orden de compra? Esta acción no se puede deshacer.
+    </p>
+    
+    <div class="flex flex-col gap-2">
+      <label for="deleteNotes" class="font-medium text-gray-700">
+        Notas (opcional):
+      </label>
+      <textarea 
+        id="deleteNotes"
+        pInputTextarea 
+        [(ngModel)]="deleteNotes" 
+        placeholder="Agregue una nota sobre la eliminación..."
+        rows="3"
+        class="w-full">
+      </textarea>
+    </div>
+  </div>
+  
+  <ng-template pTemplate="footer">
+    <div class="flex justify-end gap-2">
+      <p-button 
+        label="Cancelar" 
+        icon="pi pi-times" 
+        severity="secondary"
+        [text]="true"
+        (onClick)="cancelDelete()"
+        [disabled]="deletingOrder()">
+      </p-button>
+      <p-button 
+        label="Eliminar" 
+        icon="pi pi-trash" 
+        severity="danger"
+        (onClick)="executeDelete()"
+        [loading]="deletingOrder()">
+      </p-button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+<!-- Order Creation Dialog -->
+<app-order-creation-dialog
+  [(visible)]="showCreateDialog"
+  [requestId]="requestId!"
+  (orderCreated)="handleOrderCreated($event)">
+</app-order-creation-dialog>
+
+<!-- Toast and Confirm Dialog -->
+<p-confirmDialog></p-confirmDialog>

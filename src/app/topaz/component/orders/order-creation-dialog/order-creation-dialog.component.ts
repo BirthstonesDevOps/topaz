@@ -17,6 +17,7 @@ import { DividerModule } from 'primeng/divider';
 import { ProviderService, ProviderResponseModel } from '@birthstonesdevops/topaz.backend.organizationservice';
 import { 
   CreatePurchaseOrderRequestModel,
+  PurchaseOrderRequestModel,
   ItemRequestModel, 
   NoteRequestModel,
   ItemDetailsResponseModel

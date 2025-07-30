@@ -1,33 +1,105 @@
-import { Component, Input, OnInit, signal, OnChanges, SimpleChanges } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { PurchaseOrderDetailsResponseModel, PurchaseOrderService } from '@birthstonesdevops/topaz.backend.ordersservice';
-import { ToastModule } from 'primeng/toast';
-import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { Button } from 'primeng/button';
-import { ToolbarModule } from 'primeng/toolbar';
-import { IconField } from 'primeng/iconfield';
-import { InputIcon } from 'primeng/inputicon';
-import { MessageService } from 'primeng/api';
+import { Component, Input, OnInit, signal, OnChanges, SimpleChanges, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { ButtonModule } from 'primeng/button';
+import { ToastModule } from 'primeng/toast';
+import { MessageService, ConfirmationService } from 'primeng/api';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { InputTextModule } from 'primeng/inputtext';
+import { InputIconModule } from 'primeng/inputicon';
+import { TableModule } from 'primeng/table';
+import { TagModule } from 'primeng/tag';
+import { DialogModule } from 'primeng/dialog';
+import { TextareaModule } from 'primeng/textarea';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ToolbarModule } from 'primeng/toolbar';
+import { IconFieldModule } from 'primeng/iconfield';
+
+import { 
+  PurchaseOrderDetailsResponseModel, 
+  PurchaseOrderService,
+  PurchaseOrderRequestModel,
+  ChangeStatusRequestModel,
+  CreatePurchaseOrderRequestModel
+} from '@birthstonesdevops/topaz.backend.ordersservice';
+import { 
+  ProviderService,
+  ProviderResponseModel,
+  GetRequest
+} from '@birthstonesdevops/topaz.backend.organizationservice';
+import { OrderCreationDialogComponent } from './order-creation-dialog/order-creation-dialog.component';
+
+// Extended order interface for table display
+interface OrderTableData extends PurchaseOrderDetailsResponseModel {
+  providerName?: string;
+}
 
 @Component({
   selector: 'app-orders',
-  imports: [CommonModule, FormsModule, ToastModule, ProgressSpinnerModule, Button, ToolbarModule, IconField, InputIcon],
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    ButtonModule,
+    ToastModule,
+    ProgressSpinnerModule,
+    InputTextModule,
+    InputIconModule,
+    TableModule,
+    TagModule,
+    DialogModule,
+    TextareaModule,
+    ConfirmDialogModule,
+    OrderCreationDialogComponent,
+    ToolbarModule,
+    IconFieldModule
+  ],
   templateUrl: './orders.component.html',
   styleUrl: './orders.component.css',
-  providers: [MessageService]
+  providers: [MessageService, ConfirmationService]
 })
 export class OrdersComponent implements OnInit, OnChanges {
   @Input() ordersInput?: PurchaseOrderDetailsResponseModel[];
   @Input() requestId: number | undefined;
   
-  orders = signal<PurchaseOrderDetailsResponseModel[]>([]);
-  loading = signal<boolean>(true);
-  searchTerm: any;
+  showCreateDialog: boolean = false;
+  showEditDialog: boolean = false;
+  editOrderData: OrderTableData | null = null;
+  
+  // Loading state
+  loading = signal<boolean>(false);
+  
+  // Orders data
+  allOrders = signal<OrderTableData[]>([]);
+  
+  // Search functionality
+  searchTerm: string = '';
+  
+  // Delete confirmation dialog
+  showDeleteDialog: boolean = false;
+  deleteOrderId: number | null = null;
+  deleteNotes: string = '';
+  deletingOrder = signal<boolean>(false);
+  
+  // Computed filtered orders
+  orders = computed(() => {
+    const term = this.searchTerm.toLowerCase().trim();
+    if (!term) return this.allOrders();
+    
+    return this.allOrders().filter(order => 
+      order.providerName?.toLowerCase().includes(term) ||
+      order.orderNumber?.toLowerCase().includes(term) ||
+      order.id?.toString().includes(term)
+    );
+  });
 
   constructor(
     private messageService: MessageService,
-    private purchaseOrderService: PurchaseOrderService
+    private confirmationService: ConfirmationService,
+    private purchaseOrderService: PurchaseOrderService,
+    private providerService: ProviderService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -36,9 +108,8 @@ export class OrdersComponent implements OnInit, OnChanges {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['ordersInput'] && changes['ordersInput'].currentValue) {
-      // Use provided input orders
-      this.orders.set(this.ordersInput!);
-      this.loading.set(false);
+      // Use provided input orders and enrich them
+      this.enrichOrders(this.ordersInput!);
     } else if (changes['ordersInput'] && !changes['ordersInput'].currentValue && !this.ordersInput) {
       // No input provided, load from API
       this.loadOrders();
@@ -47,9 +118,8 @@ export class OrdersComponent implements OnInit, OnChanges {
 
   async loadOrders() {
     if (this.ordersInput) {
-      // Use input orders if provided
-      this.orders.set(this.ordersInput);
-      this.loading.set(false);
+      // Use input orders if provided and enrich them
+      await this.enrichOrders(this.ordersInput);
       return;
     }
 
@@ -57,7 +127,9 @@ export class OrdersComponent implements OnInit, OnChanges {
     this.loading.set(true);
     try {
       const ordersResponse = await this.purchaseOrderService.purchaseOrderGetAllPurchaseOrderDetails().toPromise();
-      this.orders.set(ordersResponse || []);
+      if (ordersResponse) {
+        await this.enrichOrders(ordersResponse);
+      }
     } catch (error) {
       console.error('Error loading orders:', error);
       this.messageService.add({
@@ -70,11 +142,173 @@ export class OrdersComponent implements OnInit, OnChanges {
     }
   }
 
-  openCreateDialog() {
-    throw new Error('Method not implemented.');
+  async enrichOrders(orders: PurchaseOrderDetailsResponseModel[]) {
+    this.loading.set(true);
+    try {
+      // Enrich orders with provider names
+      const enrichedOrders = await Promise.all(
+        orders.map(async (order) => {
+          const enrichedOrder: OrderTableData = { ...order };
+          
+          // Get provider name
+          if (order.providerId) {
+            try {
+              const provider = await this.providerService.providerGetById({ ids: [order.providerId] }).toPromise();
+              enrichedOrder.providerName = provider?.name || 'N/A';
+            } catch (error) {
+              enrichedOrder.providerName = 'Error';
+            }
+          }
+          
+          return enrichedOrder;
+        })
+      );
+      
+      this.allOrders.set(enrichedOrders);
+    } catch (error) {
+      console.error('Error enriching orders:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Error procesando órdenes de compra'
+      });
+    } finally {
+      this.loading.set(false);
+    }
   }
 
-  filterRequests() {
-    throw new Error('Method not implemented.');
+  filterOrders() {
+    // The filtering is handled by the computed property
+    // This method exists for the template binding
+  }
+
+  openCreateDialog() {
+    if (!this.requestId) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'Se requiere un ID de solicitud para crear una orden'
+      });
+      return;
+    }
+    this.showCreateDialog = true;
+  }
+
+  async handleOrderCreated(order: CreatePurchaseOrderRequestModel) {
+    try {
+      // Create the order using the service
+      const createdOrder = await this.purchaseOrderService.purchaseOrderCreatePurchaseOrder(order).toPromise();
+      
+      if (createdOrder) {
+        // Reload all orders to get the updated list
+        await this.loadOrders();
+        
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: 'Orden de compra creada correctamente'
+        });
+      }
+    } catch (error) {
+      console.error('Error creating order:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Error creando la orden de compra'
+      });
+    }
+
+    this.showCreateDialog = false;
+  }
+
+  // Delete functionality
+  confirmDelete(orderId: number) {
+    this.deleteOrderId = orderId;
+    this.deleteNotes = '';
+    this.showDeleteDialog = true;
+  }
+
+  cancelDelete() {
+    this.showDeleteDialog = false;
+    this.deleteOrderId = null;
+    this.deleteNotes = '';
+  }
+
+  async executeDelete() {
+    if (!this.deleteOrderId) return;
+
+    this.deletingOrder.set(true);
+    
+    try {
+      const deleteRequest: ChangeStatusRequestModel = {
+        id: this.deleteOrderId,
+        notes: this.deleteNotes.trim() ? [{ note: this.deleteNotes.trim() }] : undefined
+      };
+
+      await this.purchaseOrderService.purchaseOrderDeletePurchaseOrder(deleteRequest).toPromise();
+      
+      // Reload orders to get updated list
+      await this.loadOrders();
+      
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Éxito',
+        detail: 'Orden de compra eliminada correctamente'
+      });
+      
+      this.cancelDelete();
+    } catch (error) {
+      console.error('Error deleting order:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Error eliminando la orden de compra'
+      });
+    } finally {
+      this.deletingOrder.set(false);
+    }
+  }
+
+  // Edit functionality (placeholder for future implementation)
+  editOrder(orderId: number) {
+    console.log('Edit order:', orderId);
+    // Find the order data
+    const orderToEdit = this.allOrders().find(order => order.id === orderId);
+    if (orderToEdit) {
+      this.editOrderData = orderToEdit;
+      this.showEditDialog = true;
+    } else {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'No se encontró la orden de compra a editar'
+      });
+    }
+  }
+
+  // Utility methods
+  formatDate(dateString: string | undefined): string {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('es-ES', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit'
+    });
+  }
+
+  // Operation availability checks (for future implementation)
+  canDeleteOrder(order: OrderTableData): boolean {
+    // Placeholder - implement based on your business logic
+    return true;
+  }
+
+  canEditOrder(order: OrderTableData): boolean {
+    // Placeholder - implement based on your business logic
+    return true;
+  }
+
+  // Navigation to order details
+  navigateToOrderDetails(orderId: number) {
+    this.router.navigate(['/orders', orderId]);
   }
 }

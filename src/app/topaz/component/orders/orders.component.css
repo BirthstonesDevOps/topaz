@@ -19,3 +19,52 @@
         stroke-dashoffset: -124px;
     }
 }
+
+/* Big icon for empty states */
+.big-icon {
+    font-size: 4rem;
+}
+
+/* Table styling */
+::ng-deep .p-datatable-gridlines .p-datatable-header {
+    background: var(--surface-50);
+    color: var(--text-color);
+    border: 1px solid var(--surface-200);
+}
+
+::ng-deep .p-datatable-gridlines .p-datatable-thead > tr > th {
+    background: var(--surface-50);
+    color: var(--text-color-secondary);
+    font-weight: 600;
+    border: 1px solid var(--surface-200);
+}
+
+::ng-deep .p-datatable-gridlines .p-datatable-tbody > tr > td {
+    border: 1px solid var(--surface-200);
+    padding: 0.75rem;
+}
+
+::ng-deep .p-datatable-gridlines .p-datatable-tbody > tr:nth-child(even) {
+    background: var(--surface-50);
+}
+
+::ng-deep .p-datatable-gridlines .p-datatable-tbody > tr:hover {
+    background: var(--primary-50);
+}
+
+/* Delete confirmation dialog */
+::ng-deep .p-dialog .p-dialog-header {
+    background: var(--surface-0);
+    color: var(--text-color);
+    border-bottom: 1px solid var(--surface-200);
+}
+
+::ng-deep .p-dialog .p-dialog-content {
+    background: var(--surface-0);
+    color: var(--text-color);
+}
+
+::ng-deep .p-dialog .p-dialog-footer {
+    background: var(--surface-0);
+    border-top: 1px solid var(--surface-200);
+}
