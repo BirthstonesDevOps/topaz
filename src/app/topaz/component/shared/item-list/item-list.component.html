@@ -170,11 +170,14 @@
                         </div>
                     </ng-template>
                     <ng-template #item let-item>
-                        <div>
+                        <div [class.opacity-50]="item.isAlreadyAdded" [class.text-red-500]="item.isAlreadyAdded">
                             <span class="font-medium">{{ item.name }}</span>
-                            <span class="text-gray-500 ml-2">({{ item.code }})</span>
-                            <div class="text-sm text-gray-400" *ngIf="item.description">
+                            <span class="ml-2">({{ item.code }})</span>
+                            <div class="text-sm" *ngIf="item.description">
                                 {{ item.description }}
+                            </div>
+                            <div class="text-xs text-red-500 font-medium mt-1" *ngIf="item.isAlreadyAdded">
+                                Ya agregado
                             </div>
                         </div>
                     </ng-template>
@@ -201,12 +204,16 @@
                     decrementButtonClass="p-button-secondary"
                     incrementButtonClass="p-button-secondary"
                     [useGrouping]="false"
+                    [disabled]="!!selectedItemForAdd?.isAlreadyAdded"
                     fluid />
                 <small class="text-red-500" *ngIf="submitted() && quantityForAdd <= 0">
                     La cantidad debe ser mayor a 0.
                 </small>
                 <small class="text-red-500" *ngIf="submitted() && selectedItemForAdd && selectedItemForAdd.maxQuantity < 999999 && quantityForAdd > selectedItemForAdd.maxQuantity">
                     La cantidad no puede ser mayor a {{ selectedItemForAdd.maxQuantity }}.
+                </small>
+                <small class="text-red-500" *ngIf="selectedItemForAdd?.isAlreadyAdded">
+                    Este artículo ya ha sido agregado.
                 </small>
             </div>
         </div>
@@ -222,7 +229,8 @@
             label="Guardar" 
             icon="pi pi-check" 
             (click)="saveItem()"
-            [loading]="loadingAvailableItems()" />
+            [loading]="loadingAvailableItems()"
+            [disabled]="!!selectedItemForAdd?.isAlreadyAdded" />
     </ng-template>
 </p-dialog>
 

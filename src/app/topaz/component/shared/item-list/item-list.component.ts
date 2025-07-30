@@ -62,6 +62,7 @@ interface Column {
 
 interface FilterItemData extends ItemServiceItemDetailsResponseModel {
   maxQuantity: number;
+  isAlreadyAdded?: boolean;
 }
 
 @Component({
@@ -94,6 +95,7 @@ interface FilterItemData extends ItemServiceItemDetailsResponseModel {
 export class ItemListComponent implements OnInit, OnChanges {
   @Input() items: OrderItemDetailsResponseModel[] = [];
   @Input() itemFilter?: OrderItemDetailsResponseModel[];
+  @Input() forcedFilter: boolean = false;
   @Input() showMeasurement: boolean = false;
   @Input() showDescription: boolean = false;
   @Input() onItemSave?: (item: ItemRequestModel) => void;
@@ -141,11 +143,21 @@ export class ItemListComponent implements OnInit, OnChanges {
 
   // Computed maximum quantities
   maxQuantityForAdd = computed(() => {
+    // If forcedFilter is true and filter is empty, no items are available
+    if (this.forcedFilter && (!this.itemFilter || this.itemFilter.length === 0)) {
+      return 0;
+    }
     if (!this.selectedItemForAdd) return 999999;
+    // If item is already added, quantity should be 0
+    if (this.selectedItemForAdd.isAlreadyAdded) return 0;
     return this.selectedItemForAdd.maxQuantity;
   });
 
   maxQuantityForEdit = computed(() => {
+    // If forcedFilter is true and filter is empty, maximum quantity is 0
+    if (this.forcedFilter && (!this.itemFilter || this.itemFilter.length === 0)) {
+      return 0;
+    }
     if (!this.editingItem?.orderItem.itemId) return 999999;
     
     // Find the filter item for this specific item in availableItems
@@ -168,8 +180,9 @@ export class ItemListComponent implements OnInit, OnChanges {
     if (changes['items'] && !changes['items'].firstChange) {
       this.loadItemDetails();
     }
-    if (changes['itemFilter'] && !changes['itemFilter'].firstChange) {
-      // Clear available items when filter changes, they'll be reloaded when dialog opens
+    if ((changes['itemFilter'] && !changes['itemFilter'].firstChange) || 
+        (changes['forcedFilter'] && !changes['forcedFilter'].firstChange)) {
+      // Clear available items when filter or forcedFilter changes, they'll be reloaded when dialog opens
       this.availableItems.set([]);
     }
   }
@@ -240,6 +253,16 @@ export class ItemListComponent implements OnInit, OnChanges {
   async openNew() {
     if (!this.onItemSave) return;
     
+    // Check if forcedFilter is true and no filter is provided
+    if (this.forcedFilter && (!this.itemFilter || this.itemFilter.length === 0)) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'No hay artículos disponibles para agregar'
+      });
+      return;
+    }
+    
     this.selectedItemForAdd = null;
     this.quantityForAdd = 1;
     this.submitted.set(false);
@@ -262,9 +285,13 @@ export class ItemListComponent implements OnInit, OnChanges {
               const getRequest: GetRequest = { ids: [filterItem.itemId] };
               const itemDetails = await this.itemService.itemGetById(getRequest).toPromise();
               if (itemDetails) {
+                // Check if this item is already in the current items list
+                const isAlreadyAdded = this.items.some(existingItem => existingItem.itemId === itemDetails.id);
+                
                 filteredItems.push({
                   ...itemDetails,
-                  maxQuantity: filterItem.quantity || 1
+                  maxQuantity: filterItem.quantity || 1,
+                  isAlreadyAdded: isAlreadyAdded
                 });
               }
             } catch (error) {
@@ -272,13 +299,22 @@ export class ItemListComponent implements OnInit, OnChanges {
             }
           }
         }
+      } else if (this.forcedFilter) {
+        // If forcedFilter is true and no filter is provided, no items should be available
+        filteredItems = [];
       } else {
-        // If no filter, load all items with unlimited quantity
+        // If no filter and forcedFilter is false, load all items with unlimited quantity
         const allItems = await this.itemService.itemGetAllItemsDetails().toPromise();
-        filteredItems = (allItems || []).map(item => ({
-          ...item,
-          maxQuantity: 999999 // No limit when no filter is applied
-        }));
+        filteredItems = (allItems || []).map(item => {
+          // Check if this item is already in the current items list
+          const isAlreadyAdded = this.items.some(existingItem => existingItem.itemId === item.id);
+          
+          return {
+            ...item,
+            maxQuantity: 999999, // No limit when no filter is applied
+            isAlreadyAdded: isAlreadyAdded
+          };
+        });
       }
       
       this.availableItems.set(filteredItems);
@@ -316,6 +352,16 @@ export class ItemListComponent implements OnInit, OnChanges {
     this.submitted.set(true);
     
     if (!this.selectedItemForAdd || this.quantityForAdd <= 0) {
+      return;
+    }
+    
+    // Check if item is already added
+    if (this.selectedItemForAdd.isAlreadyAdded) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Este artículo ya ha sido agregado'
+      });
       return;
     }
     
@@ -392,7 +438,12 @@ export class ItemListComponent implements OnInit, OnChanges {
   }
 
   get canAdd(): boolean {
-    return !!this.onItemSave;
+    if (!this.onItemSave) return false;
+    // If forcedFilter is true and no filter is provided, can't add items
+    if (this.forcedFilter && (!this.itemFilter || this.itemFilter.length === 0)) {
+      return false;
+    }
+    return true;
   }
 
   get hasItems(): boolean {

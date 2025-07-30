@@ -81,6 +81,7 @@
                         <app-item-list 
                             [items]="orderDetails()?.items || []"
                             [itemFilter]="pendingItems() || undefined"
+                            [forcedFilter]="true"
                             [showMeasurement]="true"
                             [onItemSave]="canAddItems() ? addItemHandler : undefined"
                             [onItemEdit]="canEditItems() ? editItemHandler : undefined"
