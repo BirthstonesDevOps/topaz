@@ -1,3 +1,25 @@
+::ng-deep .custom-spinner .p-progressspinner-circle {
+  stroke: var(--primary-color) !important;
+  stroke-dasharray: 89, 200 !important;
+  stroke-dashoffset: 0 !important;
+  animation: p-progressspinner-dash 1.5s ease-in-out infinite !important;
+}
+
+@keyframes p-progressspinner-dash {
+  0% {
+      stroke-dasharray: 1, 200;
+      stroke-dashoffset: 0;
+  }
+  50% {
+      stroke-dasharray: 89, 200;
+      stroke-dashoffset: -35px;
+  }
+  100% {
+      stroke-dasharray: 89, 200;
+      stroke-dashoffset: -124px;
+  }
+} 
+
 .request-details-container {
   padding: 1rem;
   margin: 0 auto;
