@@ -1,0 +1,197 @@
+<p-toast></p-toast>
+
+<p-dialog 
+  [header]="currentStep() === 0 ? 'Crear Entrega - Paso 1: Información y Artículos' : 'Crear Entrega - Paso 2: Subir Imagen'"
+  [visible]="visible" 
+  (onHide)="hide()"
+  [modal]="true" 
+  [closable]="true"
+  [style]="{ width: '90vw', maxWidth: '1200px', height: '90vh' }"
+  [maximizable]="true"
+  [resizable]="true">
+
+  <div class="flex flex-col h-full">
+    <!-- Stepper -->
+    <div class="mb-6">
+      <p-stepper [value]="currentStep()" [linear]="false" class="basis-full">
+        <p-step-list>
+          <p-step [value]="0">Información y Artículos</p-step>
+          <p-step [value]="1">Subir Imagen</p-step>
+        </p-step-list>
+        
+        <p-step-panels>
+          <!-- Step 1: Information and Items -->
+          <p-step-panel [value]="0">
+            <ng-template pTemplate="content" let-activateCallback="activateCallback">
+              <div class="flex flex-col gap-6">
+                <!-- Note Input -->
+                <div>
+                  <label for="delivery-note" class="block font-bold mb-2">Nota de Entrega (Opcional)</label>
+                  <textarea 
+                    id="delivery-note"
+                    pInputTextarea 
+                    [(ngModel)]="note" 
+                    placeholder="Ingrese una nota descriptiva para la entrega..."
+                    rows="3"
+                    class="w-full"
+                    [disabled]="creatingDelivery()">
+                  </textarea>
+                </div>
+
+                <!-- Items Section -->
+                <div class="flex-1">
+                  <h6 class="font-bold mb-3">Artículos de la Entrega</h6>
+                  <app-item-list
+                    [items]="itemsForDisplay()"
+                    [itemFilter]="itemFilter"
+                    [showMeasurement]="false"
+                    [showDescription]="false"
+                    [onItemSave]="addItemHandler"
+                    [onItemEdit]="editItemHandler"
+                    [onItemDelete]="deleteItemHandler">
+                  </app-item-list>
+                </div>
+
+                <!-- Step 1 Summary -->
+                <div *ngIf="items().length > 0" class="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <div class="flex items-center gap-2 mb-2">
+                    <i class="pi pi-info-circle text-blue-600"></i>
+                    <span class="font-semibold text-blue-900">Resumen de la Entrega</span>
+                  </div>
+                  <div class="text-sm text-blue-700">
+                    <div><strong>Total de artículos:</strong> {{ items().length }}</div>
+                    <div *ngIf="note.trim()"><strong>Nota:</strong> {{ note }}</div>
+                  </div>
+                </div>
+
+                <!-- Step 1 Actions -->
+                <div class="flex justify-end gap-2 pt-4 border-t">
+                  <p-button 
+                    label="Cancelar" 
+                    icon="pi pi-times" 
+                    severity="secondary"
+                    [text]="true"
+                    (onClick)="hide()"
+                    [disabled]="creatingDelivery()">
+                  </p-button>
+                  <p-button 
+                    label="Crear Entrega" 
+                    icon="pi pi-arrow-right" 
+                    (onClick)="nextStep()"
+                    [disabled]="!canProceedToStep2() || creatingDelivery()"
+                    [loading]="creatingDelivery()">
+                  </p-button>
+                </div>
+              </div>
+            </ng-template>
+          </p-step-panel>
+
+          <!-- Step 2: Image Upload -->
+          <p-step-panel [value]="1">
+            <ng-template pTemplate="content" let-activateCallback="activateCallback">
+              <div class="flex flex-col gap-6">
+                <!-- Delivery Created Info -->
+                <div *ngIf="createdDelivery" class="p-4 bg-green-50 rounded-lg border border-green-200">
+                  <div class="flex items-center gap-2 mb-2">
+                    <i class="pi pi-check-circle text-green-600"></i>
+                    <span class="font-semibold text-green-900">Entrega Creada Exitosamente</span>
+                  </div>
+                  <div class="text-sm text-green-700">
+                    <div><strong>ID de Entrega:</strong> {{ createdDelivery.id }}</div>
+                    <div><strong>Artículos:</strong> {{ createdDelivery.items?.length || 0 }}</div>
+                    <div *ngIf="createdDelivery.note"><strong>Nota:</strong> {{ createdDelivery.note }}</div>
+                  </div>
+                </div>
+
+                <!-- File Upload Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <!-- Upload Area -->
+                  <div>
+                    <h6 class="font-bold mb-3">Subir Imagen de la Entrega</h6>
+                    
+                    <div *ngIf="!selectedFile">
+                      <p-fileupload 
+                        mode="basic" 
+                        chooseLabel="Seleccionar Imagen" 
+                        chooseIcon="pi pi-upload"
+                        accept="image/*" 
+                        maxFileSize="5000000"
+                        (onSelect)="onFileSelect($event)"
+                        [auto]="false"
+                        [disabled]="uploadingImage()">
+                      </p-fileupload>
+                      <div class="text-xs text-gray-500 mt-2">
+                        Formatos permitidos: JPG, PNG, GIF. Tamaño máximo: 5MB
+                      </div>
+                    </div>
+
+                    <div *ngIf="selectedFile" class="border-2 border-dashed border-gray-300 rounded-lg p-4">
+                      <div class="flex items-center justify-between mb-3">
+                        <div>
+                          <div class="font-medium">{{ selectedFile.name }}</div>
+                          <div class="text-sm text-gray-500">{{ (selectedFile.size / 1024 / 1024).toFixed(2) }} MB</div>
+                        </div>
+                        <p-button 
+                          icon="pi pi-times" 
+                          severity="danger" 
+                          [text]="true"
+                          [rounded]="true"
+                          (onClick)="clearSelectedFile()"
+                          pTooltip="Eliminar archivo"
+                          [disabled]="uploadingImage()">
+                        </p-button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Preview Area -->
+                  <div *ngIf="imagePreview">
+                    <h6 class="font-bold mb-3">Vista Previa</h6>
+                    <div class="border rounded-lg overflow-hidden">
+                      <p-image 
+                        [src]="imagePreview" 
+                        alt="Vista previa de la imagen"
+                        width="100%"
+                        [preview]="true">
+                      </p-image>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Step 2 Actions -->
+                <div class="flex justify-between pt-4 border-t">
+                  <p-button 
+                    label="Volver" 
+                    icon="pi pi-arrow-left" 
+                    severity="secondary"
+                    [outlined]="true"
+                    (onClick)="previousStep()"
+                    [disabled]="uploadingImage()">
+                  </p-button>
+                  
+                  <div class="flex gap-2">
+                    <p-button 
+                      label="Omitir Imagen" 
+                      icon="pi pi-times" 
+                      severity="secondary"
+                      [text]="true"
+                      (onClick)="skipImageUpload()"
+                      [disabled]="uploadingImage()">
+                    </p-button>
+                    <p-button 
+                      label="Subir Imagen y Finalizar" 
+                      icon="pi pi-upload" 
+                      (onClick)="uploadImage()"
+                      [disabled]="!canCompleteStep2() || uploadingImage()"
+                      [loading]="uploadingImage()">
+                    </p-button>
+                  </div>
+                </div>
+              </div>
+            </ng-template>
+          </p-step-panel>
+        </p-step-panels>
+      </p-stepper>
+    </div>
+  </div>
+</p-dialog>

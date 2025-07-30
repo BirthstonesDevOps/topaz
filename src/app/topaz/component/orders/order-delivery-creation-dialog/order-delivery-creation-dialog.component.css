@@ -1,0 +1,190 @@
+:host {
+  --primary-color: #3b82f6;
+  --success-color: #10b981;
+  --danger-color: #ef4444;
+  --warning-color: #f59e0b;
+}
+
+/* Dialog container */
+::ng-deep .p-dialog .p-dialog-content {
+  padding: 1.5rem;
+  overflow: hidden;
+}
+
+/* Stepper styling */
+::ng-deep .p-stepper {
+  background: transparent;
+}
+
+::ng-deep .p-stepper .p-stepper-nav {
+  margin-bottom: 2rem;
+}
+
+::ng-deep .p-stepper .p-step-header {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+::ng-deep .p-stepper .p-step-header.p-highlight {
+  background: var(--primary-color);
+  color: white;
+}
+
+::ng-deep .p-stepper .p-step-header:not(.p-highlight) {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+/* File upload styling */
+::ng-deep .p-fileupload-basic {
+  width: 100%;
+}
+
+::ng-deep .p-fileupload-basic .p-button {
+  width: 100%;
+  padding: 1rem;
+  border: 2px dashed #d1d5db;
+  background: #f9fafb;
+  color: #374151;
+  border-radius: 0.5rem;
+  transition: all 0.3s ease;
+}
+
+::ng-deep .p-fileupload-basic .p-button:hover:not(:disabled) {
+  border-color: var(--primary-color);
+  background: #eff6ff;
+  color: var(--primary-color);
+}
+
+::ng-deep .p-fileupload-basic .p-button:focus {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* Image preview styling */
+.image-preview-container {
+  max-height: 400px;
+  overflow: hidden;
+  border-radius: 0.5rem;
+}
+
+::ng-deep .p-image img {
+  border-radius: 0.5rem;
+  max-height: 300px;
+  object-fit: cover;
+}
+
+/* Summary boxes */
+.summary-box {
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-left: 4px solid var(--primary-color);
+}
+
+.success-box {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border-left: 4px solid var(--success-color);
+}
+
+/* Button groups */
+.button-group {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+/* Loading states */
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  z-index: 10;
+}
+
+/* File info display */
+.file-info {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  padding: 1rem;
+}
+
+.file-info .file-name {
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 0.25rem;
+}
+
+.file-info .file-size {
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  ::ng-deep .p-dialog {
+    width: 95vw !important;
+    height: 95vh !important;
+    margin: 0;
+  }
+  
+  ::ng-deep .p-dialog .p-dialog-content {
+    padding: 1rem;
+  }
+  
+  .grid.grid-cols-1.lg\\:grid-cols-2 {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .button-group {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .button-group .p-button {
+    width: 100%;
+  }
+}
+
+/* Animation for step transitions */
+.step-content {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Custom scrollbar for dialog content */
+::ng-deep .p-dialog .p-dialog-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+::ng-deep .p-dialog .p-dialog-content::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+::ng-deep .p-dialog .p-dialog-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::ng-deep .p-dialog .p-dialog-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

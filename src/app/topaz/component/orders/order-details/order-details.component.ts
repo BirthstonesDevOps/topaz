@@ -23,7 +23,8 @@ import {
   GetRequest,
   ItemDetailsResponseModel,
   PurchaseOrderStatusService,
-  StatusFullDetailsResponseModel
+  StatusFullDetailsResponseModel,
+  PurchaseOrderDeliveryDetailsResponseModel
 } from '@birthstonesdevops/topaz.backend.ordersservice';
 import { 
   ProviderService,
@@ -33,6 +34,7 @@ import { StatusNoteTreeComponent } from '../../shared/status-note-tree/status-no
 import { ItemListComponent } from '../../shared/item-list/item-list.component';
 import { OrderDeliveryDetailsComponent } from '../order-delivery-details/order-delivery-details.component';
 import { Operations } from '../../models/operations.enum';
+import { OrderDeliveryCreationDialogComponent } from "../order-delivery-creation-dialog/order-delivery-creation-dialog.component";
 
 // Extended purchase order interface for detailed display
 interface EnrichedPurchaseOrderDetails extends PurchaseOrderDetailsResponseModel {
@@ -45,17 +47,18 @@ interface EnrichedPurchaseOrderDetails extends PurchaseOrderDetailsResponseModel
   selector: 'app-order-details',
   standalone: true,
   imports: [
-    CommonModule, 
+    CommonModule,
     FormsModule,
-    ButtonModule, 
-    ToastModule, 
-    ProgressSpinnerModule, 
-    TabsModule, 
-    TagModule, 
-    StatusNoteTreeComponent, 
+    ButtonModule,
+    ToastModule,
+    ProgressSpinnerModule,
+    TabsModule,
+    TagModule,
+    StatusNoteTreeComponent,
     ItemListComponent,
-    OrderDeliveryDetailsComponent
-  ],
+    OrderDeliveryDetailsComponent,
+    OrderDeliveryCreationDialogComponent
+],
   templateUrl: './order-details.component.html',
   styleUrl: './order-details.component.css',
   providers: [MessageService]
@@ -67,6 +70,9 @@ export class OrderDetailsComponent implements OnInit {
   pendingItems = signal<ItemDetailsResponseModel[]>([]);
   loading = signal<boolean>(false);
   error: string | null = null;
+
+  // Delivery creation dialog
+  showDeliveryDialog = signal<boolean>(false);
 
   constructor(
     private route: ActivatedRoute,
@@ -224,15 +230,51 @@ export class OrderDetailsComponent implements OnInit {
     return this.canAddItems() || this.canDeleteItems();
   }
 
+  hasDeliveries(): boolean {
+    return !!(this.orderDetails()?.deliveries && this.orderDetails()!.deliveries!.length > 0);
+  }
+
   // Check if deliveries tab should be shown
   canShowDeliveriesTab(): boolean {
     const operations = this.orderDetails()?.currentOperations || [];
     const hasCreateDeliveryOperation = operations.includes(Operations.CreatePurchaseOrderDelivery);
     const hasDeleteDeliveryOperation = operations.includes(Operations.DeletePurchaseOrderDelivery);
-    const hasDeliveries = !!(this.orderDetails()?.deliveries && this.orderDetails()!.deliveries!.length > 0);
-    
+
     // Show tab if user has delivery operations OR if there are already deliveries to view
-    return hasCreateDeliveryOperation || hasDeleteDeliveryOperation || hasDeliveries;
+    return hasCreateDeliveryOperation || hasDeleteDeliveryOperation || this.hasDeliveries();
+  }
+
+  canShowAddDeliveryButton(): boolean {
+    const operations = this.orderDetails()?.currentOperations || [];
+    const hasCreateDeliveryOperation = operations.includes(Operations.CreatePurchaseOrderDelivery);
+    return hasCreateDeliveryOperation;
+  }
+
+  // Delivery creation methods
+  openDeliveryDialog() {
+    if (!this.canShowAddDeliveryButton() || !this.orderId) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'Advertencia',
+        detail: 'No tienes permisos para crear entregas en esta orden'
+      });
+      return;
+    }
+    
+    this.showDeliveryDialog.set(true);
+  }
+
+  handleDeliveryCreated(createdDelivery: PurchaseOrderDeliveryDetailsResponseModel) {
+    console.log('Entrega creada:', createdDelivery);
+    
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Éxito',
+      detail: 'Entrega creada correctamente'
+    });
+
+    // Reload order details to show the new delivery
+    this.loadOrderDetails();
   }
 
   // Note addition handler
