@@ -1,7 +1,7 @@
 <p-toast></p-toast>
 
 <!-- Toolbar -->
-<p-toolbar styleClass="mb-6" *ngIf="!isLoading && hasItems && canAdd">
+<p-toolbar styleClass="mb-6" *ngIf="!isLoading && hasItems && canAdd && hasItemsToAdd()">
     <ng-template #start>
         <p-button 
             label="Agregar Artículo" 
@@ -26,7 +26,7 @@
         <div class="text-gray-600 font-bold text-xl mb-2">No hay artículos para mostrar</div>
         <div class="text-gray-500 mb-4">No se han agregado artículos a esta orden.</div>
         <p-button 
-            *ngIf="canAdd"
+            *ngIf="canAdd && hasItemsToAdd()"
             label="Agregar primer artículo" 
             icon="pi pi-plus" 
             severity="primary" 

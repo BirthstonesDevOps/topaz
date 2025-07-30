@@ -146,6 +146,12 @@ export class ItemListComponent implements OnInit, OnChanges {
     });
   });
 
+  // Check if there are items available to add (not already added)
+  hasItemsToAdd = computed(() => {
+    if (!this.canAdd) return false;
+    return this.availableItems().some(item => !item.isAlreadyAdded);
+  });
+
   // Computed maximum quantities
   maxQuantityForAdd = computed(() => {
     if (!this.selectedItemForAdd) return 999999;
@@ -187,15 +193,27 @@ export class ItemListComponent implements OnInit, OnChanges {
   ngOnInit() {
     this.initializeColumns();
     this.loadItemDetails();
+    // Load available items initially to determine if add button should be shown
+    if (this.onItemSave) {
+      this.loadAvailableItems();
+    }
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['items'] && !changes['items'].firstChange) {
       this.loadItemDetails();
+      // Reload available items when items change to update hasItemsToAdd
+      if (this.onItemSave) {
+        this.loadAvailableItems();
+      }
     }
     if ((changes['itemFilter'] && !changes['itemFilter'].firstChange)) {
-      // Clear available items when filter changes, they'll be reloaded when dialog opens
+      // Clear available items when filter changes, they'll be reloaded
       this.availableItems.set([]);
+      // Reload available items when filter changes
+      if (this.onItemSave) {
+        this.loadAvailableItems();
+      }
     }
   }
 
@@ -265,13 +283,15 @@ export class ItemListComponent implements OnInit, OnChanges {
   async openNew() {
     if (!this.onItemSave) return;
     
+    // Ensure available items are loaded
+    if (this.availableItems().length === 0) {
+      await this.loadAvailableItems();
+    }
+    
     this.selectedItemForAdd = null;
     this.quantityForAdd = 1;
     this.submitted.set(false);
     this.itemDialog.set(true);
-    
-    // Load available items
-    await this.loadAvailableItems();
   }
 
   async loadAvailableItems() {
