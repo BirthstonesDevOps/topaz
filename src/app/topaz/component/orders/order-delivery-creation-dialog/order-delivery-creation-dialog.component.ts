@@ -17,6 +17,8 @@ import { CreatePurchaseOrderDeliveryRequestModel } from '@birthstonesdevops/topa
 import { PurchaseOrderDeliveryDetailsResponseModel } from '@birthstonesdevops/topaz.backend.ordersservice';
 import { ItemRequestModel } from '@birthstonesdevops/topaz.backend.ordersservice';
 import { ItemDetailsResponseModel } from '@birthstonesdevops/topaz.backend.ordersservice';
+import { PurchaseOrderService } from '@birthstonesdevops/topaz.backend.ordersservice';
+import { DeleteRequest } from '@birthstonesdevops/topaz.backend.ordersservice';
 
 import { ItemListComponent } from '../../shared/item-list/item-list.component';
 
@@ -62,6 +64,7 @@ export class OrderDeliveryCreationDialogComponent {
   selectedFile = signal<File | null>(null);
   imagePreview: string | null = null;
   uploadingImage = signal<boolean>(false);
+  deliveryCompleted = false; // Track if delivery was successfully completed
 
   // Computed properties
   canProceedToStep2 = computed(() => {
@@ -75,6 +78,7 @@ export class OrderDeliveryCreationDialogComponent {
 
   constructor(
     private deliveryService: PurchaseOrderDeliveryService,
+    private purchaseOrderService: PurchaseOrderService,
     private messageService: MessageService
   ) {}
 
@@ -84,10 +88,32 @@ export class OrderDeliveryCreationDialogComponent {
     this.visibleChange.emit(true);
   }
 
-  hide() {
+  async hide() {
+    // If delivery was created but not completed, delete it
+    if (this.createdDelivery?.id && !this.deliveryCompleted) {
+      await this.deleteIncompleteDelivery();
+    }
+
     this.visible = false;
     this.visibleChange.emit(false);
     this.resetDialog();
+  }
+
+  private async deleteIncompleteDelivery() {
+    if (!this.createdDelivery?.id) return;
+
+    try {
+      const deleteRequest: DeleteRequest = {
+        ids: [new Number(this.createdDelivery.id)]
+      };
+
+      await this.purchaseOrderService.purchaseOrderDelete(deleteRequest).toPromise();
+      
+      console.log('Delivery deleted due to incomplete process:', this.createdDelivery.id);
+    } catch (error) {
+      console.error('Error deleting incomplete delivery:', error);
+      // Don't show error to user since this is cleanup
+    }
   }
 
   resetDialog() {
@@ -99,6 +125,7 @@ export class OrderDeliveryCreationDialogComponent {
     this.imagePreview = null;
     this.creatingDelivery.set(false);
     this.uploadingImage.set(false);
+    this.deliveryCompleted = false;
   }
 
   // Step navigation
@@ -258,6 +285,9 @@ export class OrderDeliveryCreationDialogComponent {
           detail: 'Imagen subida correctamente'
         });
 
+        // Mark delivery as completed before closing
+        this.deliveryCompleted = true;
+        
         // Emit the created delivery and close dialog
         this.deliveryCreated.emit(this.createdDelivery);
         this.hide();
@@ -271,14 +301,6 @@ export class OrderDeliveryCreationDialogComponent {
       });
     } finally {
       this.uploadingImage.set(false);
-    }
-  }
-
-  // Skip image upload and complete
-  skipImageUpload() {
-    if (this.createdDelivery) {
-      this.deliveryCreated.emit(this.createdDelivery);
-      this.hide();
     }
   }
 

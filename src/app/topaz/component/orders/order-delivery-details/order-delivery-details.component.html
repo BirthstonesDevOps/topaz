@@ -1,72 +1,142 @@
-<div class="card" *ngIf="deliveryDetails">
-  <div class="flex flex-col gap-6">
-    <!-- Header -->
-    <div class="flex items-center justify-between">
-      <h5 class="m-0 text-xl font-semibold">Detalles de Entrega</h5>
-      <div class="flex gap-2">
+<div *ngIf="deliveryDetails" class="flex flex-col gap-6">
+  <!-- Header Card -->
+  <div class="card">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div class="flex flex-col gap-2">
+        <h3 class="text-2xl font-semibold text-surface-900 m-0">Detalles de Entrega</h3>
+        <div class="flex flex-col sm:flex-row gap-3 text-sm text-surface-600">
+          <div *ngIf="deliveryDetails.createdAt" class="flex items-center gap-2">
+            <i class="pi pi-calendar text-primary-500"></i>
+            <span>Creado: {{ formattedCreatedDate }}</span>
+          </div>
+          <div *ngIf="deliveryDetails.updatedAt" class="flex items-center gap-2">
+            <i class="pi pi-clock text-surface-500"></i>
+            <span>Actualizado: {{ formattedUpdatedDate }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
         <p-tag *ngIf="deliveryDetails.id" 
-               [value]="'#' + deliveryDetails.id" 
-               severity="info" />
+               [value]="'ID: ' + deliveryDetails.id" 
+               severity="info" 
+               [rounded]="true" />
+        <p-tag value="Entrega" 
+               severity="success" 
+               icon="pi pi-truck" 
+               [rounded]="true" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content Grid -->
+  <div class="grid grid-cols-12 gap-6">
+    
+    <!-- Left Column - Image and Notes -->
+    <div class="col-span-12 lg:col-span-5 flex flex-col gap-6">
+      
+      <!-- Image Section -->
+      <div *ngIf="hasImage" class="card">
+        <div class="flex flex-col gap-4">
+          <div class="flex items-center gap-3">
+            <i class="pi pi-image text-xl text-primary-500"></i>
+            <h4 class="font-semibold text-lg m-0">Imagen de Entrega</h4>
+          </div>
+          <div class="flex justify-center bg-surface-50 p-6 border-2 border-dashed border-surface-200 rounded-lg">
+            <p-image 
+              [src]="deliveryDetails.imageURL!" 
+              alt="Imagen de entrega" 
+              width="300"
+              [preview]="true"
+              imageClass="rounded-lg shadow-md" />
+          </div>
+        </div>
+      </div>
+
+      <!-- No Image State -->
+      <div *ngIf="!hasImage" class="card">
+        <div class="flex flex-col gap-4">
+          <div class="flex items-center gap-3">
+            <i class="pi pi-image text-xl text-surface-400"></i>
+            <h4 class="font-semibold text-lg m-0 text-surface-600">Imagen de Entrega</h4>
+          </div>
+          <div class="flex flex-col items-center justify-center bg-surface-50 p-8 border-2 border-dashed border-surface-200 rounded-lg text-center">
+            <i class="pi pi-image text-4xl text-surface-300 mb-3"></i>
+            <span class="text-surface-500 font-medium">Sin imagen disponible</span>
+            <span class="text-surface-400 text-sm">No se subió imagen para esta entrega</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes Section -->
+      <div class="card">
+        <div class="flex flex-col gap-4">
+          <div class="flex items-center gap-3">
+            <i class="pi pi-file-edit text-xl text-primary-500"></i>
+            <h4 class="font-semibold text-lg m-0">Notas</h4>
+          </div>
+          
+          <div *ngIf="hasNote" class="bg-primary-50 border-l-4 border-primary-400 p-4 rounded-r-lg">
+            <div class="flex items-start gap-3">
+              <i class="pi pi-info-circle text-primary-600 mt-1"></i>
+              <div class="flex-1">
+                <p class="m-0 text-surface-700 leading-relaxed">{{ deliveryDetails.note }}</p>
+              </div>
+            </div>
+          </div>
+          
+          <div *ngIf="!hasNote" class="bg-surface-50 p-4 rounded-lg text-center">
+            <i class="pi pi-comment text-2xl text-surface-300 mb-2"></i>
+            <div class="text-surface-500 font-medium">Sin notas</div>
+            <div class="text-surface-400 text-sm">No hay notas para esta entrega</div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Metadata -->
-    <div class="flex flex-col sm:flex-row gap-4 text-sm text-gray-600" *ngIf="deliveryDetails.createdAt || deliveryDetails.updatedAt">
-      <div *ngIf="deliveryDetails.createdAt" class="flex items-center gap-2">
-        <i class="pi pi-calendar"></i>
-        <span>Creado: {{ formattedCreatedDate }}</span>
+    <!-- Right Column - Items -->
+    <div class="col-span-12 lg:col-span-7">
+      <div class="card h-full">
+        <div class="flex flex-col gap-4 h-full">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <i class="pi pi-list text-xl text-primary-500"></i>
+              <h4 class="font-semibold text-lg m-0">Artículos</h4>
+            </div>
+            <p-tag *ngIf="hasItems" 
+                   [value]="deliveryDetails.items!.length + ' artículo' + (deliveryDetails.items!.length === 1 ? '' : 's')" 
+                   severity="info" />
+          </div>
+          
+          <p-divider />
+          
+          <!-- Items List -->
+          <div *ngIf="hasItems" class="flex-1">
+            <app-item-list 
+              [items]="deliveryDetails.items!"
+              [showMeasurement]="true"
+              [showDescription]="true">
+            </app-item-list>
+          </div>
+          
+          <!-- No Items State -->
+          <div *ngIf="!hasItems" class="flex-1 flex flex-col items-center justify-center bg-surface-50 rounded-lg p-8 text-center">
+            <i class="pi pi-inbox text-4xl text-surface-300 mb-3"></i>
+            <div class="text-surface-500 font-medium mb-1">Sin artículos</div>
+            <div class="text-surface-400 text-sm">No hay artículos registrados en esta entrega</div>
+          </div>
+        </div>
       </div>
-      <div *ngIf="deliveryDetails.updatedAt" class="flex items-center gap-2">
-        <i class="pi pi-refresh"></i>
-        <span>Actualizado: {{ formattedUpdatedDate }}</span>
-      </div>
-    </div>
-
-    <!-- Image Section -->
-    <div *ngIf="hasImage" class="flex flex-col gap-4">
-      <div class="font-semibold text-lg">Imagen</div>
-      <div class="flex justify-center p-4 bg-gray-50 rounded-lg">
-        <p-image 
-          [src]="deliveryDetails.imageURL!" 
-          alt="Imagen de entrega" 
-          width="300"
-          [preview]="true" />
-      </div>
-    </div>
-
-    <!-- Note Section -->
-    <div *ngIf="hasNote" class="flex flex-col gap-4">
-      <div class="font-semibold text-lg">Notas</div>
-      <div class="p-4 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg">
-        <p class="m-0 text-gray-700 leading-relaxed">{{ deliveryDetails.note }}</p>
-      </div>
-    </div>
-
-    <!-- Items Section -->
-    <div *ngIf="hasItems" class="flex flex-col gap-4">
-      <p-divider />
-      <div class="font-semibold text-lg">Artículos</div>
-      <app-item-list 
-        [items]="deliveryDetails.items!"
-        [showMeasurement]="true"
-        [showDescription]="true">
-      </app-item-list>
-    </div>
-
-    <!-- Empty State -->
-    <div *ngIf="!hasImage && !hasNote && !hasItems" class="text-center py-8">
-      <i class="pi pi-info-circle text-4xl text-gray-400 mb-4"></i>
-      <div class="text-gray-600 font-medium text-lg mb-2">Sin detalles adicionales</div>
-      <div class="text-gray-500">No hay imagen, notas o artículos para mostrar.</div>
     </div>
   </div>
 </div>
 
 <!-- No Data State -->
 <div *ngIf="!deliveryDetails" class="card">
-  <div class="text-center py-8">
-    <i class="pi pi-exclamation-triangle text-4xl text-yellow-400 mb-4"></i>
-    <div class="text-gray-600 font-medium text-lg mb-2">Sin datos de entrega</div>
-    <div class="text-gray-500">No se han proporcionado detalles de entrega para mostrar.</div>
+  <div class="flex flex-col items-center justify-center text-center p-12">
+    <div class="bg-surface-100 rounded-full p-6 mb-4">
+      <i class="pi pi-exclamation-triangle text-4xl text-orange-500"></i>
+    </div>
+    <h3 class="text-xl font-semibold text-surface-700 mb-2">Sin datos de entrega</h3>
+    <p class="text-surface-500 max-w-md">No se han proporcionado detalles de entrega para mostrar en este momento.</p>
   </div>
 </div>

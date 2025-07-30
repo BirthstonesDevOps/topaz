@@ -168,13 +168,6 @@
       <!-- Step 2 Buttons -->
       <div *ngIf="currentStep() === 1" class="flex gap-2">
         <p-button 
-          label="Omitir Imagen" 
-          icon="pi pi-times" 
-          severity="secondary"
-          [text]="true"
-          (onClick)="skipImageUpload()"
-          [disabled]="uploadingImage()" />
-        <p-button 
           label="Subir Imagen y Finalizar" 
           icon="pi pi-upload" 
           (onClick)="uploadImage()"

@@ -8,6 +8,7 @@ import { ToastModule } from 'primeng/toast';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
+import { CarouselModule } from 'primeng/carousel';
 import { FormsModule } from '@angular/forms';
 
 import { 
@@ -54,6 +55,7 @@ interface EnrichedPurchaseOrderDetails extends PurchaseOrderDetailsResponseModel
     ProgressSpinnerModule,
     TabsModule,
     TagModule,
+    CarouselModule,
     StatusNoteTreeComponent,
     ItemListComponent,
     OrderDeliveryDetailsComponent,
@@ -73,6 +75,25 @@ export class OrderDetailsComponent implements OnInit {
 
   // Delivery creation dialog
   showDeliveryDialog = signal<boolean>(false);
+
+  // Carousel responsive options
+  carouselResponsiveOptions: any[] = [
+    {
+      breakpoint: '1199px',
+      numVisible: 2,
+      numScroll: 1
+    },
+    {
+      breakpoint: '991px',
+      numVisible: 1,
+      numScroll: 1
+    },
+    {
+      breakpoint: '767px',
+      numVisible: 1,
+      numScroll: 1
+    }
+  ];
 
   constructor(
     private route: ActivatedRoute,
