@@ -228,7 +228,7 @@ export class RequestsComponent implements OnInit {
         this.messageService.add({
           severity: 'success',
           summary: 'Éxito',
-          detail: 'Solicitud creada correctamente'
+          detail: 'Pedido creado correctamente'
         });
       }
     } catch (error) {
@@ -236,7 +236,7 @@ export class RequestsComponent implements OnInit {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Error creando la solicitud'
+        detail: 'Error creando el pedido'
       });
     }
 
@@ -275,7 +275,7 @@ export class RequestsComponent implements OnInit {
       this.messageService.add({
         severity: 'success',
         summary: 'Éxito',
-        detail: 'Solicitud eliminada correctamente'
+        detail: 'Pedido eliminado correctamente'
       });
       
       this.cancelDelete();
@@ -284,7 +284,7 @@ export class RequestsComponent implements OnInit {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Error eliminando la solicitud'
+        detail: 'Error eliminando el pedido'
       });
     } finally {
       this.deletingRequest.set(false);
@@ -336,7 +336,7 @@ export class RequestsComponent implements OnInit {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'No se encontró la solicitud a editar'
+        detail: 'No se encontró el pedido a editar'
       });
     }
   }
@@ -359,7 +359,7 @@ export class RequestsComponent implements OnInit {
         this.messageService.add({
           severity: 'success',
           summary: 'Éxito',
-          detail: 'Solicitud actualizada correctamente'
+          detail: 'Pedido actualizado correctamente'
         });
       }
     } catch (error) {
@@ -367,7 +367,7 @@ export class RequestsComponent implements OnInit {
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Error actualizando la solicitud'
+        detail: 'Error actualizando el pedido'
       });
     }
 

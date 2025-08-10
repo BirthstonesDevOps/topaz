@@ -143,7 +143,7 @@ export class RequestCreationDialogComponent implements OnInit, OnChanges {
 
   // Computed properties for edit mode
   dialogTitle = computed(() => {
-    return this.isEditMode ? 'Editar Solicitud' : 'Crear Nueva Solicitud';
+    return this.isEditMode ? 'Editar Pedido' : 'Crear Nuevo Pedido';
   });
 
   shouldShowStepper = computed(() => {
@@ -400,7 +400,7 @@ export class RequestCreationDialogComponent implements OnInit, OnChanges {
   }
 
   getSubmitButtonLabel(): string {
-    return this.isEditMode ? 'Actualizar Solicitud' : 'Crear Solicitud';
+    return this.isEditMode ? 'Actualizar Pedido' : 'Crear Pedido';
   }
 
   getSubmitButtonIcon(): string {

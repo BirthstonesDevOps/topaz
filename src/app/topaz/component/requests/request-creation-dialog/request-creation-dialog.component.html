@@ -35,7 +35,7 @@
 
     <!-- Step 1: Basic Information -->
     <div *ngIf="currentStep() === 1" class="step-content">
-      <h3 class="text-xl font-semibold mb-6">{{ isEditMode ? 'Editar Información de la Solicitud' : 'Información de la Solicitud' }}</h3>
+      <h3 class="text-xl font-semibold mb-6">{{ isEditMode ? 'Editar Información del Pedido' : 'Información del Pedido' }}</h3>
       
       <div class="flex flex-col gap-6">
         <!-- Area Selection -->
@@ -111,7 +111,7 @@
 
     <!-- Step 2: Items (only show in create mode) -->
     <div *ngIf="currentStep() === 2 && !isEditMode" class="step-content">
-      <h3 class="text-xl font-semibold mb-6">Artículos de la Solicitud</h3>
+      <h3 class="text-xl font-semibold mb-6">Artículos del Pedido</h3>
       
       <app-item-list
         [items]="stepData().items"
@@ -125,7 +125,7 @@
 
     <!-- Step 3: Summary (only show in create mode) -->
     <div *ngIf="currentStep() === 3 && !isEditMode" class="step-content">
-      <h3 class="text-xl font-semibold mb-6">Resumen de la Solicitud</h3>
+      <h3 class="text-xl font-semibold mb-6">Resumen del Pedido</h3>
       
       <div class="flex flex-col gap-6">
         <!-- Basic Information Summary -->

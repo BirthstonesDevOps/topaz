@@ -234,7 +234,7 @@ export class OrdersComponent implements OnInit, OnChanges {
       this.messageService.add({
         severity: 'warn',
         summary: 'Advertencia',
-        detail: 'Se requiere un ID de solicitud para crear una orden'
+        detail: 'Se requiere un ID de pedido para crear una orden'
       });
       return;
     }
