@@ -15,8 +15,11 @@
     <span class="ml-3 text-lg">Cargando datos...</span>
   </div>
 
-  <!-- Main Content -->
-  <div *ngIf="!loading() && dataLoaded()">
+  <!-- Main Content with scroll -->
+  <div 
+    *ngIf="!loading() && dataLoaded()" 
+    style="max-height: 70vh; min-height: 70vh; overflow-y: auto; padding-right: 8px;"
+  >
     
     <!-- Stepper (only show in create mode) -->
     <p-stepper *ngIf="shouldShowStepper()" [value]="currentStep()" class="mb-6">
