@@ -52,15 +52,17 @@
     styleClass="auto-width-table"
 >
     <ng-template #caption>
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-2">
             <h5 class="m-0">Lista de Artículos</h5>
-            <p-iconfield>
+            <p-iconfield class="flex-1 min-w-[150px] max-w-xs sm:max-w-sm md:max-w-md">
                 <p-inputicon styleClass="pi pi-search" />
                 <input 
                     pInputText 
                     type="text" 
                     (input)="onGlobalFilter(dt, $event)" 
-                    placeholder="Buscar..." />
+                    placeholder="Buscar..." 
+                    class="w-full"
+                />
             </p-iconfield>
         </div>
     </ng-template>
