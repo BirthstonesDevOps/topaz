@@ -65,16 +65,18 @@
                     <h6 class="font-bold mb-3">Subir Imagen de la Entrega</h6>
                     
                     <div *ngIf="!selectedFile()">
-                      <p-fileupload 
-                        mode="basic" 
-                        chooseLabel="Seleccionar Imagen" 
-                        chooseIcon="pi pi-upload"
-                        accept="image/*" 
-                        maxFileSize="5000000"
-                        (onSelect)="onFileSelect($event)"
-                        [auto]="false"
-                        [disabled]="uploadingImage()">
-                      </p-fileupload>
+                      <div class="flex justify-start">
+                        <p-fileupload 
+                          mode="basic" 
+                          chooseLabel="Seleccionar Imagen" 
+                          chooseIcon="pi pi-upload"
+                          accept="image/*" 
+                          maxFileSize="5000000"
+                          (onSelect)="onFileSelect($event)"
+                          [auto]="false"
+                          [disabled]="uploadingImage()">
+                        </p-fileupload>
+                      </div>
                       <div class="text-xs text-gray-500 mt-2">
                         Formatos permitidos: JPG, PNG, GIF. Tamaño máximo: 5MB
                       </div>
