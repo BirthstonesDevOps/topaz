@@ -25,7 +25,7 @@
     </div>
 </div>
 
-<p-toolbar styleClass="mb-6" *ngIf="!loading() && allOrders().length > 0 && requestId">
+<p-toolbar styleClass="mb-6" *ngIf="!loading() && requestId && itemFilter && itemFilter.length > 0">
     <ng-template pTemplate="start">
         <p-button label="Nueva orden de compra" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openCreateDialog()" />
     </ng-template>

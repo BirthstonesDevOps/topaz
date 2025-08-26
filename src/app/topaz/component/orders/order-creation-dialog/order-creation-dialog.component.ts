@@ -96,7 +96,7 @@ export class OrderCreationDialogComponent implements OnInit, OnChanges {
 
   step1Valid = computed(() => {
     const data = this.stepData();
-    return !!(data.providerId && data.orderNumber.trim());
+    return !!data.providerId; // Only providerId is required
   });
 
   step2Valid = computed(() => {

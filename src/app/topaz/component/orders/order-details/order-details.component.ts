@@ -66,6 +66,8 @@ interface EnrichedPurchaseOrderDetails extends PurchaseOrderDetailsResponseModel
   providers: [MessageService]
 })
 export class OrderDetailsComponent implements OnInit {
+  // Track delivered items with quantity 1 (built from all deliveries)
+  deliveredSingleItems: number[] = [];
   orderId: number | null = null;
   orderDetails = signal<EnrichedPurchaseOrderDetails | null>(null);
   requestDetails = signal<RequestDetailsResponseModel | null>(null);
@@ -173,6 +175,18 @@ export class OrderDetailsComponent implements OnInit {
         }
         
         this.orderDetails.set(enrichedOrder);
+
+          // Build deliveredSingleItems from all deliveries
+          this.deliveredSingleItems = [];
+          if (orderDetails.deliveries && orderDetails.deliveries.length > 0) {
+            orderDetails.deliveries.forEach(delivery => {
+              (delivery.items ?? []).forEach(item => {
+                if (item.quantity === 1 && typeof item.itemId === 'number' && !this.deliveredSingleItems.includes(item.itemId)) {
+                  this.deliveredSingleItems.push(item.itemId);
+                }
+              });
+            });
+          }
         
         // Load request details to get items pending
         if (orderDetails.requestId) {

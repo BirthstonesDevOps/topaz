@@ -131,7 +131,7 @@ export class OrderDeliveryCreationDialogComponent {
   // Step navigation
   nextStep() {
     if (this.currentStep() === 0 && this.canProceedToStep2()) {
-      this.createDelivery();
+      this.currentStep.set(1);
     }
   }
 
@@ -263,14 +263,42 @@ export class OrderDeliveryCreationDialogComponent {
   }
 
   async uploadImage() {
-    if (!this.selectedFile() || !this.createdDelivery?.id) {
+    if (!this.selectedFile()) {
       return;
     }
 
-    const fileToUpload = this.selectedFile()!; // We know it's not null due to the check above
     this.uploadingImage.set(true);
 
     try {
+      // Create delivery first if not already created
+      if (!this.createdDelivery) {
+        const deliveryRequest: CreatePurchaseOrderDeliveryRequestModel = {
+          purchaseOrderId: this.purchaseOrderId,
+          note: this.note.trim() || null,
+          items: this.items()
+        };
+        this.creatingDelivery.set(true);
+        try {
+          const createdDelivery = await this.deliveryService
+            .purchaseOrderDeliveryCreatePurchaseOrderDelivery(deliveryRequest)
+            .toPromise();
+          if (createdDelivery) {
+            this.createdDelivery = createdDelivery;
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Éxito',
+              detail: 'Entrega creada correctamente'
+            });
+          } else {
+            throw new Error('No se pudo crear la entrega');
+          }
+        } finally {
+          this.creatingDelivery.set(false);
+        }
+      }
+
+      // Now upload the file
+      const fileToUpload = this.selectedFile()!;
       const updatedPurchaseOrder = await this.deliveryService
         .purchaseOrderDeliveryUploadPurchaseOrderDeliveryImage(
           this.createdDelivery.id,
@@ -293,11 +321,11 @@ export class OrderDeliveryCreationDialogComponent {
         this.hide();
       }
     } catch (error) {
-      console.error('Error uploading image:', error);
+      console.error('Error creando entrega o subiendo imagen:', error);
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Error subiendo la imagen'
+        detail: 'Error creando la entrega o subiendo la imagen'
       });
     } finally {
       this.uploadingImage.set(false);
