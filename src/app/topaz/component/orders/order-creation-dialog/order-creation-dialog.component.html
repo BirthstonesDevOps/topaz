@@ -16,7 +16,7 @@
   </div>
 
   <!-- Main Content -->
-  <div *ngIf="!loading() && dataLoaded()">
+  <div *ngIf="!loading() && dataLoaded()" style='max-height: 70vh; min-height: 70vh; overflow-y: auto;'>
     
     <!-- Stepper -->
     <p-stepper *ngIf="shouldShowStepper()" [value]="currentStep()" class="mb-6">
@@ -68,7 +68,7 @@
 
         <!-- Order Number Input -->
         <div class="flex flex-col gap-2">
-          <label for="orderNumber" class="font-medium">Código TANGO *</label>
+          <label for="orderNumber" class="font-medium">Código TANGO (Opcional)</label>
           <input 
             id="orderNumber"
             pInputText 
