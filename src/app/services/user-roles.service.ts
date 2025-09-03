@@ -7,13 +7,17 @@ export class UserRolesService {
   private _userRoles: WritableSignal<number[]> = signal(this._loadUserRoles());
 
   constructor() {
-    this._loadUserRoles();
   }
 
   // Load user roles from localStorage
   private _loadUserRoles(): number[] {
     const stored = localStorage.getItem('userRoles');
-    return stored ? JSON.parse(stored) : [0, 1, 2, 3];
+    if(stored){
+      return JSON.parse(stored);
+    } else{
+      localStorage.setItem('userRoles', JSON.stringify([4]));
+      return [4];
+    }
   }
 
   // Expose the signal for components to consume
@@ -23,7 +27,7 @@ export class UserRolesService {
 
   // Update user roles and sync with localStorage
   setUserRoles(roles: number[]): void {
-    this._userRoles.update(() => roles);
+    this._userRoles.set(roles);
     localStorage.setItem('userRoles', JSON.stringify(roles));
   }
 }
