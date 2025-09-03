@@ -99,11 +99,12 @@ export class ProvidersComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadProviders();
-    
+    this.getUserRoles();
   }
 
   getUserRoles(){
     this.userRoles = this.userRolesService.userRoles();
+    console.log('userRoles: ', this.userRoles);
   }
 
   loadProviders(): void {
