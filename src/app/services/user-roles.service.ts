@@ -14,7 +14,7 @@ export class UserRolesService {
   private _loadUserRoles(): number[] {
     // Since the API call is asynchronous, return a default value synchronously
     // and update the signal when the response arrives.
-    this.permissionSv.permissionGetPermissionsByEmail().subscribe(
+    this.permissionSv?.permissionGetPermissionsByEmail().subscribe(
       response => {
         console.log('permissions: ',response);
         // Update the signal with the actual roles when received
