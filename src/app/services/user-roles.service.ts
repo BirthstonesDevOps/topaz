@@ -5,9 +5,9 @@ import { PermissionService } from '@birthstonesdevops/topaz.backend.organization
   providedIn: 'root'
 })
 export class UserRolesService {
-  private _userRoles: WritableSignal<number[]> = signal(this._loadUserRoles());
-  permissionSv = inject(PermissionService);
-  constructor() {
+  private _userRoles: WritableSignal<number[]> = signal([0]);
+  constructor(private permissionSv: PermissionService) {
+    this._userRoles.set(this._loadUserRoles());
   }
 
   // Load user roles from localStorage
