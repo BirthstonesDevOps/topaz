@@ -126,7 +126,7 @@
                         severity="danger"
                         (onClick)="rejectRequest()" />
                     <p-button 
-                        *ngIf="canReviseRequest()"
+                        *ngIf="canReviseRequest() && (userRoles().includes(8) || userRoles().includes(0))"
                         label="Revisar Pedido" 
                         icon="pi pi-pencil" 
                         severity="info"

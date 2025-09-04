@@ -31,7 +31,10 @@
         <i class="pi pi-box big-icon text-gray-400 mb-4"></i>
         <div class="text-gray-600 font-bold text-xl mb-2">No hay artículos</div>
         <div class="text-gray-500 mb-4">No se han registrado artículos aún. Comienza agregando el primer artículo.</div>
-        <p-button label="Agregar artículo" icon="pi pi-plus" severity="primary" (onClick)="openNew()"></p-button>
+        @if(userRoles().includes(6) || userRoles().includes(0)){ 
+            <p-button label="Agregar artículo" icon="pi pi-plus" severity="primary" (onClick)="openNew()"></p-button>
+        }
+        
     </div>
 </div>
 
@@ -92,6 +95,7 @@
                             (onClick)="viewItemDescription(item)" 
                             pTooltip="Ver descripción" />
                         <p-button 
+                            *ngIf="userRoles().includes(7) || userRoles().includes(0)"
                             icon="pi pi-trash" 
                             severity="danger" 
                             [rounded]="true" 

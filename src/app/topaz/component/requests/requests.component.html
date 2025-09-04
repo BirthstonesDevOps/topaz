@@ -12,13 +12,18 @@
         <i class="pi pi-shopping-cart big-icon text-gray-400 mb-4"></i>
         <div class="text-gray-600 font-bold text-xl mb-2">No hay pedidos</div>
         <div class="text-gray-500 mb-4">No se han registrado pedidos aún. Comienza creando el primer pedido.</div>
-        <p-button label="Crear pedido" icon="pi pi-plus" severity="primary" (onClick)="openCreateDialog()"></p-button>
+        @if(userRoles().includes(4) || userRoles().includes(0)){ 
+            <p-button label="Crear pedido" icon="pi pi-plus" severity="primary" (onClick)="openCreateDialog()"></p-button>
+        }
     </div>
 </div>
 
 <p-toolbar styleClass="mb-6" *ngIf="!loading() && allRequests().length > 0">
     <ng-template #start>
+      @if(userRoles().includes(4) || userRoles().includes(0)){
         <p-button label="Nuevo pedido" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openCreateDialog()" />
+      }
+        
     </ng-template>
 </p-toolbar>
 
@@ -182,7 +187,7 @@
             
             <!-- Delete Button -->
             <p-button 
-              *ngIf="canDeleteRequest(request)"
+              *ngIf="canDeleteRequest(request) && (userRoles().includes(5) || userRoles().includes(0))"
               icon="pi pi-trash" 
               severity="danger" 
               size="small"
