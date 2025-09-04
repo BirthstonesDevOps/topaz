@@ -71,7 +71,8 @@ export interface PriceFormModel {
 })
 export class ItemsComponent implements OnInit {
   loading: boolean = true;
-  userRoles = inject(UserRolesService).userRoles;
+  userRolesSv = inject(UserRolesService);
+  userRoles = this.userRolesSv.userRoles();
   items = signal<ItemDetailsResponseModel[]>([]);
   providers = signal<ProviderResponseModel[]>([]);
   categories = signal<CategoryTreeModel[]>([]);

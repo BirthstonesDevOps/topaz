@@ -105,7 +105,7 @@
                         <!-- Toolbar for Deliveries -->
                         <div class="flex justify-between items-center mb-4" *ngIf="canShowAddDeliveryButton() && hasDeliveries()">
                             <h3 class="text-lg font-semibold text-color">Entregas</h3>
-                            <p-button 
+                            <p-button *ngIf="userRoles().includes(17) || userRoles().includes(0)"
                                 label="Nueva Entrega" 
                                 icon="pi pi-plus" 
                                 (onClick)="openDeliveryDialog()"
@@ -143,7 +143,7 @@
                                 <div class="font-semibold text-lg mb-2" style="color: var(--text-color-secondary)">No hay Entregas</div>
                                 <div class="mb-4" style="color: var(--text-color-secondary)">No se han registrado entregas para esta orden aún.</div>
                                 <p-button 
-                                    *ngIf="canShowAddDeliveryButton()"
+                                    *ngIf="canShowAddDeliveryButton() && (userRoles().includes(17) || userRoles().includes(0))"
                                     label="Crear Primera Entrega" 
                                     icon="pi pi-plus" 
                                     (onClick)="openDeliveryDialog()"
