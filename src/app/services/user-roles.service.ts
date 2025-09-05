@@ -6,6 +6,10 @@ import { PermissionService } from '@birthstonesdevops/topaz.backend.organization
 })
 export class UserRolesService {
   private _userRoles: WritableSignal<number[]> = signal([0]);
+
+  allCookies = document.cookie; // Returns a string of all accessible cookies
+// To get a specific cookie value:
+  myCookie = this.getCookie('_oauth2_proxy');
   constructor(private permissionSv: PermissionService) {
     this._userRoles.set(this._loadUserRoles());
   }
@@ -39,4 +43,10 @@ export class UserRolesService {
     this._userRoles.set(roles);
     localStorage.setItem('userRoles', JSON.stringify(roles));
   }
+
+  public getCookie(name: string): string | null {
+    console.log('cookies: ', document.cookie);
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? decodeURIComponent(match[2]) : null;
+}
 }
