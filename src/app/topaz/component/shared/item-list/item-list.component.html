@@ -3,7 +3,7 @@
 <!-- Toolbar -->
 <p-toolbar styleClass="mb-6" *ngIf="!isLoading && hasItems && canAdd && hasItemsToAdd()">
     <ng-template #start>
-        <p-button 
+        <p-button *ngIf="userRoles.includes(0) || userRoles.includes(6)"
             label="Agregar Artículo" 
             icon="pi pi-plus" 
             severity="secondary" 

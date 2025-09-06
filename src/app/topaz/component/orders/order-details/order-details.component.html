@@ -32,7 +32,7 @@
         <p-tabs [value]="0">
             <p-tablist>
                 <p-tab [value]="0">Detalles</p-tab>
-                <p-tab [value]="1">Estado</p-tab>
+                <p-tab *ngIf="userRoles().includes(0) || userRoles().includes(16)" [value]="1">Estado</p-tab>
                 <p-tab [value]="2" *ngIf="canShowDeliveriesTab()">Entregas</p-tab>
             </p-tablist>
             
