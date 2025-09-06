@@ -19,10 +19,11 @@ export class UserRolesService {
     // Since the API call is asynchronous, return a default value synchronously
     // and update the signal when the response arrives.
     this.permissionSv?.permissionGetPermissionsByEmail().subscribe(
-      response => {
-        console.log('permissions: ',response);
-        // Update the signal with the actual roles when received
-        this._userRoles.set([0]); // Replace [0] with actual roles from response if available
+      (response: string[]) => {
+        console.log('permissions: ', response);
+        // Parse strings to numbers and filter out NaN
+        const roles = response.map(r => Number(r)).filter(n => !isNaN(n));
+        this._userRoles.set(roles);
       },
       error => {
         console.error('Error fetching permissions:', error);
@@ -30,7 +31,7 @@ export class UserRolesService {
       }
     );
     // Return a default value synchronously
-    return [0];
+    return [-1];
   }
 
   // Expose the signal for components to consume
