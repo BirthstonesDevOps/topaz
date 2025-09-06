@@ -83,8 +83,8 @@
                 {{ location.createdAt | date: 'short' }}
             </td>
             <td>
-                <p-button icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true" (click)="editLocation(location)" />
-                <p-button icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true" (click)="deleteLocation(location)" />
+                <p-button *ngIf="userRoles().includes(0) || userRoles().includes(3)" icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true" (click)="editLocation(location)" />
+                <p-button *ngIf="userRoles().includes(0) || userRoles().includes(3)" icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true" (click)="deleteLocation(location)" />
             </td>
         </tr>
     </ng-template>

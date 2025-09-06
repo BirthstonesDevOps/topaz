@@ -69,8 +69,8 @@
                 <div class="flex justify-between items-center w-full mr-4">
                     <span>{{ provider.name }}</span>
                     <div>
-                        <p-button *nfIf="userRoles.includes(0) || userRoles.includes(2)" icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true" (click)="editProvider(provider)" />
-                        <p-button *nfIf="userRoles.includes(0) || userRoles.includes(2)" icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true" (click)="deleteProvider(provider)" />
+                        <p-button *ngIf="userRoles.includes(0) || userRoles.includes(2)" icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true" (click)="editProvider(provider)" />
+                        <p-button *ngIf="userRoles.includes(0) || userRoles.includes(2)" icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true" (click)="deleteProvider(provider)" />
                     </div>
                 </div>
             </p-accordion-header>
@@ -117,7 +117,7 @@
                         <div>
                             <div class="flex justify-between items-center mb-3">
                                 <div class="font-bold text-sm text-gray-600">Teléfonos</div>
-                                <p-button *nfIf="userRoles.includes(0) || userRoles.includes(2)" icon="pi pi-plus" label="Agregar Teléfono" severity="secondary" [outlined]="true" size="small" (onClick)="addPhone(provider)" />
+                                <p-button *ngIf="userRoles.includes(0) || userRoles.includes(2)" icon="pi pi-plus" label="Agregar Teléfono" severity="secondary" [outlined]="true" size="small" (onClick)="addPhone(provider)" />
                             </div>
                             <div *ngIf="provider.phones && provider.phones.length > 0" class="space-y-2">
                                 <div *ngFor="let phone of provider.phones" class="flex items-center justify-between p-2 phone-item rounded">
@@ -125,7 +125,7 @@
                                         <i class="pi pi-phone text-primary mr-3 text-lg"></i>
                                         <span>{{ phone.phoneNumber }}</span>
                                     </div>
-                                    <p-button *nfIf="userRoles.includes(0) || userRoles.includes(2)" icon="pi pi-trash" severity="danger" [rounded]="true"  size="small" (click)="deletePhone(phone, provider)" text />
+                                    <p-button *ngIf="userRoles.includes(0) || userRoles.includes(2)" icon="pi pi-trash" severity="danger" [rounded]="true"  size="small" (click)="deletePhone(phone, provider)" text />
                                 </div>
                             </div>
                             <div *ngIf="!provider.phones || provider.phones.length === 0" class="text-gray-500 text-sm italic">No hay teléfonos registrados</div>
@@ -135,13 +135,13 @@
                         <div>
                             <div class="flex justify-between items-center mb-3">
                                 <div class="font-bold text-sm text-gray-600">Notas</div>
-                                <p-button *nfIf="userRoles.includes(0) || userRoles.includes(2)" icon="pi pi-plus" label="Agregar Nota" severity="secondary" [outlined]="true" size="small" (onClick)="addNote(provider)" />
+                                <p-button *gIf="userRoles.includes(0) || userRoles.includes(2)" icon="pi pi-plus" label="Agregar Nota" severity="secondary" [outlined]="true" size="small" (onClick)="addNote(provider)" />
                             </div>
                             <div *ngIf="provider.notes && provider.notes.length > 0" class="space-y-3">
                                 <div *ngFor="let note of provider.notes" class="p-3 note-item rounded">
                                     <div class="flex justify-between items-start mb-2">
                                         <div class="font-bold text-sm">{{ note.title || 'Sin título' }}</div>
-                                        <p-button *nfIf="userRoles.includes(0) || userRoles.includes(2)" icon="pi pi-trash" severity="danger" [rounded]="true" size="small" (click)="deleteNote(note, provider)" text />
+                                        <p-button *ngIf="userRoles.includes(0) || userRoles.includes(2)" icon="pi pi-trash" severity="danger" [rounded]="true" size="small" (click)="deleteNote(note, provider)" text />
                                     </div>
                                     <div class="text-sm">{{ note.content }}</div>
                                     <div class="text-xs text-gray-500 mt-2">{{ note.createdAt | date: 'short' }}</div>
