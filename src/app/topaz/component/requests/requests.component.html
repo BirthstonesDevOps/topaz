@@ -175,7 +175,7 @@
           <div class="flex gap-1" (click)="$event.stopPropagation()">
             <!-- Edit Button -->
             <p-button 
-              *ngIf="canEditRequest(request)"
+              *ngIf="canEditRequest(request) && (userRoles().includes(4) || userRoles().includes(0))"
               icon="pi pi-pencil" 
               severity="secondary" 
               size="small"

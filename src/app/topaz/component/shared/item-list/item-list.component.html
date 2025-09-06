@@ -120,14 +120,14 @@
             <td *ngIf="hasActions">
                 <div class="flex gap-2">
                     <p-button 
-                        *ngIf="onItemEdit && !item.loading"
+                        *ngIf="(onItemEdit && !item.loading) && (userRoles.includes(0) || userRoles.includes(6))"
                         icon="pi pi-pencil" 
                         [rounded]="true" 
                         [outlined]="true" 
                         (click)="editItem(item)"
                         pTooltip="Editar cantidad" />
                     <p-button 
-                        *ngIf="onItemDelete && !item.loading"
+                        *ngIf="(onItemDelete && !item.loading && (userRoles.includes(0) || userRoles.includes(7)))"
                         icon="pi pi-trash" 
                         severity="danger" 
                         [rounded]="true" 
