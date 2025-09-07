@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, signal } from '@angular/core';
+import { Component, OnInit, ViewChild, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -29,6 +29,7 @@ import {
 } from '@birthstonesdevops/topaz.backend.organizationservice';
 import { IconFieldModule } from "primeng/iconfield";
 import { InputIconModule } from "primeng/inputicon";
+import { UserRolesService } from '../../../services/user-roles.service';
 
 @Component({
   selector: 'app-providers',
@@ -56,7 +57,9 @@ import { InputIconModule } from "primeng/inputicon";
 export class ProvidersComponent implements OnInit {
   providers = signal<ProviderDetailsResponseModel[]>([]);
   filteredProviders = signal<ProviderDetailsResponseModel[]>([]);
-  
+
+  userRoles!: number[]; // User roles from local storage
+  userRolesService = inject(UserRolesService);
   // Dialog states
   addProviderDialog: boolean = false;
   editProviderDialog: boolean = false;
@@ -96,6 +99,12 @@ export class ProvidersComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadProviders();
+    this.getUserRoles();
+  }
+
+  getUserRoles(){
+    this.userRoles = this.userRolesService.userRoles();
+    console.log('userRoles: ', this.userRoles);
   }
 
   loadProviders(): void {

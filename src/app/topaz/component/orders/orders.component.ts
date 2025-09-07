@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit, signal, OnChanges, SimpleChanges, computed } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, signal, OnChanges, SimpleChanges, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -37,6 +37,7 @@ import {
   GetRequest
 } from '@birthstonesdevops/topaz.backend.organizationservice';
 import { OrderCreationDialogComponent } from './order-creation-dialog/order-creation-dialog.component';
+import { UserRolesService } from '../../../services/user-roles.service';
 
 // Extended order interface for table display
 interface OrderTableData extends PurchaseOrderDetailsResponseModel {
@@ -78,7 +79,8 @@ export class OrdersComponent implements OnInit, OnChanges {
   
   @Output() orderUpdated = new EventEmitter<RequestDetailsResponseModel>();
   @Output() orderChanged = new EventEmitter<number>(); // Emits request ID for reload
-  
+  userRolesSv = inject(UserRolesService);
+  userRoles = this.userRolesSv.userRoles();
   showCreateDialog: boolean = false;
   showEditDialog: boolean = false;
   editOrderData: OrderTableData | null = null;

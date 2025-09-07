@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Location } from '@angular/common';
@@ -36,6 +36,7 @@ import { ItemListComponent } from '../../shared/item-list/item-list.component';
 import { OrderDeliveryDetailsComponent } from '../order-delivery-details/order-delivery-details.component';
 import { Operations } from '../../models/operations.enum';
 import { OrderDeliveryCreationDialogComponent } from "../order-delivery-creation-dialog/order-delivery-creation-dialog.component";
+import { UserRolesService } from '../../../../services/user-roles.service';
 
 // Extended purchase order interface for detailed display
 interface EnrichedPurchaseOrderDetails extends PurchaseOrderDetailsResponseModel {
@@ -66,6 +67,9 @@ interface EnrichedPurchaseOrderDetails extends PurchaseOrderDetailsResponseModel
   providers: [MessageService]
 })
 export class OrderDetailsComponent implements OnInit {
+  // Track delivered items with quantity 1 (built from all deliveries)
+  userRoles = inject(UserRolesService).userRoles;
+  deliveredSingleItems: number[] = [];
   orderId: number | null = null;
   orderDetails = signal<EnrichedPurchaseOrderDetails | null>(null);
   requestDetails = signal<RequestDetailsResponseModel | null>(null);
@@ -173,6 +177,18 @@ export class OrderDetailsComponent implements OnInit {
         }
         
         this.orderDetails.set(enrichedOrder);
+
+          // Build deliveredSingleItems from all deliveries
+          this.deliveredSingleItems = [];
+          if (orderDetails.deliveries && orderDetails.deliveries.length > 0) {
+            orderDetails.deliveries.forEach(delivery => {
+              (delivery.items ?? []).forEach(item => {
+                if (item.quantity === 1 && typeof item.itemId === 'number' && !this.deliveredSingleItems.includes(item.itemId)) {
+                  this.deliveredSingleItems.push(item.itemId);
+                }
+              });
+            });
+          }
         
         // Load request details to get items pending
         if (orderDetails.requestId) {
