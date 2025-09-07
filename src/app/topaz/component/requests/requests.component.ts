@@ -1,4 +1,4 @@
-import { Component, signal, computed, OnInit } from '@angular/core';
+import { Component, signal, computed, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -41,6 +41,7 @@ import { RequestCreationDialogComponent } from './request-creation-dialog/reques
 import { Operations } from '../models/operations.enum';
 import { ToolbarModule } from "primeng/toolbar";
 import { IconFieldModule } from "primeng/iconfield";
+import { UserRolesService } from '../../../services/user-roles.service';
 
 // Extended request interface for table display
 interface RequestTableData extends RequestDetailsResponseModel {
@@ -78,6 +79,7 @@ interface RequestTableData extends RequestDetailsResponseModel {
   providers: [MessageService, ConfirmationService]
 })
 export class RequestsComponent implements OnInit {
+  userRoles = inject(UserRolesService).userRoles;
   showCreateDialog: boolean = false;
   showEditDialog: boolean = false;
   editRequestData: RequestTableData | null = null;

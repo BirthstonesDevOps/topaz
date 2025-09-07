@@ -3,7 +3,7 @@
 <!-- Toolbar -->
 <p-toolbar styleClass="mb-6" *ngIf="!isLoading && hasItems && canAdd && hasItemsToAdd()">
     <ng-template #start>
-        <p-button 
+        <p-button *ngIf="userRoles.includes(0) || userRoles.includes(6)"
             label="Agregar Artículo" 
             icon="pi pi-plus" 
             severity="secondary" 
@@ -52,15 +52,17 @@
     styleClass="auto-width-table"
 >
     <ng-template #caption>
-        <div class="flex items-center justify-between">
+        <div class="flex flex-wrap items-center justify-between gap-2">
             <h5 class="m-0">Lista de Artículos</h5>
-            <p-iconfield>
+            <p-iconfield class="flex-1 min-w-[150px] max-w-xs sm:max-w-sm md:max-w-md">
                 <p-inputicon styleClass="pi pi-search" />
                 <input 
                     pInputText 
                     type="text" 
                     (input)="onGlobalFilter(dt, $event)" 
-                    placeholder="Buscar..." />
+                    placeholder="Buscar..." 
+                    class="w-full"
+                />
             </p-iconfield>
         </div>
     </ng-template>
@@ -118,14 +120,14 @@
             <td *ngIf="hasActions">
                 <div class="flex gap-2">
                     <p-button 
-                        *ngIf="onItemEdit && !item.loading"
+                        *ngIf="(onItemEdit && !item.loading) && (userRoles.includes(0) || userRoles.includes(6))"
                         icon="pi pi-pencil" 
                         [rounded]="true" 
                         [outlined]="true" 
                         (click)="editItem(item)"
                         pTooltip="Editar cantidad" />
                     <p-button 
-                        *ngIf="onItemDelete && !item.loading"
+                        *ngIf="(onItemDelete && !item.loading && (userRoles.includes(0) || userRoles.includes(7)))"
                         icon="pi pi-trash" 
                         severity="danger" 
                         [rounded]="true" 

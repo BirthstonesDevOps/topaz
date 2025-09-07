@@ -13,7 +13,7 @@
         <div class="text-gray-600 font-bold text-xl mb-2">No hay órdenes de compra</div>
         <div class="text-gray-500 mb-4">No se han registrado órdenes de compra aún.</div>
         <p-button 
-          *ngIf="requestId" 
+          *ngIf="requestId && (userRoles.includes(11) || userRoles.includes(0))" 
           label="Crear orden de compra" 
           icon="pi pi-plus" 
           severity="primary" 
@@ -25,7 +25,7 @@
     </div>
 </div>
 
-<p-toolbar styleClass="mb-6" *ngIf="!loading() && allOrders().length > 0 && requestId">
+<p-toolbar styleClass="mb-6" *ngIf="!loading() && requestId && itemFilter && itemFilter.length > 0 && (userRoles.includes(11) || userRoles.includes(0))">
     <ng-template pTemplate="start">
         <p-button label="Nueva orden de compra" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openCreateDialog()" />
     </ng-template>
@@ -182,7 +182,7 @@
           <div class="flex gap-1" (click)="$event.stopPropagation()">
             <!-- Edit Button -->
             <p-button 
-              *ngIf="canEditOrder(order)"
+              *ngIf="canEditOrder(order) && (userRoles.includes(13) || userRoles.includes(14) || userRoles.includes(0))"
               icon="pi pi-pencil" 
               severity="secondary" 
               size="small"
@@ -194,7 +194,7 @@
             
             <!-- Delete Button -->
             <p-button 
-              *ngIf="canDeleteOrder(order)"
+              *ngIf="canDeleteOrder(order) && (userRoles.includes(12) || userRoles.includes(0))"
               icon="pi pi-trash" 
               severity="danger" 
               size="small"

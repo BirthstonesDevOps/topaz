@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
 import { CommonModule } from '@angular/common';
@@ -19,6 +19,7 @@ import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { LocationService } from '@birthstonesdevops/topaz.backend.organizationservice';
 import { LocationResponseModel, LocationRequestModel } from '@birthstonesdevops/topaz.backend.organizationservice';
+import { UserRolesService } from '../../../services/user-roles.service';
 
 interface Column {
     field: string;
@@ -68,7 +69,7 @@ export class LocationsComponent implements OnInit {
 
     loading: boolean = false;
 
-
+    userRoles = inject(UserRolesService).userRoles;
 
     submitted: boolean = false;
 
