@@ -31,7 +31,7 @@
         <p-tabs [value]="0">
             <p-tablist>
                 <p-tab [value]="0">Detalles</p-tab>
-                <p-tab [value]="1">Estado</p-tab>
+                <p-tab *ngIf="userRoles().includes(16) || userRoles().includes(0)" [value]="1">Estado</p-tab>
                 <p-tab [value]="2" *ngIf="canShowOrdersTab()">Órdenes</p-tab>
             </p-tablist>
             
@@ -84,7 +84,7 @@
                 </p-tabpanel>
 
                 <!-- Status Tab -->
-                <p-tabpanel [value]="1">
+                <p-tabpanel *ngIf="userRoles().includes(16) || userRoles().includes(0)" [value]="1">
                     <div class="p-4">
                         <app-status-note-tree 
                             [statusHistory]="requestDetails()?.statusHistory || []"
@@ -114,19 +114,19 @@
             <ng-template #center>
                 <div class="flex justify-center align-center gap-4 w-full">
                     <p-button 
-                        *ngIf="canApproveRequest()"
+                        *ngIf="canApproveRequest() && (userRoles().includes(9) || userRoles().includes(0))"
                         label="Aprobar Pedido" 
                         icon="pi pi-check" 
                         severity="success"
                         (onClick)="approveRequest()" />
                     <p-button 
-                        *ngIf="canRejectRequest()"
+                        *ngIf="canRejectRequest() && (userRoles().includes(10) || userRoles().includes(0))"
                         label="Rechazar Pedido" 
                         icon="pi pi-times" 
                         severity="danger"
                         (onClick)="rejectRequest()" />
                     <p-button 
-                        *ngIf="canReviseRequest()"
+                        *ngIf="canReviseRequest() && (userRoles().includes(8) || userRoles().includes(0))"
                         label="Revisar Pedido" 
                         icon="pi pi-pencil" 
                         severity="info"

@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -35,6 +35,7 @@ import { StatusNoteTreeComponent } from '../../shared/status-note-tree/status-no
 import { ItemListComponent } from '../../shared/item-list/item-list.component';
 import { OrdersComponent } from '../../orders/orders.component';
 import { Operations } from '../../models/operations.enum';
+import { UserRolesService } from '../../../../services/user-roles.service';
 
 // Extended request interface for detailed display
 interface EnrichedRequestDetails extends RequestDetailsResponseModel {
@@ -71,7 +72,7 @@ export class RequestDetailsComponent implements OnInit {
   requestDetails = signal<EnrichedRequestDetails | null>(null);
   loading = signal<boolean>(false);
   error: string | null = null;
-
+  userRoles = inject(UserRolesService).userRoles;
   constructor(
     private route: ActivatedRoute,
     private router: Router,

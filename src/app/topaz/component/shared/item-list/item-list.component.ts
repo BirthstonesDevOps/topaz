@@ -25,7 +25,7 @@
  * - Editing: If itemFilter is provided, quantities are limited by filter values; otherwise unlimited
  */
 
-import { Component, Input, OnInit, OnChanges, SimpleChanges, ViewChild, signal, computed } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, ViewChild, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -54,6 +54,7 @@ import {
   GetRequest 
 } from '@birthstonesdevops/topaz.backend.itemsservice';
 import { ItemRequestModel } from '@birthstonesdevops/topaz.backend.ordersservice';
+import { UserRolesService } from '../../../../services/user-roles.service';
 
 interface EnhancedItemDetails {
   orderItem: OrderItemDetailsResponseModel;
@@ -108,6 +109,8 @@ export class ItemListComponent implements OnInit, OnChanges {
   @Input() onItemEdit?: (data: { itemId: number; correspondentEntityId?: number; quantity: number }) => void;
 
   @ViewChild('dt') dt!: Table;
+
+  userRoles = inject(UserRolesService).userRoles();
 
   enhancedItems = signal<EnhancedItemDetails[]>([]);
   loading = signal<boolean>(false);

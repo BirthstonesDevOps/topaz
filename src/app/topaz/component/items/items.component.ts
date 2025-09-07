@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ToastModule } from "primeng/toast";
@@ -25,6 +25,7 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { RippleModule } from 'primeng/ripple';
+import { UserRolesService } from '../../../services/user-roles.service';
 
 export interface CategoryTreeModel {
   id: number;
@@ -70,7 +71,8 @@ export interface PriceFormModel {
 })
 export class ItemsComponent implements OnInit {
   loading: boolean = true;
-  
+  userRolesSv = inject(UserRolesService);
+  userRoles = this.userRolesSv.userRoles();
   items = signal<ItemDetailsResponseModel[]>([]);
   providers = signal<ProviderResponseModel[]>([]);
   categories = signal<CategoryTreeModel[]>([]);
