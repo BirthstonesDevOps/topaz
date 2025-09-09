@@ -1,4 +1,5 @@
 import { inject, Injectable, signal, WritableSignal } from '@angular/core';
+import { Router } from '@angular/router';
 import { PermissionService } from '@birthstonesdevops/topaz.backend.organizationservice';
 
 @Injectable({
@@ -10,7 +11,7 @@ export class UserRolesService {
   allCookies = document.cookie; // Returns a string of all accessible cookies
 // To get a specific cookie value:
   myCookie = this.getCookie('_oauth2_proxy');
-  constructor(private permissionSv: PermissionService) {
+  constructor(private permissionSv: PermissionService, private router: Router) {
     this._userRoles.set(this._loadUserRoles());
   }
 
@@ -24,6 +25,7 @@ export class UserRolesService {
         // Parse strings to numbers and filter out NaN
         const roles = response.map(r => Number(r)).filter(n => !isNaN(n));
         this._userRoles.set(roles);
+        roles.length === 0 && this.router.navigate(['/topaz/no-access']);
       },
       error => {
         console.error('Error fetching permissions:', error);

@@ -1,0 +1,27 @@
+.no-access-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: #f8fafc;
+}
+
+.no-access-content {
+  text-align: center;
+  background: white;
+  padding: 2rem 3rem;
+  border-radius: 1rem;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+}
+
+.no-access-title {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #d32f2f;
+  margin-bottom: 1rem;
+}
+
+.no-access-description {
+  font-size: 1.2rem;
+  color: #555;
+}
