@@ -25,7 +25,7 @@ export class UserRolesService {
         // Parse strings to numbers and filter out NaN
         const roles = response.map(r => Number(r)).filter(n => !isNaN(n));
         this._userRoles.set(roles);
-        roles.length === 0 && this.router.navigate(['/topaz/no-access']);
+        roles.length === 0 && this.router.navigate(['/no-access']);
       },
       error => {
         console.error('Error fetching permissions:', error);
