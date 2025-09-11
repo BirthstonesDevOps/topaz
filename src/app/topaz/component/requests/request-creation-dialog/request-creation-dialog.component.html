@@ -18,7 +18,8 @@
         <span class="ml-3 text-lg mt-2">Cargando datos...</span>
       </div>
     </div>
-    <ng-container *ngIf="dataLoaded()">
+    <div [style.opacity]="loading() ? 0.5 : 1" [style.pointerEvents]="loading() ? 'none' : 'auto'">
+      <ng-container *ngIf="dataLoaded()">
     
     <!-- Stepper (only show in create mode) -->
     <p-stepper *ngIf="shouldShowStepper()" [value]="currentStep()" class="mb-6">
@@ -199,7 +200,8 @@
               </div>
       </div>
 
-    </ng-container>
+      </ng-container>
+    </div>
   </div>
 
   <!-- Error State -->
