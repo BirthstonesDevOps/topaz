@@ -201,10 +201,9 @@ export class ItemListComponent implements OnInit, OnChanges {
     private confirmationService: ConfirmationService
   ) {}
 
-  ngOnInit() {
-    console.log('ngOnInit');
-    console.log('loading: ', this.loading());
+  async ngOnInit() {
     this.initializeColumns();
+    await this.loadAllItemsToCacheIfNeeded();
     this.loadItemDetails();
     // Load available items initially to determine if add button should be shown
     if (this.onItemSave) {
@@ -314,41 +313,88 @@ export class ItemListComponent implements OnInit, OnChanges {
     this.itemDialog.set(true);
   }
 
+
+  // LocalStorage cache key
+  private readonly LOCAL_STORAGE_KEY = 'allItemsCache';
+
+
+  private saveItemsToLocalStorage(items: ItemServiceItemDetailsResponseModel[]) {
+    // Map description: null -> '' for type compatibility
+    const mapped = items.map(item => ({
+      ...item,
+      description: item.description ?? ''
+    }));
+    localStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(mapped));
+  }
+
+
+  private getItemsFromLocalStorage(): ItemResponseModel[] | null {
+    const data = localStorage.getItem(this.LOCAL_STORAGE_KEY);
+    if (!data) return null;
+    try {
+      // Map description: null -> '' for type compatibility
+      const parsed = JSON.parse(data);
+      return Array.isArray(parsed)
+        ? parsed.map(item => ({ ...item, description: item.description ?? '' }))
+        : null;
+    } catch {
+      return null;
+    }
+  }
+
+
+  private async loadAllItemsToCacheIfNeeded(forceReload = false): Promise<ItemResponseModel[]> {
+    if (!forceReload) {
+      const cached = this.getItemsFromLocalStorage();
+      if (cached && Array.isArray(cached) && cached.length > 0) {
+        return cached;
+      }
+    }
+    // Fetch from MS and cache
+    try {
+      const allItems = await this.itemService.itemGetAllItemsDetails().toPromise();
+      if (allItems && Array.isArray(allItems)) {
+        this.saveItemsToLocalStorage(allItems);
+        // Map description: null -> '' for type compatibility
+        return allItems.map(item => ({ ...item, description: item.description ?? '' }));
+      }
+    } catch (error) {
+      console.error('Error loading all items for cache:', error);
+    }
+    return [];
+  }
+
+  // Use this in create/edit/delete item flows:
+  async refreshAllItemsCache() {
+    await this.loadAllItemsToCacheIfNeeded(true);
+  }
+
   async loadAvailableItems() {
-  this.loadingAvailableItems.set(true);
+    this.loadingAvailableItems.set(true);
     try {
       let filteredItems: FilterItemData[] = [];
-      
+      const allItems = await this.loadAllItemsToCacheIfNeeded();
       // Filter provided: load only filtered items
       if (this.itemFilter && this.itemFilter.length > 0) {
         for (const filterItem of this.itemFilter) {
           if (filterItem.itemId) {
-            try {
-              const getRequest: GetRequest = { ids: [filterItem.itemId] };
-              const itemDetails = await this.itemService.itemGetById(getRequest).toPromise();
-              if (itemDetails) {
-                // Check if this item is already in the current items list
-                const isAlreadyAdded = this.items.some(existingItem => existingItem.itemId === itemDetails.id);
-                
-                filteredItems.push({
-                  ...itemDetails,
-                  maxQuantity: filterItem.quantity || 1,
-                  isAlreadyAdded: isAlreadyAdded
-                });
-              }
-            } catch (error) {
-              console.error(`Error loading filtered item ${filterItem.itemId}:`, error);
+            const itemDetails = allItems.find(item => item.id === filterItem.itemId) || null;
+            if (itemDetails) {
+              const isAlreadyAdded = this.items.some(existingItem => existingItem.itemId === itemDetails.id);
+              filteredItems.push({
+                ...itemDetails,
+                maxQuantity: filterItem.quantity || 1,
+                isAlreadyAdded: isAlreadyAdded
+              });
             }
           }
         }
       }
       // Soft filter or no filter: load all items
       else {
-        const allItems = await this.itemService.itemGetAllItemsDetails().toPromise();
         filteredItems = (allItems || []).map(item => {
           // Check if this item is already in the current items list
           const isAlreadyAdded = this.items.some(existingItem => existingItem.itemId === item.id);
-          
           return {
             ...item,
             maxQuantity: 999999, // No limit when no filter is applied
@@ -356,7 +402,6 @@ export class ItemListComponent implements OnInit, OnChanges {
           };
         });
       }
-      
       this.availableItems.set(filteredItems);
     } catch (error) {
       console.error('Error loading available items:', error);
@@ -366,7 +411,7 @@ export class ItemListComponent implements OnInit, OnChanges {
         detail: 'Error cargando artículos disponibles'
       });
     } finally {
-  this.loadingAvailableItems.set(false);
+      this.loadingAvailableItems.set(false);
     }
   }
 
