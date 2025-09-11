@@ -9,17 +9,16 @@
 
   <p-toast />
 
-  <!-- Loading Spinner -->
-  <div *ngIf="loading()" class="flex items-center justify-center p-8">
-    <p-progressspinner [style]="{ width: '50px', height: '50px' }" strokeWidth="4" />
-    <span class="ml-3 text-lg">Cargando datos...</span>
-  </div>
-
-  <!-- Main Content with scroll -->
-  <div 
-    *ngIf="!loading() && dataLoaded()" 
-    style="max-height: 70vh; min-height: 70vh; overflow-y: auto; padding-right: 8px;"
-  >
+  <!-- Main Content with scroll (always rendered) -->
+  <div style="position:relative; max-height: 70vh; min-height: 70vh; overflow-y: auto; padding-right: 8px;">
+    <!-- Loading Overlay -->
+    <div *ngIf="loading()" style="position:absolute; inset:0; z-index:10; background:rgba(255,255,255,0.7); display:flex; align-items:center; justify-content:center;">
+      <div class="flex flex-col items-center">
+        <p-progressspinner [style]="{ width: '50px', height: '50px' }" strokeWidth="4" />
+        <span class="ml-3 text-lg mt-2">Cargando datos...</span>
+      </div>
+    </div>
+    <ng-container *ngIf="dataLoaded()">
     
     <!-- Stepper (only show in create mode) -->
     <p-stepper *ngIf="shouldShowStepper()" [value]="currentStep()" class="mb-6">
@@ -115,7 +114,6 @@
     <!-- Step 2: Items (only show in create mode) -->
     <div *ngIf="currentStep() === 2 && !isEditMode" class="step-content">
       <h3 class="text-xl font-semibold mb-6">Artículos del Pedido</h3>
-      
       <app-item-list
         [items]="stepData().items"
         [showMeasurement]="true"
@@ -201,6 +199,7 @@
               </div>
       </div>
 
+    </ng-container>
   </div>
 
   <!-- Error State -->
