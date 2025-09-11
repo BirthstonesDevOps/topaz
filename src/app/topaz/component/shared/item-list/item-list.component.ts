@@ -290,6 +290,7 @@ export class ItemListComponent implements OnInit, OnChanges {
       });
       this.enhancedItems.set([...enhanced]);
       this.loading.set(false);
+      console.log('loading: ', this.loading());
     });
   }
 
