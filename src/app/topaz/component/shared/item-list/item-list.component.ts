@@ -200,6 +200,8 @@ export class ItemListComponent implements OnInit, OnChanges {
   ) {}
 
   ngOnInit() {
+    console.log('ngOnInit');
+    console.log('loading: ', this.loading());
     this.initializeColumns();
     this.loadItemDetails();
     // Load available items initially to determine if add button should be shown
