@@ -45,6 +45,8 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { TagModule } from 'primeng/tag';
 import { CheckboxModule } from 'primeng/checkbox';
 import { TooltipModule } from 'primeng/tooltip';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 import { ItemService } from '@birthstonesdevops/topaz.backend.itemsservice';
 import { ItemDetailsResponseModel as OrderItemDetailsResponseModel } from '@birthstonesdevops/topaz.backend.ordersservice';
@@ -246,45 +248,49 @@ export class ItemListComponent implements OnInit, OnChanges {
   }
 
   async loadItemDetails() {
-  //   if (this.items.length === 0) {
-  //     this.enhancedItems.set([]);
-  // this.loading.set(false);
-  //     return;
-  //   }
+    if (this.items.length === 0) {
+      this.enhancedItems.set([]);
+      this.loading.set(false);
+      return;
+    }
 
-  this.loading.set(true);
-    console.log('loading: ', this.loading());
+    this.loading.set(true);
     const enhanced: EnhancedItemDetails[] = this.items.map(orderItem => ({
       orderItem,
       itemDetails: null,
       loading: true
     }));
-    
     this.enhancedItems.set(enhanced);
 
-    // Load item details for each item
-    for (let i = 0; i < enhanced.length; i++) {
-      const orderItem = enhanced[i].orderItem;
+    // Prepare all observables for forkJoin
+    const itemDetailObservables = enhanced.map((enh, i) => {
+      const orderItem = enh.orderItem;
       if (orderItem.itemId) {
-        try {
-          const getRequest: GetRequest = { ids: [orderItem.itemId] };
-          const itemDetails = await this.itemService.itemGetById(getRequest).toPromise();
-          enhanced[i].itemDetails = itemDetails || null;
-        } catch (error) {
-          console.error(`Error loading item details for item ${orderItem.itemId}:`, error);
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Error cargando detalles del artículo ${orderItem.itemId}`
-          });
-        }
+        const getRequest: GetRequest = { ids: [orderItem.itemId] };
+        return this.itemService.itemGetById(getRequest).pipe(
+          catchError(error => {
+            console.error(`Error loading item details for item ${orderItem.itemId}:`, error);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Error cargando detalles del artículo ${orderItem.itemId}`
+            });
+            return of(null);
+          })
+        );
+      } else {
+        return of(null);
       }
-  enhanced[i].loading = false;
-    }
-    
-    this.enhancedItems.set([...enhanced]);
-  this.loading.set(false);
-  console.log('loading: ', this.loading());
+    });
+
+    forkJoin(itemDetailObservables).subscribe(results => {
+      results.forEach((itemDetails, i) => {
+        enhanced[i].itemDetails = itemDetails;
+        enhanced[i].loading = false;
+      });
+      this.enhancedItems.set([...enhanced]);
+      this.loading.set(false);
+    });
   }
 
   onGlobalFilter(table: Table, event: Event) {
