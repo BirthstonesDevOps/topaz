@@ -45,6 +45,8 @@ import { InputNumberModule } from 'primeng/inputnumber';
 import { TagModule } from 'primeng/tag';
 import { CheckboxModule } from 'primeng/checkbox';
 import { TooltipModule } from 'primeng/tooltip';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 import { ItemService } from '@birthstonesdevops/topaz.backend.itemsservice';
 import { ItemDetailsResponseModel as OrderItemDetailsResponseModel } from '@birthstonesdevops/topaz.backend.ordersservice';
@@ -113,7 +115,7 @@ export class ItemListComponent implements OnInit, OnChanges {
   userRoles = inject(UserRolesService).userRoles();
 
   enhancedItems = signal<EnhancedItemDetails[]>([]);
-  loading = signal<boolean>(false);
+  loading = signal<boolean>(true);
   globalFilter = signal<string>('');
   
   // Dialog states
@@ -199,8 +201,9 @@ export class ItemListComponent implements OnInit, OnChanges {
     private confirmationService: ConfirmationService
   ) {}
 
-  ngOnInit() {
+  async ngOnInit() {
     this.initializeColumns();
+    await this.loadAllItemsToCacheIfNeeded();
     this.loadItemDetails();
     // Load available items initially to determine if add button should be shown
     if (this.onItemSave) {
@@ -246,41 +249,48 @@ export class ItemListComponent implements OnInit, OnChanges {
   async loadItemDetails() {
     if (this.items.length === 0) {
       this.enhancedItems.set([]);
+      this.loading.set(false);
       return;
     }
 
     this.loading.set(true);
-    
     const enhanced: EnhancedItemDetails[] = this.items.map(orderItem => ({
       orderItem,
       itemDetails: null,
       loading: true
     }));
-    
     this.enhancedItems.set(enhanced);
 
-    // Load item details for each item
-    for (let i = 0; i < enhanced.length; i++) {
-      const orderItem = enhanced[i].orderItem;
+    // Prepare all observables for forkJoin
+    const itemDetailObservables = enhanced.map((enh, i) => {
+      const orderItem = enh.orderItem;
       if (orderItem.itemId) {
-        try {
-          const getRequest: GetRequest = { ids: [orderItem.itemId] };
-          const itemDetails = await this.itemService.itemGetById(getRequest).toPromise();
-          enhanced[i].itemDetails = itemDetails || null;
-        } catch (error) {
-          console.error(`Error loading item details for item ${orderItem.itemId}:`, error);
-          this.messageService.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Error cargando detalles del artículo ${orderItem.itemId}`
-          });
-        }
+        const getRequest: GetRequest = { ids: [orderItem.itemId] };
+        return this.itemService.itemGetById(getRequest).pipe(
+          catchError(error => {
+            console.error(`Error loading item details for item ${orderItem.itemId}:`, error);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: `Error cargando detalles del artículo ${orderItem.itemId}`
+            });
+            return of(null);
+          })
+        );
+      } else {
+        return of(null);
       }
-      enhanced[i].loading = false;
-    }
-    
-    this.enhancedItems.set([...enhanced]);
-    this.loading.set(false);
+    });
+
+    forkJoin(itemDetailObservables).subscribe(results => {
+      results.forEach((itemDetails, i) => {
+        enhanced[i].itemDetails = itemDetails;
+        enhanced[i].loading = false;
+      });
+      this.enhancedItems.set([...enhanced]);
+      this.loading.set(false);
+      console.log('loading: ', this.loading());
+    });
   }
 
   onGlobalFilter(table: Table, event: Event) {
@@ -303,41 +313,88 @@ export class ItemListComponent implements OnInit, OnChanges {
     this.itemDialog.set(true);
   }
 
+
+  // LocalStorage cache key
+  private readonly LOCAL_STORAGE_KEY = 'allItemsCache';
+
+
+  private saveItemsToLocalStorage(items: ItemServiceItemDetailsResponseModel[]) {
+    // Map description: null -> '' for type compatibility
+    const mapped = items.map(item => ({
+      ...item,
+      description: item.description ?? ''
+    }));
+    localStorage.setItem(this.LOCAL_STORAGE_KEY, JSON.stringify(mapped));
+  }
+
+
+  private getItemsFromLocalStorage(): ItemResponseModel[] | null {
+    const data = localStorage.getItem(this.LOCAL_STORAGE_KEY);
+    if (!data) return null;
+    try {
+      // Map description: null -> '' for type compatibility
+      const parsed = JSON.parse(data);
+      return Array.isArray(parsed)
+        ? parsed.map(item => ({ ...item, description: item.description ?? '' }))
+        : null;
+    } catch {
+      return null;
+    }
+  }
+
+
+  private async loadAllItemsToCacheIfNeeded(forceReload = false): Promise<ItemResponseModel[]> {
+    if (!forceReload) {
+      const cached = this.getItemsFromLocalStorage();
+      if (cached && Array.isArray(cached) && cached.length > 0) {
+        return cached;
+      }
+    }
+    // Fetch from MS and cache
+    try {
+      const allItems = await this.itemService.itemGetAllItemsDetails().toPromise();
+      if (allItems && Array.isArray(allItems)) {
+        this.saveItemsToLocalStorage(allItems);
+        // Map description: null -> '' for type compatibility
+        return allItems.map(item => ({ ...item, description: item.description ?? '' }));
+      }
+    } catch (error) {
+      console.error('Error loading all items for cache:', error);
+    }
+    return [];
+  }
+
+  // Use this in create/edit/delete item flows:
+  async refreshAllItemsCache() {
+    await this.loadAllItemsToCacheIfNeeded(true);
+  }
+
   async loadAvailableItems() {
     this.loadingAvailableItems.set(true);
     try {
       let filteredItems: FilterItemData[] = [];
-      
+      const allItems = await this.loadAllItemsToCacheIfNeeded();
       // Filter provided: load only filtered items
       if (this.itemFilter && this.itemFilter.length > 0) {
         for (const filterItem of this.itemFilter) {
           if (filterItem.itemId) {
-            try {
-              const getRequest: GetRequest = { ids: [filterItem.itemId] };
-              const itemDetails = await this.itemService.itemGetById(getRequest).toPromise();
-              if (itemDetails) {
-                // Check if this item is already in the current items list
-                const isAlreadyAdded = this.items.some(existingItem => existingItem.itemId === itemDetails.id);
-                
-                filteredItems.push({
-                  ...itemDetails,
-                  maxQuantity: filterItem.quantity || 1,
-                  isAlreadyAdded: isAlreadyAdded
-                });
-              }
-            } catch (error) {
-              console.error(`Error loading filtered item ${filterItem.itemId}:`, error);
+            const itemDetails = allItems.find(item => item.id === filterItem.itemId) || null;
+            if (itemDetails) {
+              const isAlreadyAdded = this.items.some(existingItem => existingItem.itemId === itemDetails.id);
+              filteredItems.push({
+                ...itemDetails,
+                maxQuantity: filterItem.quantity || 1,
+                isAlreadyAdded: isAlreadyAdded
+              });
             }
           }
         }
       }
       // Soft filter or no filter: load all items
       else {
-        const allItems = await this.itemService.itemGetAllItemsDetails().toPromise();
         filteredItems = (allItems || []).map(item => {
           // Check if this item is already in the current items list
           const isAlreadyAdded = this.items.some(existingItem => existingItem.itemId === item.id);
-          
           return {
             ...item,
             maxQuantity: 999999, // No limit when no filter is applied
@@ -345,7 +402,6 @@ export class ItemListComponent implements OnInit, OnChanges {
           };
         });
       }
-      
       this.availableItems.set(filteredItems);
     } catch (error) {
       console.error('Error loading available items:', error);
@@ -475,6 +531,10 @@ export class ItemListComponent implements OnInit, OnChanges {
   }
 
   get isLoading(): boolean {
-    return this.loading() || this.enhancedItems().some(item => item.loading);
+    // If there are items, check if any are loading; otherwise, just use the loading signal
+    if (this.enhancedItems().length > 0) {
+      return this.loading() || this.enhancedItems().some(item => item.loading);
+    }
+    return this.loading();
   }
 }
