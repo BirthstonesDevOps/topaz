@@ -113,7 +113,7 @@ export class ItemListComponent implements OnInit, OnChanges {
   userRoles = inject(UserRolesService).userRoles();
 
   enhancedItems = signal<EnhancedItemDetails[]>([]);
-  loading = signal<boolean>(false);
+  loading = signal<boolean>(true);
   globalFilter = signal<string>('');
   
   // Dialog states
