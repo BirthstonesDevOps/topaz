@@ -114,6 +114,7 @@ export class ItemListComponent implements OnInit, OnChanges {
 
   enhancedItems = signal<EnhancedItemDetails[]>([]);
   loading = signal<boolean>(false);
+  loadingAux = true;
   globalFilter = signal<string>('');
   
   // Dialog states
@@ -281,6 +282,7 @@ export class ItemListComponent implements OnInit, OnChanges {
     
     this.enhancedItems.set([...enhanced]);
     this.loading.set(false);
+    this.loadingAux = false;
   }
 
   onGlobalFilter(table: Table, event: Event) {
