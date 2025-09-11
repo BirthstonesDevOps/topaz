@@ -30,6 +30,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { Table, TableModule } from 'primeng/table';
+import { DropdownModule } from 'primeng/dropdown';
 import { ButtonModule } from 'primeng/button';
 import { RippleModule } from 'primeng/ripple';
 import { ToastModule } from 'primeng/toast';
@@ -80,7 +81,8 @@ interface FilterItemData extends ItemServiceItemDetailsResponseModel {
   imports: [
     CommonModule,
     FormsModule,
-    TableModule,
+  TableModule,
+  DropdownModule,
     ButtonModule,
     RippleModule,
     ToastModule,
