@@ -246,11 +246,11 @@ export class ItemListComponent implements OnInit, OnChanges {
   }
 
   async loadItemDetails() {
-    if (this.items.length === 0) {
-      this.enhancedItems.set([]);
-  this.loading.set(false);
-      return;
-    }
+  //   if (this.items.length === 0) {
+  //     this.enhancedItems.set([]);
+  // this.loading.set(false);
+  //     return;
+  //   }
 
   this.loading.set(true);
     console.log('loading: ', this.loading());
