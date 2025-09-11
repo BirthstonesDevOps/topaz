@@ -267,7 +267,6 @@ export class ItemListComponent implements OnInit, OnChanges {
           const getRequest: GetRequest = { ids: [orderItem.itemId] };
           const itemDetails = await this.itemService.itemGetById(getRequest).toPromise();
           enhanced[i].itemDetails = itemDetails || null;
-          this.loading.set(false);
         } catch (error) {
           console.error(`Error loading item details for item ${orderItem.itemId}:`, error);
           this.messageService.add({
@@ -275,7 +274,6 @@ export class ItemListComponent implements OnInit, OnChanges {
             summary: 'Error',
             detail: `Error cargando detalles del artículo ${orderItem.itemId}`
           });
-          this.loading.set(false);
         }
       }
       enhanced[i].loading = false;
