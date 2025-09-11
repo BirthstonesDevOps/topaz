@@ -480,6 +480,6 @@ export class ItemListComponent implements OnInit, OnChanges {
   }
 
   get isLoading(): boolean {
-    return this.loading() || this.enhancedItems().some(item => item.loading);
+    return this.loading()
   }
 }
