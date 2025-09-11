@@ -135,7 +135,7 @@
                         <div>
                             <div class="flex justify-between items-center mb-3">
                                 <div class="font-bold text-sm text-gray-600">Notas</div>
-                                <p-button *gIf="userRoles.includes(0) || userRoles.includes(2)" icon="pi pi-plus" label="Agregar Nota" severity="secondary" [outlined]="true" size="small" (onClick)="addNote(provider)" />
+                                <p-button *ngIf="userRoles.includes(0) || userRoles.includes(2)" icon="pi pi-plus" label="Agregar Nota" severity="secondary" [outlined]="true" size="small" (onClick)="addNote(provider)" />
                             </div>
                             <div *ngIf="provider.notes && provider.notes.length > 0" class="space-y-3">
                                 <div *ngFor="let note of provider.notes" class="p-3 note-item rounded">
