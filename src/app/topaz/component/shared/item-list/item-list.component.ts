@@ -25,7 +25,7 @@
  * - Editing: If itemFilter is provided, quantities are limited by filter values; otherwise unlimited
  */
 
-import { Component, Input, OnInit, OnChanges, SimpleChanges, ViewChild, signal, computed, inject, ChangeDetectorRef } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges, ViewChild, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService, MessageService } from 'primeng/api';
@@ -196,8 +196,7 @@ export class ItemListComponent implements OnInit, OnChanges {
   constructor(
     private itemService: ItemService,
     private messageService: MessageService,
-    private confirmationService: ConfirmationService,
-    private cdr: ChangeDetectorRef
+    private confirmationService: ConfirmationService
   ) {}
 
   ngOnInit() {
@@ -247,14 +246,12 @@ export class ItemListComponent implements OnInit, OnChanges {
   async loadItemDetails() {
     if (this.items.length === 0) {
       this.enhancedItems.set([]);
-      this.loading.set(false);
-      this.cdr.detectChanges();
+  this.loading.set(false);
       return;
     }
 
   this.loading.set(true);
-  this.cdr.detectChanges(); // Force update for spinner
-    
+    console.log('loading: ', this.loading());
     const enhanced: EnhancedItemDetails[] = this.items.map(orderItem => ({
       orderItem,
       itemDetails: null,
@@ -285,7 +282,7 @@ export class ItemListComponent implements OnInit, OnChanges {
     
     this.enhancedItems.set([...enhanced]);
   this.loading.set(false);
-  this.cdr.detectChanges(); // Force update for spinner
+  console.log('loading: ', this.loading());
   }
 
   onGlobalFilter(table: Table, event: Event) {
@@ -309,8 +306,7 @@ export class ItemListComponent implements OnInit, OnChanges {
   }
 
   async loadAvailableItems() {
-    this.loadingAvailableItems.set(true);
-    this.cdr.detectChanges(); // Force update for spinner
+  this.loadingAvailableItems.set(true);
     try {
       let filteredItems: FilterItemData[] = [];
       
@@ -361,8 +357,7 @@ export class ItemListComponent implements OnInit, OnChanges {
         detail: 'Error cargando artículos disponibles'
       });
     } finally {
-      this.loadingAvailableItems.set(false);
-      this.cdr.detectChanges(); // Force update for spinner
+  this.loadingAvailableItems.set(false);
     }
   }
 
