@@ -247,6 +247,8 @@ export class ItemListComponent implements OnInit, OnChanges {
   async loadItemDetails() {
     if (this.items.length === 0) {
       this.enhancedItems.set([]);
+      this.loading.set(false);
+      this.cdr.detectChanges();
       return;
     }
 
@@ -480,6 +482,10 @@ export class ItemListComponent implements OnInit, OnChanges {
   }
 
   get isLoading(): boolean {
-    return this.loading()
+    // If there are items, check if any are loading; otherwise, just use the loading signal
+    if (this.enhancedItems().length > 0) {
+      return this.loading() || this.enhancedItems().some(item => item.loading);
+    }
+    return this.loading();
   }
 }
