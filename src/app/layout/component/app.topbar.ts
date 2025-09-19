@@ -37,7 +37,7 @@ import { LayoutService } from '../service/layout.service';
                     >
                         <i class="pi pi-palette"></i>
                     </button>
-                    <button (click)="logOut()">Cerrar sesión</button>
+                    <!-- <button (click)="logOut()">Cerrar sesión</button> -->
                     <app-configurator />
                 </div>
             </div>
