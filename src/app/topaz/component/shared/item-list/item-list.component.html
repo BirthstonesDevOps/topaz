@@ -165,7 +165,9 @@
                     [virtualScroll]="true"
                     [virtualScrollItemSize]="40"
                     [appendTo]="'body'"
-                    (onChange)="onItemSelectionChange()">
+                    (onChange)="onItemSelectionChange()"
+                    [style]="{ width: '500px', minWidth: '350px', maxWidth: '700px' }"
+                >
                     <ng-template let-item pTemplate="selectedItem">
                         <div *ngIf="item">
                             <span class="font-medium">{{ item.name }}</span>
