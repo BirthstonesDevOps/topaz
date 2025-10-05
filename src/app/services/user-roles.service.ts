@@ -19,21 +19,21 @@ export class UserRolesService {
   private _loadUserRoles(): number[] {
     // Since the API call is asynchronous, return a default value synchronously
     // and update the signal when the response arrives.
-    // this.permissionSv?.permissionGetPermissionsByEmail().subscribe(
-    //   (response: string[]) => {
-    //     console.log('permissions: ', response);
-    //     // Parse strings to numbers and filter out NaN
-    //     const roles = response.map(r => Number(r)).filter(n => !isNaN(n));
-    //     this._userRoles.set(roles);
-    //     roles.length === 0 && this.router.navigate(['/no-access']);
-    //   },
-    //   error => {
-    //     console.error('Error fetching permissions:', error);
-    //     this._userRoles.set([0]);
-    //   }
-    // );
+    this.permissionSv?.permissionGetPermissionsByEmail().subscribe(
+      (response: string[]) => {
+        console.log('permissions: ', response);
+        // Parse strings to numbers and filter out NaN
+        const roles = response.map(r => Number(r)).filter(n => !isNaN(n));
+        this._userRoles.set(roles);
+        roles.length === 0 && this.router.navigate(['/no-access']);
+      },
+      error => {
+        console.error('Error fetching permissions:', error);
+        this._userRoles.set([0]);
+      }
+    );
     // Return a default value synchronously
-    return [4,5,6,7,8,9,10,16];
+    return [-1];
   }
 
   // Expose the signal for components to consume
