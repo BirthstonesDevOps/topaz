@@ -79,6 +79,7 @@
                     <!-- Items Section -->
                     <div>
                         <app-item-list 
+                            [place]="'order-details'"
                             [items]="orderDetails()?.items || []"
                             [itemFilter]="pendingItems() || undefined"
                             [showMeasurement]="true"

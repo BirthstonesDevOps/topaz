@@ -37,6 +37,7 @@ import { LayoutService } from '../service/layout.service';
                     >
                         <i class="pi pi-palette"></i>
                     </button>
+                    <!-- <button (click)="logOut()">Cerrar sesión</button> -->
                     <app-configurator />
                 </div>
             </div>
@@ -50,5 +51,18 @@ export class AppTopbar {
 
     toggleDarkMode() {
         this.layoutService.layoutConfig.update((state) => ({ ...state, darkTheme: !state.darkTheme }));
+    }
+
+    logOut(){
+        // Clear all cookies
+        const cookies = document.cookie.split(';');
+        for (const cookie of cookies) {
+            const eqPos = cookie.indexOf('=');
+            const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+            document.cookie = name.trim() + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+        }
+        localStorage.clear(); // Clear local storage
+        window.location.reload(); // Reload the page
+        // ...existing logout logic (e.g., redirect, clear localStorage, etc.)
     }
 }
