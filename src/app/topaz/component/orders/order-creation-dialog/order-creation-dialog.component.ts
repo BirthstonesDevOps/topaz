@@ -6,6 +6,7 @@ import { StepperModule } from 'primeng/stepper';
 import { ButtonModule } from 'primeng/button';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { SelectModule } from 'primeng/select';
+import { DropdownModule } from 'primeng/dropdown';
 import { InputTextModule } from 'primeng/inputtext';
 import { TextareaModule } from 'primeng/textarea';
 import { FluidModule } from 'primeng/fluid';
@@ -50,7 +51,8 @@ interface StepData {
     ToastModule,
     TagModule,
     DividerModule,
-    ItemListComponent
+  ItemListComponent,
+  DropdownModule
   ],
   templateUrl: './order-creation-dialog.component.html',
   styleUrl: './order-creation-dialog.component.css',

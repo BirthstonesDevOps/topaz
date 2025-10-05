@@ -41,29 +41,33 @@
         <!-- Provider Selection -->
         <div class="flex flex-col gap-2">
           <label for="provider" class="font-medium">Proveedor *</label>
-          <p-select 
+          <p-dropdown
             id="provider"
             [ngModel]="stepData().providerId"
             (ngModelChange)="updateProviderId($event)"
-            [options]="providers()" 
-            optionLabel="name" 
+            [options]="providers()"
+            optionLabel="name"
             optionValue="id"
             placeholder="Seleccione un proveedor"
             [filter]="true"
             filterBy="name,email"
             [showClear]="true"
-            class="w-full">
-            <ng-template #selecteditem let-option>
+            [virtualScroll]="true"
+            [virtualScrollItemSize]="40"
+            class="w-full"
+            [style]="{ width: '70vw' }"
+          >
+            <ng-template let-option pTemplate="selectedItem">
               {{ option?.name }}
             </ng-template>
-            <ng-template #item let-option>
+            <ng-template let-option pTemplate="item">
               <div class="flex flex-col">
                 <span class="font-medium">{{ option.name }}</span>
                 <span *ngIf="option.email" class="text-sm text-surface-500">{{ option.email }}</span>
                 <span *ngIf="option.address" class="text-sm text-surface-500">{{ option.address }}</span>
               </div>
             </ng-template>
-          </p-select>
+          </p-dropdown>
         </div>
 
         <!-- Order Number Input -->

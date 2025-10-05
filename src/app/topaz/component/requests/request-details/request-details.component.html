@@ -74,6 +74,7 @@
                     <!-- Items Section -->
                     <div>
                         <app-item-list 
+                            [place]="'request-details'"
                             [items]="requestDetails()?.items || []"
                             [showMeasurement]="true"
                             [onItemSave]="canAddItems() ? addItemHandler : undefined"
