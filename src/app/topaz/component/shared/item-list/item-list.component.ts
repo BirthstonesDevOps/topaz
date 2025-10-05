@@ -111,6 +111,7 @@ export class ItemListComponent implements OnInit, OnChanges {
   @Input() onItemSave?: (item: ItemRequestModel) => void;
   @Input() onItemDelete?: (data: { itemId: number; correspondentEntityId?: number }) => void;
   @Input() onItemEdit?: (data: { itemId: number; correspondentEntityId?: number; quantity: number }) => void;
+  @Input() place!:string;
 
   @ViewChild('dt') dt!: Table;
 
