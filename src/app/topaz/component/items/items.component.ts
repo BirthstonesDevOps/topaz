@@ -26,6 +26,7 @@ import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { RippleModule } from 'primeng/ripple';
 import { UserRolesService } from '../../../services/user-roles.service';
+import { ItemCacheService } from '../../../services/item-cache.service';
 
 export interface CategoryTreeModel {
   id: number;
@@ -112,7 +113,8 @@ export class ItemsComponent implements OnInit {
     private categoryService: CategoryService,
     private currencyService: CurrencyService,
     private itemService: ItemService,
-    private itemPriceService: ItemPriceService
+    private itemPriceService: ItemPriceService,
+    private itemCacheService: ItemCacheService
   ) {}
 
   ngOnInit(): void {
@@ -121,14 +123,23 @@ export class ItemsComponent implements OnInit {
 
   private loadInitialData(): void {
     this.loading = true;
-
-    forkJoin({
-      providers: this.providerService.providerGetAll(),
+    let forkJoinObj:any;
+    let local = localStorage.getItem('allItemsCache');
+    if(local){
+      const cachedItems: ItemDetailsResponseModel[] = JSON.parse(local);
+      this.items.set(cachedItems);
+      forkJoinObj = {providers: this.providerService.providerGetAll(),
+      categories: this.categoryService.categoryGetAll(),
+      currencies: this.currencyService.currencyGetAll()}
+    } else{
+      forkJoinObj = {providers: this.providerService.providerGetAll(),
       categories: this.categoryService.categoryGetAll(),
       currencies: this.currencyService.currencyGetAll(),
-      items: this.itemService.itemGetAllItemsDetails()
-    }).subscribe({
-      next: (data) => {
+      items: this.itemService.itemGetAllItemsDetails()}
+    }
+    forkJoin(forkJoinObj
+    ).subscribe({
+      next: (data:any) => {
         this.providers.set(data.providers);
         this.categories.set(this.buildCategoryTree(data.categories));
         this.categoryTreeNodes.set(this.convertToTreeNodes(this.categories()));
