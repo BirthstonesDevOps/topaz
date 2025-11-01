@@ -144,9 +144,10 @@ export class ItemsComponent implements OnInit {
         this.categories.set(this.buildCategoryTree(data.categories));
         this.categoryTreeNodes.set(this.convertToTreeNodes(this.categories()));
         this.currencies.set(data.currencies);
-        this.items.set(data.items);
+        data.items && this.items.set(data.items);
+        
         this.loading = false;
-        console.log('Loaded items:', data.items);
+        console.log('Loaded items:', this.items());
       },
       error: (error) => {
         console.error('Error loading initial data:', error);
