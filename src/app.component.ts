@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, inject, signal, ViewEncapsulation, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ItemCacheService } from './app/services/item-cache.service';
 import { RouterModule } from '@angular/router';
@@ -34,7 +34,7 @@ import { RouterModule } from '@angular/router';
         ],
         encapsulation: ViewEncapsulation.None
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
         private itemCacheService = inject(ItemCacheService);
         loading = signal(true);
 
@@ -42,5 +42,9 @@ export class AppComponent implements OnInit {
                 this.loading.set(true);
                 await this.itemCacheService.cacheAllItems();
                 this.loading.set(false);
+        }
+
+        ngOnDestroy(){
+            this.itemCacheService.clearItemsCache();
         }
 }

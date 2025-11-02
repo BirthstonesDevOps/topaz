@@ -22,4 +22,8 @@ export class ItemCacheService {
       console.error('Error caching all items on app init:', error);
     }
   }
+
+  clearItemsCache(): void {
+    localStorage.removeItem(this.LOCAL_STORAGE_KEY);
+  }
 }
