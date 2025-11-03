@@ -34,17 +34,15 @@ import { RouterModule } from '@angular/router';
         ],
         encapsulation: ViewEncapsulation.None
 })
-export class AppComponent implements OnInit, OnDestroy {
+export class AppComponent implements OnInit {
         private itemCacheService = inject(ItemCacheService);
         loading = signal(true);
 
         async ngOnInit(): Promise<void> {
                 this.loading.set(true);
+                //clear cache before caching again
+                await this.itemCacheService.clearItemsCache();
                 await this.itemCacheService.cacheAllItems();
                 this.loading.set(false);
-        }
-
-        ngOnDestroy(){
-            this.itemCacheService.clearItemsCache();
         }
 }
