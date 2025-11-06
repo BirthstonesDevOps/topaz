@@ -124,6 +124,7 @@ export class ItemsComponent implements OnInit {
 
   async getUserRoles() {
     this.userRoles = await this.userRolesSv.userRoles();
+    console.log('User roles in items component:', this.userRoles);
   }
 
   private loadInitialData(): void {
