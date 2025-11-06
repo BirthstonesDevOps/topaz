@@ -39,10 +39,11 @@ export class AppComponent implements OnInit {
         private itemCacheService = inject(ItemCacheService);
         loading = signal(true);
         userRolesSv = inject(UserRolesService);
-        userRoles = this.userRolesSv.userRoles();
+        
 
         async ngOnInit(): Promise<void> {
                 this.loading.set(true);
+                this.userRolesSv._loadUserRoles();
                 //clear cache before caching again
                 await this.itemCacheService.clearItemsCache();
                 await this.itemCacheService.cacheAllItems();
