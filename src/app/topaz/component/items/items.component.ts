@@ -538,8 +538,7 @@ export class ItemsComponent implements OnInit {
   private isFormValid(): boolean {
     return !!(
       this.itemForm.name?.trim() &&
-      this.selectedCategoryNode &&
-      this.hasValidPrices()
+      this.selectedCategoryNode
     );
   }
 
