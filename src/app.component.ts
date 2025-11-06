@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal, ViewEncapsulation, OnDestroy } from 
 import { CommonModule } from '@angular/common';
 import { ItemCacheService } from './app/services/item-cache.service';
 import { RouterModule } from '@angular/router';
+import { UserRolesService } from './app/services/user-roles.service';
 
 @Component({
         selector: 'app-root',
@@ -37,6 +38,8 @@ import { RouterModule } from '@angular/router';
 export class AppComponent implements OnInit {
         private itemCacheService = inject(ItemCacheService);
         loading = signal(true);
+        userRolesSv = inject(UserRolesService);
+        userRoles = this.userRolesSv.userRoles();
 
         async ngOnInit(): Promise<void> {
                 this.loading.set(true);
