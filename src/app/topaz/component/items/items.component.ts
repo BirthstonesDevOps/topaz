@@ -73,7 +73,7 @@ export interface PriceFormModel {
 export class ItemsComponent implements OnInit {
   loading: boolean = true;
   userRolesSv = inject(UserRolesService);
-  userRoles = this.userRolesSv.userRoles();
+  userRoles!:any;
   items = signal<ItemDetailsResponseModel[]>([]);
   providers = signal<ProviderResponseModel[]>([]);
   categories = signal<CategoryTreeModel[]>([]);
@@ -118,7 +118,12 @@ export class ItemsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.getUserRoles();
     this.loadInitialData();
+  }
+
+  async getUserRoles() {
+    this.userRoles = await this.userRolesSv.userRoles();
   }
 
   private loadInitialData(): void {
