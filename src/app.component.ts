@@ -1,7 +1,8 @@
-import { Component, OnInit, inject, signal, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, inject, signal, ViewEncapsulation, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ItemCacheService } from './app/services/item-cache.service';
 import { RouterModule } from '@angular/router';
+import { UserRolesService } from './app/services/user-roles.service';
 
 @Component({
         selector: 'app-root',
@@ -37,9 +38,14 @@ import { RouterModule } from '@angular/router';
 export class AppComponent implements OnInit {
         private itemCacheService = inject(ItemCacheService);
         loading = signal(true);
+        userRolesSv = inject(UserRolesService);
+        
 
         async ngOnInit(): Promise<void> {
                 this.loading.set(true);
+                this.userRolesSv._loadUserRoles();
+                //clear cache before caching again
+                await this.itemCacheService.clearItemsCache();
                 await this.itemCacheService.cacheAllItems();
                 this.loading.set(false);
         }

@@ -12,11 +12,11 @@ export class UserRolesService {
 // To get a specific cookie value:
   myCookie = this.getCookie('_oauth2_proxy');
   constructor(private permissionSv: PermissionService, private router: Router) {
-    this._userRoles.set(this._loadUserRoles());
+    
   }
 
   // Load user roles from localStorage
-  private _loadUserRoles(): number[] {
+  async _loadUserRoles() {
     // Since the API call is asynchronous, return a default value synchronously
     // and update the signal when the response arrives.
     this.permissionSv?.permissionGetPermissionsByEmail().subscribe(
@@ -29,11 +29,9 @@ export class UserRolesService {
       },
       error => {
         console.error('Error fetching permissions:', error);
-        this._userRoles.set([0]);
+        this._userRoles.set([-1]);
       }
     );
-    // Return a default value synchronously
-    return [-1];
   }
 
   // Expose the signal for components to consume
