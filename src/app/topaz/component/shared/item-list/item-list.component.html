@@ -167,7 +167,8 @@
                     [virtualScrollItemSize]="40"
                     [appendTo]="'body'"
                     (onChange)="onItemSelectionChange()"
-                    [style]="{ width: '70vw' }"
+                    [style]="{ width: '100%' }"
+                    panelStyleClass="item-dropdown-panel"
                 >
                     <ng-template let-item pTemplate="selectedItem">
                         <div *ngIf="item">

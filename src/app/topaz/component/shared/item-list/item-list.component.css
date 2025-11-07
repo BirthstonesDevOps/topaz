@@ -77,3 +77,17 @@
     padding: 1rem !important;
   }
 }
+
+/* Wider dropdown panel for item selection */
+::ng-deep .item-dropdown-panel {
+  min-width: 360px !important;
+  max-width: 95vw !important;
+  width: auto !important;
+}
+
+@media (max-width: 640px) {
+  ::ng-deep .item-dropdown-panel {
+    min-width: calc(100vw - 2rem) !important; /* leave small margin */
+    max-width: 100vw !important;
+  }
+}
