@@ -151,7 +151,10 @@ export class ItemsComponent implements OnInit {
         this.categoryTreeNodes.set(this.convertToTreeNodes(this.categories()));
         this.currencies.set(data.currencies);
         data.items && this.items.set(data.items);
-        
+        if (data.items) {
+          this.itemCacheService.saveItems(data.items);
+        }
+
         this.loading = false;
         console.log('Loaded items:', this.items());
       },
@@ -307,7 +310,9 @@ export class ItemsComponent implements OnInit {
           
           this.itemService.itemDelete(deleteRequest).subscribe({
             next: () => {
-              this.items.set(this.items().filter(i => i.id !== item.id));
+              const updated = this.items().filter(i => i.id !== item.id);
+              this.items.set(updated);
+              this.itemCacheService.saveItems(updated);
               this.messageService.add({
                 severity: 'success',
                 summary: 'Éxito',
@@ -406,11 +411,14 @@ export class ItemsComponent implements OnInit {
             this.categoryTreeNodes.set(this.convertToTreeNodes(this.categories()));
             this.currencies.set(data.currencies);
             this.items.set(data.items);
-            
+            if (data.items) {
+              this.itemCacheService.saveItems(data.items);
+            }
+
             // Close the add price dialog
             this.addPriceDialog = false;
             this.newPrice = {};
-            
+
             // Find the updated item and refresh the prices dialog
             const updatedItem = data.items.find(i => i.id === this.selectedItemForPrices.id);
             if (updatedItem) {
@@ -468,7 +476,10 @@ export class ItemsComponent implements OnInit {
                   this.categoryTreeNodes.set(this.convertToTreeNodes(this.categories()));
                   this.currencies.set(data.currencies);
                   this.items.set(data.items);
-                  
+                  if (data.items) {
+                    this.itemCacheService.saveItems(data.items);
+                  }
+
                   // Find the updated item and refresh the dialog
                   const updatedItem = data.items.find(i => i.id === item.id);
                   if (updatedItem) {
@@ -519,7 +530,9 @@ export class ItemsComponent implements OnInit {
       
       this.itemService.itemCreateItem(this.itemForm).subscribe({
         next: (newItem) => {
-          this.items.set([...this.items(), newItem]);
+          const updated = [...this.items(), newItem];
+          this.items.set(updated);
+          this.itemCacheService.saveItems(updated);
           this.messageService.add({
             severity: 'success',
             summary: 'Éxito',
