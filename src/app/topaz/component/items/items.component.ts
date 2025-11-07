@@ -26,6 +26,7 @@ import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
 import { RippleModule } from 'primeng/ripple';
 import { UserRolesService } from '../../../services/user-roles.service';
+import { ItemCacheService } from '../../../services/item-cache.service';
 
 export interface CategoryTreeModel {
   id: number;
@@ -72,7 +73,7 @@ export interface PriceFormModel {
 export class ItemsComponent implements OnInit {
   loading: boolean = true;
   userRolesSv = inject(UserRolesService);
-  userRoles = this.userRolesSv.userRoles();
+  userRoles!:any;
   items = signal<ItemDetailsResponseModel[]>([]);
   providers = signal<ProviderResponseModel[]>([]);
   categories = signal<CategoryTreeModel[]>([]);
@@ -112,30 +113,50 @@ export class ItemsComponent implements OnInit {
     private categoryService: CategoryService,
     private currencyService: CurrencyService,
     private itemService: ItemService,
-    private itemPriceService: ItemPriceService
+    private itemPriceService: ItemPriceService,
+    private itemCacheService: ItemCacheService
   ) {}
 
   ngOnInit(): void {
+    this.getUserRoles();
     this.loadInitialData();
+  }
+
+  async getUserRoles() {
+    this.userRoles = this.userRolesSv.userRoles();
+    console.log('User roles in items component:', this.userRoles);
   }
 
   private loadInitialData(): void {
     this.loading = true;
-
-    forkJoin({
-      providers: this.providerService.providerGetAll(),
+    let forkJoinObj:any;
+    let local = localStorage.getItem('allItemsCache');
+    if(local){
+      const cachedItems: ItemDetailsResponseModel[] = JSON.parse(local);
+      this.items.set(cachedItems);
+      forkJoinObj = {providers: this.providerService.providerGetAll(),
+      categories: this.categoryService.categoryGetAll(),
+      currencies: this.currencyService.currencyGetAll()}
+    } else{
+      forkJoinObj = {providers: this.providerService.providerGetAll(),
       categories: this.categoryService.categoryGetAll(),
       currencies: this.currencyService.currencyGetAll(),
-      items: this.itemService.itemGetAllItemsDetails()
-    }).subscribe({
-      next: (data) => {
+      items: this.itemService.itemGetAllItemsDetails()}
+    }
+    forkJoin(forkJoinObj
+    ).subscribe({
+      next: (data:any) => {
         this.providers.set(data.providers);
         this.categories.set(this.buildCategoryTree(data.categories));
         this.categoryTreeNodes.set(this.convertToTreeNodes(this.categories()));
         this.currencies.set(data.currencies);
-        this.items.set(data.items);
+        data.items && this.items.set(data.items);
+        if (data.items) {
+          this.itemCacheService.saveItems(data.items);
+        }
+
         this.loading = false;
-        console.log('Loaded items:', data.items);
+        console.log('Loaded items:', this.items());
       },
       error: (error) => {
         console.error('Error loading initial data:', error);
@@ -289,7 +310,9 @@ export class ItemsComponent implements OnInit {
           
           this.itemService.itemDelete(deleteRequest).subscribe({
             next: () => {
-              this.items.set(this.items().filter(i => i.id !== item.id));
+              const updated = this.items().filter(i => i.id !== item.id);
+              this.items.set(updated);
+              this.itemCacheService.saveItems(updated);
               this.messageService.add({
                 severity: 'success',
                 summary: 'Éxito',
@@ -388,11 +411,14 @@ export class ItemsComponent implements OnInit {
             this.categoryTreeNodes.set(this.convertToTreeNodes(this.categories()));
             this.currencies.set(data.currencies);
             this.items.set(data.items);
-            
+            if (data.items) {
+              this.itemCacheService.saveItems(data.items);
+            }
+
             // Close the add price dialog
             this.addPriceDialog = false;
             this.newPrice = {};
-            
+
             // Find the updated item and refresh the prices dialog
             const updatedItem = data.items.find(i => i.id === this.selectedItemForPrices.id);
             if (updatedItem) {
@@ -450,7 +476,10 @@ export class ItemsComponent implements OnInit {
                   this.categoryTreeNodes.set(this.convertToTreeNodes(this.categories()));
                   this.currencies.set(data.currencies);
                   this.items.set(data.items);
-                  
+                  if (data.items) {
+                    this.itemCacheService.saveItems(data.items);
+                  }
+
                   // Find the updated item and refresh the dialog
                   const updatedItem = data.items.find(i => i.id === item.id);
                   if (updatedItem) {
@@ -501,7 +530,9 @@ export class ItemsComponent implements OnInit {
       
       this.itemService.itemCreateItem(this.itemForm).subscribe({
         next: (newItem) => {
-          this.items.set([...this.items(), newItem]);
+          const updated = [...this.items(), newItem];
+          this.items.set(updated);
+          this.itemCacheService.saveItems(updated);
           this.messageService.add({
             severity: 'success',
             summary: 'Éxito',
@@ -526,8 +557,7 @@ export class ItemsComponent implements OnInit {
   private isFormValid(): boolean {
     return !!(
       this.itemForm.name?.trim() &&
-      this.selectedCategoryNode &&
-      this.hasValidPrices()
+      this.selectedCategoryNode
     );
   }
 
