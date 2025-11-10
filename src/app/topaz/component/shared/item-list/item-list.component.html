@@ -3,7 +3,7 @@
 <!-- Toolbar -->
 <p-toolbar styleClass="mb-6" *ngIf="!isLoading && hasItems && canAdd && hasItemsToAdd()">
     <ng-template #start>
-        <p-button *ngIf="userRoles.includes(0) || userRoles.includes(6)"
+        <p-button *ngIf="userRoles.includes(0) || userRoles.includes(6) || (place==='order-creation-dialog' && (userRoles.includes(13)))"
             label="Agregar Artículo" 
             icon="pi pi-plus" 
             severity="secondary" 
@@ -144,7 +144,8 @@
 <p-dialog 
     [(visible)]="itemDialog" 
     [style]="{ width: '800px' }" 
-    [breakpoints]="{ '960px': '75vw', '640px': '90vw' }"
+    [breakpoints]="{ '960px': '75vw', '640px': '100vw' }"
+    styleClass="full-mobile-dialog"
     header="Agregar Artículo" 
     [modal]="true"
     [appendTo]="'body'">
@@ -166,7 +167,8 @@
                     [virtualScrollItemSize]="40"
                     [appendTo]="'body'"
                     (onChange)="onItemSelectionChange()"
-                    [style]="{ width: '70vw' }"
+                    [style]="{ width: '100%' }"
+                    panelStyleClass="item-dropdown-panel"
                 >
                     <ng-template let-item pTemplate="selectedItem">
                         <div *ngIf="item">
