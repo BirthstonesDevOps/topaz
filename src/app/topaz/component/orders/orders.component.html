@@ -32,7 +32,7 @@
 </p-toolbar>
 
 <!-- Orders Data Table -->
-<div class="card" *ngIf="!loading() && allOrders().length > 0">
+<div class="card remove-padding" *ngIf="!loading() && allOrders().length > 0">
   <p-table 
     #dt
     [value]="allOrders()" 
