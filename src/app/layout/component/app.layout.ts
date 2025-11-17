@@ -16,7 +16,7 @@ import { LayoutService } from '../service/layout.service';
     template: `<div class="layout-wrapper" [ngClass]="containerClass">
         <app-topbar></app-topbar>
         <app-sidebar *ngIf="userRoles().length > 0"></app-sidebar>
-        <div class="layout-main-container remove-padding">
+        <div class="layout-main-container remove-padding add-padding-top-mobile">
             <div class="layout-main">
                 <router-outlet></router-outlet>
             </div>
