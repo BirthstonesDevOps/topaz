@@ -68,3 +68,11 @@
     background: var(--surface-0);
     border-top: 1px solid var(--surface-200);
 }
+
+@media (max-width: 414px) {
+    .table-header{
+        display: block;
+    }
+    
+}
+

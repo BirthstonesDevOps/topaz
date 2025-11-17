@@ -28,3 +28,13 @@
         stroke-dashoffset: -124px;
     }
 } 
+
+@media(max-width: 650px){
+    .remove-padding {
+        padding: 0 !important;
+    }
+
+    .add-padding-top-mobile {
+        padding-top: 6rem !important;
+    }
+}
