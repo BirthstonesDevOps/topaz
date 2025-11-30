@@ -49,15 +49,15 @@
                         </div>
                         <div class="flex flex-col">
                             <label class="font-semibold text-sm text-color-secondary mb-2">FECHA REQUERIDA</label>
-                            <span class="text-lg font-medium text-color">{{ formatDate(requestDetails()?.neededAt) }}</span>
+                            <span class="text-lg font-medium text-color">{{ formatDate(requestDetails()?.neededAt) | utc3 }}</span>
                         </div>
                         <div class="flex flex-col">
                             <label class="font-semibold text-sm text-color-secondary mb-2">FECHA DE CREACIÓN</label>
-                            <span class="text-lg font-medium text-color">{{ formatDate(requestDetails()?.createdAt) }}</span>
+                            <span class="text-lg font-medium text-color">{{ formatDate(requestDetails()?.createdAt) | utc3}}</span>
                         </div>
                         <div class="flex flex-col">
                             <label class="font-semibold text-sm text-color-secondary mb-2">FECHA DE ACTUALIZACIÓN</label>
-                            <span class="text-lg font-medium text-color">{{ formatDate(requestDetails()?.updatedAt || undefined) }}</span>
+                            <span class="text-lg font-medium text-color">{{ formatDate(requestDetails()?.updatedAt || undefined) | utc3}}</span>
                         </div>
                         <div class="flex flex-col">
                             <label class="font-semibold text-sm text-color-secondary mb-2">ESTADO ACTUAL</label>
