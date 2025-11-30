@@ -22,7 +22,7 @@
                             <div *ngFor="let note of event.notes; trackBy: trackByNoteId" class="note-item p-3 rounded-lg border-l-4" [style]="{ background: 'var(--surface-ground)', 'border-left-color': event.statusColor }">
                                 <p class="mb-2" style="color: var(--text-color)">{{ note.note || 'Sin contenido de nota' }}</p>
                                 <small style="color: var(--text-color-secondary)">
-                                    {{ formatDate(note.createdAt) }}
+                                    {{ formatDate(note.createdAt) | utc3}}
                                 </small>
                             </div>
                         </div>

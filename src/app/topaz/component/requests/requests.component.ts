@@ -296,7 +296,11 @@ export class RequestsComponent implements OnInit {
   // Utility methods
   formatDate(dateString: string | undefined): string {
     if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('es-ES', {
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return 'N/A';
+    // subtract 3 hours (UTC-3 / Argentina)
+    d.setHours(d.getHours() - 3);
+    return d.toLocaleDateString('es-ES', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit'
