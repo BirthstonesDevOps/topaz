@@ -36,6 +36,7 @@ import { ItemListComponent } from '../../shared/item-list/item-list.component';
 import { OrdersComponent } from '../../orders/orders.component';
 import { Operations } from '../../models/operations.enum';
 import { UserRolesService } from '../../../../services/user-roles.service';
+import { Utc3Pipe } from '../../shared/pipes/utc3.pipe';
 
 // Extended request interface for detailed display
 interface EnrichedRequestDetails extends RequestDetailsResponseModel {
@@ -61,7 +62,8 @@ interface EnrichedRequestDetails extends RequestDetailsResponseModel {
     TextareaModule,
     StatusNoteTreeComponent, 
     ItemListComponent,
-    OrdersComponent
+    OrdersComponent,
+    Utc3Pipe
   ],
   templateUrl: './request-details.component.html',
   styleUrl: './request-details.component.css',
@@ -509,7 +511,8 @@ export class RequestDetailsComponent implements OnInit {
   // Utility methods
   formatDate(dateString: string | undefined): string {
     if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('es-ES', {
+    const utc3 = new Date(new Date(dateString).getTime() - (3 * 60 * 60 * 1000)); // Adjust to UTC-3
+    return utc3.toLocaleDateString('es-AR', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',

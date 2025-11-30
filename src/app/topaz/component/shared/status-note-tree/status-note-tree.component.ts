@@ -7,6 +7,7 @@ import { TagModule } from 'primeng/tag';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { StatusDetailsResponseModel, StatusHistoryDetailsResponseModel, StatusHistoryNoteDetailsResponseModel } from '@birthstonesdevops/topaz.backend.ordersservice';
+import { Utc3Pipe } from '../pipes/utc3.pipe';
 
 
 interface TimelineEvent {
@@ -30,7 +31,8 @@ interface TimelineEvent {
     CardModule,
     TagModule,
     ButtonModule,
-    InputTextModule
+    InputTextModule,
+    Utc3Pipe
   ],
   templateUrl: './status-note-tree.component.html',
   styleUrls: ['./status-note-tree.component.css']
@@ -96,8 +98,8 @@ export class StatusNoteTreeComponent {
     if (!dateString) return 'Fecha no disponible';
     
     try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString('es-ES', {
+      const utc3 = new Date(new Date(dateString).getTime() - (3 * 60 * 60 * 1000)); // Adjust to UTC-3
+      return utc3.toLocaleDateString('es-ES', {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
