@@ -511,7 +511,8 @@ export class RequestDetailsComponent implements OnInit {
   // Utility methods
   formatDate(dateString: string | undefined): string {
     if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('es-AR', {
+    const utc3 = new Date(new Date(dateString).getTime() - (3 * 60 * 60 * 1000)); // Adjust to UTC-3
+    return utc3.toLocaleDateString('es-AR', {
       year: 'numeric',
       month: '2-digit',
       day: '2-digit',
