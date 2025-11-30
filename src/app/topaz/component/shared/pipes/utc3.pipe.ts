@@ -24,6 +24,7 @@ export class Utc3Pipe implements PipeTransform {
 
     // Use Angular DatePipe with IANA timezone for Argentina (UTC-3)
     const datePipe = new DatePipe(locale);
-    return datePipe.transform(d, format, 'America/Argentina/Buenos_Aires');
+    const dateUtc3 = new Date(d.getTime() - (3 * 60 * 60 * 1000)); // Adjust to UTC-3
+    return datePipe.transform(dateUtc3, format, 'America/Argentina/Buenos_Aires');
   }
 }
