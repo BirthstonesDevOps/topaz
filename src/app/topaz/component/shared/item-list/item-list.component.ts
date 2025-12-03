@@ -205,8 +205,6 @@ export class ItemListComponent implements OnInit, OnChanges {
   ) {}
 
   async ngOnInit() {
-    console.log('onItemEdit: ', this.onItemEdit);
-    console.log('onItemDelete: ', this.onItemDelete);
     this.initializeColumns();
     await this.loadAllItemsToCacheIfNeeded();
     this.loadItemDetails();
