@@ -316,6 +316,12 @@ export class ItemListComponent implements OnInit, OnChanges {
     this.itemDialog.set(true);
   }
 
+  setSelectedItemsOnBottom(){
+    let selecteItems = this.availableItems().filter(item => item.isAlreadyAdded);
+    let unselectedItems = this.availableItems().filter(item => !item.isAlreadyAdded);
+    this.availableItems.set([...unselectedItems, ...selecteItems]);
+  }
+
 
   // LocalStorage cache key
   private readonly LOCAL_STORAGE_KEY = 'allItemsCache';
@@ -406,6 +412,7 @@ export class ItemListComponent implements OnInit, OnChanges {
         });
       }
       this.availableItems.set(filteredItems);
+      this.setSelectedItemsOnBottom();
     } catch (error) {
       console.error('Error loading available items:', error);
       this.messageService.add({
