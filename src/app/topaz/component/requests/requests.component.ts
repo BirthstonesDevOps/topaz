@@ -189,8 +189,7 @@ export class RequestsComponent implements OnInit {
             return enrichedRequest;
           })
         );
-        
-        this.allRequests.set(enrichedRequests);
+        this.allRequests.set(enrichedRequests.reverse());
         
         // Extract unique statuses for column filter
         const uniqueStatuses = enrichedRequests
