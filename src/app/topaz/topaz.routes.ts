@@ -8,6 +8,7 @@ import { RequestDetailsComponent } from './component/requests/request-details/re
 import { OrdersComponent } from './component/orders/orders.component';
 import { OrderDetailsComponent } from './component/orders/order-details/order-details.component';
 import { NoAccessComponent } from './component/no-access.component';
+import { CategoriesComponent } from './component/categories/categories.component';
 
 export const topazRoutes: Routes = [
     { path: '', redirectTo: 'providers', pathMatch: 'full' },
@@ -15,6 +16,7 @@ export const topazRoutes: Routes = [
     { path: 'areas', component: AreasComponent },
     { path: 'providers', component: ProvidersComponent },
     { path: 'items', component: ItemsComponent },
+    { path: 'categories', component: CategoriesComponent },
     { path: 'requests', component: RequestsComponent },
     { path: 'requests/:id', component: RequestDetailsComponent },
     { path: 'orders', component: OrdersComponent },

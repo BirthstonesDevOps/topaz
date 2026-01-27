@@ -39,7 +39,10 @@ export class AppMenu {
 
             {
                 label: 'Productos',
-                items: [{ label: 'Items', icon: 'pi pi-fw pi-box', routerLink: ['/items'] }]
+                items: [
+                    { label: 'Items', icon: 'pi pi-fw pi-box', routerLink: ['/items'] },
+                    { label: 'Categorías', icon: 'pi pi-fw pi-tags', routerLink: ['/categories'] }
+                ]
             }
         ];
     }

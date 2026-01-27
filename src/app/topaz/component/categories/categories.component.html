@@ -1,0 +1,318 @@
+<p-toast></p-toast>
+
+<div *ngIf="loading()" class="card">
+    <div class="text-center">
+        <p-progressSpinner [style]="{ width: '50px', height: '50px' }" strokeWidth="6" styleClass="custom-spinner"> </p-progressSpinner>
+        <div class="mt-3 text-primary font-bold text-lg">Cargando categorías...</div>
+    </div>
+</div>
+
+<div *ngIf="!loading() && allCategories().length === 0" class="card">
+    <div class="text-center">
+        <i class="pi pi-tags big-icon text-gray-400 mb-4"></i>
+        <div class="text-gray-600 font-bold text-xl mb-2">No hay categorías</div>
+        <div class="text-gray-500 mb-4">No se han registrado categorías aún. Comienza creando la primera categoría.</div>
+        @if(userRoles().includes(4) || userRoles().includes(0)){
+            <p-button label="Crear categoría" icon="pi pi-plus" severity="primary" (onClick)="openCreateDialog()"></p-button>
+        }
+    </div>
+</div>
+
+<p-toolbar styleClass="mb-6" *ngIf="!loading() && allCategories().length > 0">
+    <ng-template #start>
+      @if(userRoles().includes(4) || userRoles().includes(0)){
+        <p-button label="Nueva categoría" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openCreateDialog()" />
+      }
+    </ng-template>
+</p-toolbar>
+
+<!-- Categories Data Table -->
+<div class="card" *ngIf="!loading() && allCategories().length > 0">
+  <p-table
+    #dt
+    [value]="allCategories()"
+    [paginator]="true"
+    [rows]="10"
+    [rowsPerPageOptions]="[5, 10, 25, 50]"
+    [globalFilterFields]="['name', 'description', 'parentCategory.name']"
+    responsiveLayout="scroll"
+    styleClass="p-datatable-gridlines"
+    dataKey="id"
+    [loading]="loading()"
+    [rowHover]="true"
+    [showGridlines]="true">
+
+    <ng-template pTemplate="caption">
+      <div class="flex justify-between items-center">
+        <h5 class="m-0">Categorías</h5>
+        <p-button
+          label="Limpiar filtros"
+          icon="pi pi-filter-slash"
+          severity="secondary"
+          (onClick)="dt.clearState()"
+        />
+      </div>
+    </ng-template>
+
+    <ng-template pTemplate="header">
+      <tr>
+        <th pSortableColumn="name">
+          <div class="flex justify-between items-center">
+            Nombre
+            <p-sortIcon field="name" />
+          </div>
+        </th>
+        <th pSortableColumn="description">
+          <div class="flex justify-between items-center">
+            Descripción
+            <p-sortIcon field="description" />
+          </div>
+        </th>
+        <th pSortableColumn="parentName">
+          <div class="flex justify-between items-center">
+            Categoría Padre
+            <p-sortIcon field="parentName" />
+          </div>
+        </th>
+        <th>Tipo</th>
+        <th>Acciones</th>
+      </tr>
+      <tr>
+        <th>
+          <p-iconField iconPosition="left">
+            <p-inputIcon styleClass="pi pi-search" />
+            <input pInputText type="text" (input)="dt.filter($any($event.target).value, 'name', 'contains')" placeholder="Buscar por nombre" class="p-column-filter">
+          </p-iconField>
+        </th>
+        <th>
+          <p-iconField iconPosition="left">
+            <p-inputIcon styleClass="pi pi-search" />
+            <input pInputText type="text" (input)="dt.filter($any($event.target).value, 'description', 'contains')" placeholder="Buscar por descripción" class="p-column-filter">
+          </p-iconField>
+        </th>
+        <th>
+          <p-iconField iconPosition="left">
+            <p-inputIcon styleClass="pi pi-search" />
+            <input pInputText type="text" (input)="dt.filter($any($event.target).value, 'parentCategory.name', 'contains')" placeholder="Buscar por padre" class="p-column-filter">
+          </p-iconField>
+        </th>
+        <th></th>
+        <th></th>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="body" let-category>
+      <tr>
+        <td>{{ category.name }}</td>
+        <td>{{ category.description }}</td>
+        <td>{{ category.parentCategory?.name || '-' }}</td>
+        <td>
+          <p-tag
+            [value]="getCategoryLevel(category)"
+            [severity]="category.parentId ? 'info' : 'success'"
+          />
+        </td>
+        <td>
+          <div class="flex gap-2">
+            @if(userRoles().includes(4) || userRoles().includes(0)){
+              <p-button
+                icon="pi pi-pencil"
+                severity="info"
+                size="small"
+                pTooltip="Editar"
+                tooltipPosition="top"
+                (onClick)="openEditDialog(category)"
+              />
+              <p-button
+                icon="pi pi-trash"
+                severity="danger"
+                size="small"
+                pTooltip="Eliminar"
+                tooltipPosition="top"
+                (onClick)="confirmDelete(category)"
+              />
+            }
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="5" class="text-center py-4">
+          No se encontraron categorías
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</div>
+
+<!-- Create Category Dialog -->
+<p-dialog
+  header="Crear Categoría"
+  [(visible)]="showCreateDialog"
+  [modal]="true"
+  [style]="{ width: '500px' }"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+>
+  <div class="p-fluid">
+    <div class="field">
+      <label for="create-name">Nombre *</label>
+      <input
+        pInputText
+        id="create-name"
+        [(ngModel)]="categoryForm.name"
+        placeholder="Ingrese el nombre de la categoría"
+        required
+      />
+    </div>
+    <div class="field">
+      <label for="create-description">Descripción</label>
+      <textarea
+        pInputTextarea
+        id="create-description"
+        [(ngModel)]="categoryForm.description"
+        placeholder="Ingrese una descripción opcional"
+        rows="3"
+      ></textarea>
+    </div>
+    <div class="field">
+      <label for="create-parent">Categoría Padre</label>
+      <p-select
+        id="create-parent"
+        [(ngModel)]="categoryForm.parentId"
+        [options]="parentCategories()"
+        optionLabel="name"
+        optionValue="id"
+        placeholder="Seleccione una categoría padre (opcional)"
+        [showClear]="true"
+      />
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button
+      label="Cancelar"
+      icon="pi pi-times"
+      severity="secondary"
+      (onClick)="closeCreateDialog()"
+    />
+    <p-button
+      label="Crear"
+      icon="pi pi-check"
+      severity="primary"
+      (onClick)="createCategory()"
+    />
+  </ng-template>
+</p-dialog>
+
+<!-- Edit Category Dialog -->
+<p-dialog
+  header="Editar Categoría"
+  [(visible)]="showEditDialog"
+  [modal]="true"
+  [style]="{ width: '500px' }"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+>
+  <div class="p-fluid">
+    <div class="field">
+      <label for="edit-name">Nombre *</label>
+      <input
+        pInputText
+        id="edit-name"
+        [(ngModel)]="categoryForm.name"
+        placeholder="Ingrese el nombre de la categoría"
+        required
+      />
+    </div>
+    <div class="field">
+      <label for="edit-description">Descripción</label>
+      <textarea
+        pInputTextarea
+        id="edit-description"
+        [(ngModel)]="categoryForm.description"
+        placeholder="Ingrese una descripción opcional"
+        rows="3"
+      ></textarea>
+    </div>
+    <div class="field">
+      <label for="edit-parent">Categoría Padre</label>
+      <p-select
+        id="edit-parent"
+        [(ngModel)]="categoryForm.parentId"
+        [options]="parentCategories()"
+        optionLabel="name"
+        optionValue="id"
+        placeholder="Seleccione una categoría padre (opcional)"
+        [showClear]="true"
+      />
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button
+      label="Cancelar"
+      icon="pi pi-times"
+      severity="secondary"
+      (onClick)="closeEditDialog()"
+    />
+    <p-button
+      label="Actualizar"
+      icon="pi pi-check"
+      severity="primary"
+      (onClick)="updateCategory()"
+    />
+  </ng-template>
+</p-dialog>
+
+<!-- Delete Confirmation Dialog -->
+<p-confirmDialog
+  header="Confirmar Eliminación"
+  icon="pi pi-exclamation-triangle"
+  acceptLabel="Eliminar"
+  rejectLabel="Cancelar"
+  acceptButtonStyleClass="p-button-danger"
+  rejectButtonStyleClass="p-button-secondary"
+  [style]="{ width: '450px' }"
+/>
+
+<!-- Delete Notes Dialog -->
+<p-dialog
+  header="Eliminar Categoría"
+  [(visible)]="showDeleteDialog"
+  [modal]="true"
+  [style]="{ width: '500px' }"
+  [closable]="true"
+  [draggable]="false"
+  [resizable]="false"
+>
+  <div class="p-fluid">
+    <div class="field">
+      <label for="delete-notes">Notas (opcional)</label>
+      <textarea
+        pInputTextarea
+        id="delete-notes"
+        [(ngModel)]="deleteNotes"
+        placeholder="Ingrese una razón para la eliminación"
+        rows="3"
+      ></textarea>
+    </div>
+  </div>
+  <ng-template pTemplate="footer">
+    <p-button
+      label="Cancelar"
+      icon="pi pi-times"
+      severity="secondary"
+      (onClick)="closeDeleteDialog()"
+    />
+    <p-button
+      label="Eliminar"
+      icon="pi pi-trash"
+      severity="danger"
+      [loading]="deletingCategory()"
+      (onClick)="deleteCategory()"
+    />
+  </ng-template>
+</p-dialog>
