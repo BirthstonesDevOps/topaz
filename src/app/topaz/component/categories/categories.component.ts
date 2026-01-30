@@ -87,7 +87,8 @@ export class CategoriesComponent implements OnInit {
     private categoryService: CategoryService
   ) {}
     ngOnInit(): void {
-        throw new Error('Method not implemented.');
+        
+    this.loadCategories();
     }
 
   loadCategories(): void {
