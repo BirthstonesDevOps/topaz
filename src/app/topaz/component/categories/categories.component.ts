@@ -184,7 +184,7 @@ export class CategoriesComponent implements OnInit {
     }
 
     const updateRequest: UpdateRequestOfCategoryUpdateRequestModel = {
-      ids: [{ id: this.editCategoryData.id?.toString() }],
+      ids: [{ id: new Number(this.editCategoryData.id) }],
       model: {
         name: this.categoryForm.name,
         description: this.categoryForm.description || null,
@@ -224,7 +224,7 @@ export class CategoriesComponent implements OnInit {
 
     this.deletingCategory.set(true);
     const deleteRequest: DeleteRequest = {
-      ids: [{ id: this.deleteCategoryId.toString() }]
+      ids: [{ id: new Number(this.deleteCategoryId) }],
     };
 
     this.categoryService.categoryDelete(deleteRequest).subscribe({
