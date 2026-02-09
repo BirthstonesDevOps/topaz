@@ -12,7 +12,7 @@
         <i class="pi pi-tags big-icon text-gray-400 mb-4"></i>
         <div class="text-gray-600 font-bold text-xl mb-2">No hay categorías</div>
         <div class="text-gray-500 mb-4">No se han registrado categorías aún. Comienza creando la primera categoría.</div>
-        @if(userRoles().includes(4) || userRoles().includes(0)){
+        @if(userRoles().includes(6) || userRoles().includes(0) || userRoles().includes(1)){
             <p-button label="Crear categoría" icon="pi pi-plus" severity="primary" (onClick)="openCreateDialog()"></p-button>
         }
     </div>
@@ -20,7 +20,7 @@
 
 <p-toolbar styleClass="mb-6" *ngIf="!loading() && allCategories().length > 0">
     <ng-template #start>
-      @if(userRoles().includes(4) || userRoles().includes(0)){
+      @if(userRoles().includes(1) || userRoles().includes(0)){
         <p-button label="Nueva categoría" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="openCreateDialog()" />
       }
     </ng-template>
@@ -114,7 +114,7 @@
         </td>
         <td>
           <div class="flex gap-2">
-            @if(userRoles().includes(4) || userRoles().includes(0)){
+            @if(userRoles().includes(1) || userRoles().includes(0)){
               <p-button
                 icon="pi pi-pencil"
                 severity="info"
