@@ -36,7 +36,6 @@ import { ItemListComponent } from '../../shared/item-list/item-list.component';
 import { OrdersComponent } from '../../orders/orders.component';
 import { Operations } from '../../models/operations.enum';
 import { UserRolesService } from '../../../../services/user-roles.service';
-import { Utc3Pipe } from '../../shared/pipes/utc3.pipe';
 
 // Extended request interface for detailed display
 interface EnrichedRequestDetails extends RequestDetailsResponseModel {
@@ -63,7 +62,6 @@ interface EnrichedRequestDetails extends RequestDetailsResponseModel {
     StatusNoteTreeComponent, 
     ItemListComponent,
     OrdersComponent,
-    Utc3Pipe
   ],
   templateUrl: './request-details.component.html',
   styleUrl: './request-details.component.css',
